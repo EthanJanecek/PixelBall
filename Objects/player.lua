@@ -1,6 +1,5 @@
 local player = {}
 
-
 function player:createRandom()
     self.__index = self
     local maxStamina = math.random(1, 10)

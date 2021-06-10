@@ -107,11 +107,9 @@ function NewStick( Props )
         ---------------------------------------------
         -- METHOD: MOVE AN OBJECT
         ---------------------------------------------
-        function Group:move(Obj, maxSpeed, rotate)
-                if rotate == true then Obj.rotation = self.angle end
-                Obj.x = Obj.x + Cos( Rad(self.angle-90) ) * (maxSpeed * self.percent) 
-                Obj.y = Obj.y + Sin( Rad(self.angle-90) ) * (maxSpeed * self.percent)
-				
+        function Group:move(Obj, maxSpeed)
+            Obj.x = Obj.x + Cos( Rad(self.angle-90) ) * (maxSpeed * self.percent)
+            Obj.y = Obj.y + Sin( Rad(self.angle-90) ) * (maxSpeed * self.percent)
         end
 		
 		---------------------------------------------
@@ -136,7 +134,7 @@ function NewStick( Props )
 		-- METHOD: ROTATE AN OBJECT
 		---------------------------------------------
 		function Group:rotate(Obj, rotate)
-				if rotate == true then Obj.rotation = self.angle end
+			if rotate == true then Obj.rotation = self.angle end
 		end
         
         ---------------------------------------------

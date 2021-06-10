@@ -8,12 +8,48 @@ local offense = true
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function gameLoop(mainGroup)
+local function controlPlayers(mainGroup, uiGroup, userTeam, opponent)
+    -- CREATE ANALOG STICK
+    MyStick = StickLib.NewStick( 
+        {
+        x = display.contentWidth * .0625,
+        y = display.contentHeight * .85,
+        thumbSize = 8,
+        borderSize = 16,
+        snapBackSpeed = .2,
+        R = 25,
+        G = 255,
+        B = 255,
+        group = uiGroup,
+    })
+
+    local player
+    for i = 1, 5 do
+        local play = userTeam.playbook.plays[1]
+        local positions = play.routes[i].points[1]
+
+        local playerImage = display.newImageRect(mainGroup, "images/playerModels/nba_player_red_back.png", 32, 48)
+        playerImage.x = tonumber(positions.x)
+        playerImage.y = tonumber(positions.y)
+
+        if(i == 3) then
+            player = playerImage
+        end
+    end
+
+    local function move()
+        MyStick:move(player, 1)
+    end
+
+    Runtime:addEventListener( "enterFrame", move )
+end
+
+local function gameLoop(mainGroup, uiGroup)
     local userTeam = league:findTeam(userTeam)
     local gameInfo = userTeam.schedule[league.gameNum]
     local opponent = league:findTeam(gameInfo.opponent)
 
-    controlPlayers(mainGroup)
+    controlPlayers(mainGroup, uiGroup, userTeam, opponent)
 end
 
 local function setBackdrop(backGroup)
@@ -30,26 +66,6 @@ local function setBackdrop(backGroup)
     backgroundImage.y = display.contentCenterY
 end
 
-local function setUI(uiGroup)
-     -- CREATE ANALOG STICK
-     MyStick = StickLib.NewStick( 
-        {
-        x = display.contentWidth * .0625,
-        y = display.contentHeight * .85,
-        thumbSize = 8,
-        borderSize = 16,
-        snapBackSpeed = .2,
-        R = 25,
-        G = 255,
-        B = 255,
-        group = uiGroup,
-    })
-end
-
-local function controlPlayers(mainGroup)
-    
-end
-
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -62,8 +78,7 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     setBackdrop(backGroup)
-    setUI(uiGroup)
-    gameLoop(mainGroup)
+    gameLoop(mainGroup, uiGroup)
 end
 
 

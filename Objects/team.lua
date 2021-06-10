@@ -1,4 +1,6 @@
 local PlayerLib = require("Objects.player")
+PlaybookLib = require("Objects.playbook")
+local playbook = require "Objects.playbook"
 
 local team = {}
 
@@ -15,7 +17,8 @@ function team:create(name, logo, conference, division, color)
         conf=conference,
         schedule={},
         division=division,
-        color=color
+        color=color,
+        playbook=PlaybookLib:createPlaybook()
     }, self)
 end
 

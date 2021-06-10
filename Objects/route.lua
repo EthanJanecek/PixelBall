@@ -1,11 +1,12 @@
-local league = {}
+local route = {}
 
-function league:createLeague()
+function route:createRoute(startX, startY, position)
     self.__index = self
 
+    local points = {}
+    table.insert(points, {x=startX, y=startY})
     return setmetatable({
-        teams=createTeams(),
-        gameNum=1,
+        position=position, points=points
     }, self)
 end
 
