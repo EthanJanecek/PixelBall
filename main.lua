@@ -7,12 +7,20 @@
 -- Your code here
 local composer = require("composer")
 
+conversionFactor = display.contentHeight / 940
+offsetX = 240 - (330 / 2)
+centerX = display.contentCenterX
+courtW = (centerX - offsetX) * 2
+bounds = {minX = offsetX, maxX = offsetX + courtW, minY = 0, maxY = display.contentHeight}
+
+hoopCenter = {x = centerX, y = conversionFactor * 6 * 20}
+
 startPositionsOffense = {
-    {x = 0, y = 0},
-    {x = 10, y = 10},
-    {x = 20, y = 20},
-    {x = 30, y = 30},
-    {x = 40, y = 40},
+    {x = offsetX + 4, y = hoopCenter.y},
+    {x = offsetX + courtW * .15, y = 180},
+    {x = centerX, y = 220},
+    {x = offsetX + courtW * .85, y = 180},
+    {x = offsetX + courtW - 4, y = hoopCenter.y},
 }
 
 LeagueLib = require("Objects.league")

@@ -108,8 +108,14 @@ function NewStick( Props )
         -- METHOD: MOVE AN OBJECT
         ---------------------------------------------
         function Group:move(Obj, maxSpeed)
-            Obj.x = Obj.x + Cos( Rad(self.angle-90) ) * (maxSpeed * self.percent)
-            Obj.y = Obj.y + Sin( Rad(self.angle-90) ) * (maxSpeed * self.percent)
+            local newX = Obj.x + Cos( Rad(self.angle-90) ) * (maxSpeed * self.percent)
+            local newY = Obj.y + Sin( Rad(self.angle-90) ) * (maxSpeed * self.percent)
+
+            if(newX >= bounds.minX and newX <= bounds.maxX and newY >= bounds.minY and newY <= bounds.maxY) then
+                Obj.x = newX
+                Obj.y = newY
+                Obj.rotation = getRotation(Obj)
+            end
         end
 		
 		---------------------------------------------

@@ -3,16 +3,23 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 local offense = true
+local player
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+function getRotation(position)
+    local o = position.y - hoopCenter.y
+    local a = position.x - hoopCenter.x
+    return math.deg(math.atan(o / a)) - 90
+end
+
 local function controlPlayers(mainGroup, uiGroup, userTeam, opponent)
     -- CREATE ANALOG STICK
     MyStick = StickLib.NewStick( 
         {
-        x = display.contentWidth * .0625,
+        x = display.contentWidth * .055,
         y = display.contentHeight * .85,
         thumbSize = 8,
         borderSize = 16,
@@ -23,14 +30,16 @@ local function controlPlayers(mainGroup, uiGroup, userTeam, opponent)
         group = uiGroup,
     })
 
-    local player
     for i = 1, 5 do
         local play = userTeam.playbook.plays[1]
         local positions = play.routes[i].points[1]
 
-        local playerImage = display.newImageRect(mainGroup, "images/playerModels/nba_player_red_back.png", 32, 48)
+        local playerImage = display.newImageRect(mainGroup, "images/playerModels/TopDownRed.png", 32, 32)
         playerImage.x = tonumber(positions.x)
         playerImage.y = tonumber(positions.y)
+        print("Angle")
+        print(getRotation(positions))
+        playerImage.rotation = getRotation(positions)
 
         if(i == 3) then
             player = playerImage
@@ -41,7 +50,7 @@ local function controlPlayers(mainGroup, uiGroup, userTeam, opponent)
         MyStick:move(player, 1)
     end
 
-    Runtime:addEventListener( "enterFrame", move )
+    Runtime:addEventListener("enterFrame", move)
 end
 
 local function gameLoop(mainGroup, uiGroup)
@@ -58,10 +67,7 @@ local function setBackdrop(backGroup)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local conversionFactor = display.contentHeight / 970
-    print(display.contentHeight)
-    print(display.contentWidth)
-    local backgroundImage = display.newImageRect(backGroup, "images/NbaCourt.png", 1000 * conversionFactor, 970 * conversionFactor)
+    local backgroundImage = display.newImageRect(backGroup, "images/NbaCourt.png", 1000 * conversionFactor, 940 * conversionFactor)
     backgroundImage.x = display.contentCenterX
     backgroundImage.y = display.contentCenterY
 end
