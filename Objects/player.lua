@@ -18,7 +18,8 @@ function player:createRandom()
         stamina = maxStamina,
         attitude = math.random(1, 10),
         position = math.random(1, 5),
-        hasBall = false
+        hasBall = false,
+        sprite = nil
     }, self)
 end
 
@@ -39,7 +40,8 @@ function player:createPlayer(name, dribbling, shooting, finishing, stealing, blo
         stamina = maxStamina,
         attitude = attitude,
         position = position,
-        hasBall = false
+        hasBall = false,
+        sprite = nil
     }, self)
 end
 

@@ -1,21 +1,99 @@
+local socket = require("socket")
 local StickLib   = require("Objects.virtual_joystick")
 local composer = require("composer")
 
 local scene = composer.newScene()
-local offense = true
-local player
+local backGroup = display.newGroup()
+local mainGroup = display.newGroup()
+local uiGroup = display.newGroup()
+
+offense = true
+userPlayer = 3
+basketball = nil
+team = nil
+opponent = nil
+
+local standingData = {width=32, height=32, numFrames=1}
+local standingSheet = graphics.newImageSheet("images/playerModels/TopDownStandingRed.png", standingData)
+
+local movingData = {width=32, height=32, numFrames=4}
+local movingSheet = graphics.newImageSheet("images/playerModels/TopDownWalkingRed.png", movingData)
+
+local sequenceData = {
+    {name="standing", sheet=standingSheet, start=1, count=1, time=750},
+    {name="moving", sheet=movingSheet, start=1, count=4, time=750}
+}
+
+local holdingShoot = false
+local start = 0
+local maxTime = 2000
+local deadzoneFactor = 3
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-function getRotation(position)
-    local o = position.y - hoopCenter.y
-    local a = position.x - hoopCenter.x
-    return math.deg(math.atan(o / a)) - 90
+local function shootTime()
+    local current = socket.gettime() * 1000
+    local diff = current - start
+
+    if(diff < maxTime) then
+        local height = 150.0 * diff / maxTime
+        local powerBar = display.newRect(uiGroup, bounds.maxX + 22, -50 - height / 2, 25, height)
+        powerBar:setStrokeColor(0, 0, 0, 0)
+        powerBar:setFillColor(47 / 255.0, 209 / 255.0, 25 / 255.0)
+
+        if(holdingShoot) then
+            timer.performWithDelay(20, shootTime)
+        end
+    end
 end
 
-local function controlPlayers(mainGroup, uiGroup, userTeam, opponent)
+local function shootBall(event)
+    if(event.phase == "began") then
+        start = socket.gettime() * 1000
+        holdingShoot = true
+        timer.performWithDelay(20, shootTime)
+    elseif (event.phase == "ended") then
+        team.starters[userPlayer].hasBall = false
+        holdingShoot = false
+        local endTime = socket.gettime() * 1000
+        local power = (endTime - start) / maxTime
+        local dist = bounds.maxY * power * .9
+        local rotation = 90 - getRotationToBasket(team.starters[userPlayer].sprite)
+
+        local endPos = {x = 0, y = 0}
+        local distToHoop = math.sqrt(math.pow(team.starters[userPlayer].sprite.x - hoopCenter.x, 2) + math.pow(team.starters[userPlayer].sprite.y - hoopCenter.y, 2))
+        local deadzone = 15 -- default
+        deadzone = deadzone + (team.starters[userPlayer].shooting * deadzoneFactor)
+        print(math.abs(distToHoop - dist))
+        print(deadzone)
+
+        if(math.abs(distToHoop - dist) < deadzone) then
+            endPos = {x = hoopCenter.x, y = hoopCenter.y}
+        else
+            endPos = {x = basketball.x + (dist * math.cos(math.rad(rotation))), y = basketball.y - (dist * math.sin(math.rad(rotation)))}
+        end
+
+        transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * 4})
+    end
+end
+
+function calculateBballLoc(angle)
+    local x = team.starters[userPlayer].sprite.x + 15*math.cos(math.rad(90 - angle))
+    local y = team.starters[userPlayer].sprite.y - 15*math.sin(math.rad(90 - angle))
+
+    return {x=x, y=y}
+end
+
+function getRotationToBasket(position)
+    local o = position.y - hoopCenter.y
+    local a = position.x - hoopCenter.x
+    local h = math.sqrt(o * o + a * a)
+    return math.deg(math.acos(a / h)) - 90
+end
+
+local function controlPlayers()
     -- CREATE ANALOG STICK
     MyStick = StickLib.NewStick( 
         {
@@ -30,38 +108,63 @@ local function controlPlayers(mainGroup, uiGroup, userTeam, opponent)
         group = uiGroup,
     })
 
+    -- Create shoot button
+    local shootBtn = display.newImageRect(uiGroup, "images/basketball_shoot_btn.png", 75, 75)
+    shootBtn.x = bounds.maxX + 25
+    shootBtn.y = bounds.minY
+    shootBtn:addEventListener("touch", shootBall)
+
+    -- Create shot power bar
+    local shootBtn = display.newRect(uiGroup, bounds.maxX + 22, -125, 25, 150)
+    shootBtn:setStrokeColor(0, 0, 0)
+    shootBtn:setFillColor(0, 0, 0, 0)
+    shootBtn.strokeWidth = 2
+
+    -- Create offensive players
     for i = 1, 5 do
-        local play = userTeam.playbook.plays[1]
+        local play = team.playbook.plays[1]
         local positions = play.routes[i].points[1]
+        local player = team.starters[i]
 
-        local playerImage = display.newImageRect(mainGroup, "images/playerModels/TopDownRed.png", 32, 32)
-        playerImage.x = tonumber(positions.x)
-        playerImage.y = tonumber(positions.y)
-        print("Angle")
-        print(getRotation(positions))
-        playerImage.rotation = getRotation(positions)
+        local playerSprite = display.newSprite(mainGroup, standingSheet, sequenceData)
+        playerSprite.x = tonumber(positions.x)
+        playerSprite.y = tonumber(positions.y)
+        playerSprite.rotation = getRotationToBasket(positions)
+        playerSprite:play()
+        player.sprite = playerSprite
 
-        if(i == 3) then
-            player = playerImage
+        local function changePlayer()
+            team.starters[userPlayer].hasBall = false
+            userPlayer = i
+            team.starters[userPlayer].hasBall = true
+            local ballLoc = calculateBballLoc(team.starters[userPlayer].sprite.rotation)
+            transition.moveTo(basketball, {x=ballLoc.x, y=ballLoc.y, time=1000})
         end
+
+        playerSprite:addEventListener("tap", changePlayer)
     end
 
+    team.starters[userPlayer].hasBall = true
+    basketball = display.newImageRect(mainGroup, "images/basketball.png", 15, 15)
+    basketball.x = team.starters[userPlayer].sprite.x
+    basketball.y = team.starters[userPlayer].sprite.y - 15
+
     local function move()
-        MyStick:move(player, 1)
+        MyStick:move(team.starters[userPlayer].sprite, 1, team.starters[userPlayer].hasBall)
     end
 
     Runtime:addEventListener("enterFrame", move)
 end
 
-local function gameLoop(mainGroup, uiGroup)
-    local userTeam = league:findTeam(userTeam)
-    local gameInfo = userTeam.schedule[league.gameNum]
-    local opponent = league:findTeam(gameInfo.opponent)
+local function gameLoop()
+    team = league:findTeam(userTeam)
+    local gameInfo = team.schedule[league.gameNum]
+    opponent = league:findTeam(gameInfo.opponent)
 
-    controlPlayers(mainGroup, uiGroup, userTeam, opponent)
+    controlPlayers()
 end
 
-local function setBackdrop(backGroup)
+local function setBackdrop()
     local background = display.newRect(backGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
@@ -78,13 +181,9 @@ end
 
 -- create()
 function scene:create( event )
-    local backGroup = display.newGroup()
-    local mainGroup = display.newGroup()
-    local uiGroup = display.newGroup()
-
 	-- Code here runs when the scene is first created but has not yet appeared on screen
-    setBackdrop(backGroup)
-    gameLoop(mainGroup, uiGroup)
+    setBackdrop()
+    gameLoop()
 end
 
 

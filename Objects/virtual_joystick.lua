@@ -107,14 +107,32 @@ function NewStick( Props )
         ---------------------------------------------
         -- METHOD: MOVE AN OBJECT
         ---------------------------------------------
-        function Group:move(Obj, maxSpeed)
+        function Group:move(Obj, maxSpeed, hasBall)
             local newX = Obj.x + Cos( Rad(self.angle-90) ) * (maxSpeed * self.percent)
             local newY = Obj.y + Sin( Rad(self.angle-90) ) * (maxSpeed * self.percent)
 
-            if(newX >= bounds.minX and newX <= bounds.maxX and newY >= bounds.minY and newY <= bounds.maxY) then
+            if(self.percent == 0) then
+                if(not Obj.isPlaying or Obj.sequence == "moving") then
+                    Obj:setSequence("standing")
+                    Obj:play()
+                end
+
+                Obj.rotation = getRotationToBasket(Obj)
+            elseif(newX >= bounds.minX and newX <= bounds.maxX and newY >= bounds.minY and newY <= bounds.maxY) then
+                if(not Obj.isPlaying or Obj.sequence == "standing") then
+                    Obj:setSequence("moving")
+                    Obj:play()
+                end
+                
                 Obj.x = newX
                 Obj.y = newY
-                Obj.rotation = getRotation(Obj)
+                Obj.rotation = self.angle
+            end
+
+            if(hasBall) then
+                local ballLoc = calculateBballLoc(Obj.rotation)
+                basketball.x = ballLoc.x
+                basketball.y = ballLoc.y
             end
         end
 		

@@ -5,6 +5,7 @@
 -----------------------------------------------------------------------------------------
 
 -- Your code here
+system.activate( "multitouch" )
 local composer = require("composer")
 
 conversionFactor = display.contentHeight / 940
@@ -13,7 +14,7 @@ centerX = display.contentCenterX
 courtW = (centerX - offsetX) * 2
 bounds = {minX = offsetX, maxX = offsetX + courtW, minY = 0, maxY = display.contentHeight}
 
-hoopCenter = {x = centerX, y = conversionFactor * 6 * 20}
+hoopCenter = {x = centerX, y = conversionFactor * 5.5 * 20, radius = conversionFactor * 1.5 * 20}
 
 startPositionsOffense = {
     {x = offsetX + 4, y = hoopCenter.y},

@@ -12,7 +12,7 @@ function team:create(name, logo, conference, division, color)
         players=createRandomPlayers(),
         wins=0,
         losses=0,
-        starters={},
+        starters=createRandomPlayers(),
         logo=logo,
         conf=conference,
         schedule={},
@@ -27,7 +27,7 @@ function createRandomPlayers()
     for i = 1, 11 do
         table.insert(players, PlayerLib:createRandom())
     end
-
+    
     return players
 end
 
