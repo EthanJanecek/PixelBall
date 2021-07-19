@@ -27,22 +27,28 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local team = league:findTeam(userTeam)
-    local gameInfo = team.schedule[league.gameNum]
-    local title = ""
+    local allGames = league.schedule[league.weekNum]
+    local gameInfo = league:findGameInfo(allGames, userTeam)
 
-    if (gameInfo.location == "home") then
-        title = gameInfo.opponent .. " vs. " .. userTeam
+    if(gameInfo == nil) then
+        local title = "Off Day"
+
+        local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
+        title:setFillColor(.922, .910, .329)
+
+        local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+        playButton:setFillColor(0, 0, 0)
+        playButton:addEventListener("tap", nextScene)
     else
-        title = userTeam .. " vs. " .. gameInfo.opponent
+        local title = gameInfo.away .. " vs. " .. gameInfo.home
+
+        local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
+        title:setFillColor(.922, .910, .329)
+
+        local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+        playButton:setFillColor(0, 0, 0)
+        playButton:addEventListener("tap", nextScene)
     end
-
-    local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)
-    title:setFillColor(.922, .910, .329)
-
-    local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
 end
 
 

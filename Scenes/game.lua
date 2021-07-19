@@ -12,6 +12,7 @@ userPlayer = 3
 basketball = nil
 team = nil
 opponent = nil
+userIsHome = true
 
 local standingData = {width=32, height=32, numFrames=1}
 local standingSheet = graphics.newImageSheet("images/playerModels/TopDownStandingRed.png", standingData)
@@ -28,18 +29,81 @@ local holdingShoot = false
 local start = 0
 local maxTime = 2000
 local deadzoneFactor = 3
+local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
+local score = {away=0, home=0}
+local gameDetails = {qtr=1, min=12, sec=0, shotClockMax=24, shotClock=24}
+local scoreboard = {away=nil, home=nil, qtr=nil, min=nil, sec=nil, shotClock=nil}
+local result = ""
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+local function reset()
+    Runtime:removeEventListener("touch", reset)
+    scene.create()
+end
+
+local function getDist(a, b)
+    return math.sqrt(math.pow(a.x - b.x, 2) + math.pow(a.y - b.y, 2))
+end
+
+local function calculateShot()
+    local angle = getRotationToBasket(team.starters[userPlayer].sprite)
+    local dist = 23.75
+
+    if(angle > (90 - 24.44) or angle < (-90 + 24.44)) then
+        dist = 22
+    end
+
+    if(getDist(team.starters[userPlayer].sprite, hoopCenter) < (dist * 20 * conversionFactor)) then
+        return "2"
+    else
+        return "3"
+    end
+end
+
+local function endPossession()
+    local background = display.newRect(uiGroup, 0, 0, 800, 1280)
+    background:setFillColor(.286, .835, .961)
+    background.x = display.contentCenterX
+    background.y = display.contentCenterY
+
+    local message = ""
+
+    if(result == "2") then
+        if(userIsHome) then
+            score.home = score.home + 2
+        else
+            score.away = score.away + 2
+        end
+
+        message = "The 2 is good!"
+    elseif(result == "3") then
+        if(userIsHome) then
+            score.home = score.home + 3
+        else
+            score.away = score.away + 3
+        end
+
+        message = "The 3 is good!"
+    elseif(result == "Miss") then
+        message = "The shot is no good!"
+    end
+
+    local displayMessage = display.newText(uiGroup, message, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
+    displayMessage:setFillColor(.922, .910, .329)
+
+    Runtime:addEventListener("touch", reset)
+end
+
 local function shootTime()
     local current = socket.gettime() * 1000
     local diff = current - start
 
     if(diff < maxTime) then
         local height = 150.0 * diff / maxTime
-        local powerBar = display.newRect(uiGroup, bounds.maxX + 22, -50 - height / 2, 25, height)
+        local powerBar = display.newRect(uiGroup, bounds.maxX + 45, 235 - height / 2, 25, height)
         powerBar:setStrokeColor(0, 0, 0, 0)
         powerBar:setFillColor(47 / 255.0, 209 / 255.0, 25 / 255.0)
 
@@ -50,33 +114,87 @@ local function shootTime()
 end
 
 local function shootBall(event)
-    if(event.phase == "began") then
-        start = socket.gettime() * 1000
-        holdingShoot = true
-        timer.performWithDelay(20, shootTime)
-    elseif (event.phase == "ended") then
-        team.starters[userPlayer].hasBall = false
-        holdingShoot = false
-        local endTime = socket.gettime() * 1000
-        local power = (endTime - start) / maxTime
-        local dist = bounds.maxY * power * .9
-        local rotation = 90 - getRotationToBasket(team.starters[userPlayer].sprite)
-
-        local endPos = {x = 0, y = 0}
-        local distToHoop = math.sqrt(math.pow(team.starters[userPlayer].sprite.x - hoopCenter.x, 2) + math.pow(team.starters[userPlayer].sprite.y - hoopCenter.y, 2))
-        local deadzone = 15 -- default
-        deadzone = deadzone + (team.starters[userPlayer].shooting * deadzoneFactor)
-        print(math.abs(distToHoop - dist))
-        print(deadzone)
-
-        if(math.abs(distToHoop - dist) < deadzone) then
-            endPos = {x = hoopCenter.x, y = hoopCenter.y}
-        else
-            endPos = {x = basketball.x + (dist * math.cos(math.rad(rotation))), y = basketball.y - (dist * math.sin(math.rad(rotation)))}
+    if(playing) then
+        if(event.phase == "began") then
+            start = socket.gettime() * 1000
+            holdingShoot = true
+            timer.performWithDelay(20, shootTime)
+        elseif (event.phase == "ended") then
+            team.starters[userPlayer].hasBall = false
+            holdingShoot = false
+            playing = false
+            local endTime = socket.gettime() * 1000
+            local power = (endTime - start) / maxTime
+            local dist = bounds.maxY * power * .9
+            local rotation = 90 - getRotationToBasket(team.starters[userPlayer].sprite)
+    
+            local endPos = {x = 0, y = 0}
+            local distToHoop = getDist(team.starters[userPlayer].sprite, hoopCenter)
+            local deadzone = 15 -- default
+            deadzone = deadzone + (team.starters[userPlayer].shooting * deadzoneFactor)
+    
+            if(math.abs(distToHoop - dist) < deadzone) then
+                result = calculateShot()
+                endPos = {x = hoopCenter.x, y = hoopCenter.y}
+            else
+                result = "Miss"
+                endPos = {x = basketball.x + (dist * math.cos(math.rad(rotation))), y = basketball.y - (dist * math.sin(math.rad(rotation)))}
+    
+                if(endPos.y < 0) then
+                    endPos.y = 0
+                end
+    
+                if(endPos.x > bounds.maxX) then
+                    endPos.x = bounds.maxX
+                elseif(endPos.x < bounds.minX) then
+                    endPos.x = bounds.minX
+                end
+            end
+    
+            transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * 3, onComplete=endPossession})
         end
-
-        transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * 4})
     end
+end
+
+local function displayShotBar()
+    -- Create shoot button
+    local shootBtn = display.newImageRect(uiGroup, "images/basketball_shoot_btn.png", 75, 75)
+    shootBtn.x = bounds.maxX + 50
+    shootBtn.y = bounds.maxY - 40
+    shootBtn:addEventListener("touch", shootBall)
+
+    -- Create shot power bar
+    local shotBar = display.newRect(uiGroup, bounds.maxX + 45, 160, 25, 150)
+    shotBar:setStrokeColor(0, 0, 0)
+    shotBar:setFillColor(0, 0, 0, 0)
+    shotBar.strokeWidth = 2
+end
+
+local function displayScoreboard()
+    local scoreboardOutline = display.newRect(uiGroup, 27, 52, 78, 100)
+    scoreboardOutline:setStrokeColor(0, 0, 0)
+    scoreboardOutline:setFillColor(0, 0, 0, 0)
+    scoreboardOutline.strokeWidth = 4
+
+    local dividerVertical = display.newRect(uiGroup, 27, 52, 2, 100)
+    dividerVertical:setStrokeColor(0, 0, 0, 0)
+    dividerVertical:setFillColor(0, 0, 0)
+
+    local awayLabel = display.newText(uiGroup, "Away", 9, 12, native.systemFont, 12)
+    awayLabel:setFillColor(.922, .910, .329)
+
+    local homeLabel = display.newText(uiGroup, "Home", 47, 12, native.systemFont, 12)
+    homeLabel:setFillColor(.922, .910, .329)
+
+    local dividerHorizontal = display.newRect(uiGroup, 27, 20, 78, 2)
+    dividerHorizontal:setStrokeColor(0, 0, 0, 0)
+    dividerHorizontal:setFillColor(0, 0, 0)
+
+    scoreboard.away = display.newText(uiGroup, score.away, 9, 27, native.systemFont, 12)
+    scoreboard.away:setFillColor(.922, .910, .329)
+
+    scoreboard.home = display.newText(uiGroup, score.home, 47, 27, native.systemFont, 12)
+    scoreboard.home:setFillColor(.922, .910, .329)
 end
 
 function calculateBballLoc(angle)
@@ -94,6 +212,10 @@ function getRotationToBasket(position)
 end
 
 local function controlPlayers()
+    -- Create scoreboard
+    displayScoreboard()
+    playing = true
+
     -- CREATE ANALOG STICK
     MyStick = StickLib.NewStick( 
         {
@@ -105,20 +227,11 @@ local function controlPlayers()
         R = 25,
         G = 255,
         B = 255,
-        group = uiGroup,
+        group = display.newGroup(),
     })
 
-    -- Create shoot button
-    local shootBtn = display.newImageRect(uiGroup, "images/basketball_shoot_btn.png", 75, 75)
-    shootBtn.x = bounds.maxX + 25
-    shootBtn.y = bounds.minY
-    shootBtn:addEventListener("touch", shootBall)
-
-    -- Create shot power bar
-    local shootBtn = display.newRect(uiGroup, bounds.maxX + 22, -125, 25, 150)
-    shootBtn:setStrokeColor(0, 0, 0)
-    shootBtn:setFillColor(0, 0, 0, 0)
-    shootBtn.strokeWidth = 2
+    -- Create shot button and power bar
+    displayShotBar()
 
     -- Create offensive players
     for i = 1, 5 do
@@ -134,11 +247,14 @@ local function controlPlayers()
         player.sprite = playerSprite
 
         local function changePlayer()
-            team.starters[userPlayer].hasBall = false
-            userPlayer = i
-            team.starters[userPlayer].hasBall = true
-            local ballLoc = calculateBballLoc(team.starters[userPlayer].sprite.rotation)
-            transition.moveTo(basketball, {x=ballLoc.x, y=ballLoc.y, time=1000})
+            if(playing) then
+                team.starters[userPlayer].hasBall = false
+                local oldPlayer = userPlayer
+                userPlayer = i
+                team.starters[userPlayer].hasBall = true
+                local ballLoc = calculateBballLoc(team.starters[userPlayer].sprite.rotation)
+                transition.moveTo(basketball, {x=ballLoc.x, y=ballLoc.y, time=getDist(team.starters[oldPlayer].sprite, team.starters[userPlayer].sprite) * 3})
+            end
         end
 
         playerSprite:addEventListener("tap", changePlayer)
@@ -150,16 +266,25 @@ local function controlPlayers()
     basketball.y = team.starters[userPlayer].sprite.y - 15
 
     local function move()
-        MyStick:move(team.starters[userPlayer].sprite, 1, team.starters[userPlayer].hasBall)
+        if(playing) then
+            MyStick:move(team.starters[userPlayer].sprite, 1, team.starters[userPlayer].hasBall)
+        end
     end
 
     Runtime:addEventListener("enterFrame", move)
 end
 
 local function gameLoop()
+    local allGames = league.schedule[league.weekNum]
+    local gameInfo = league:findGameInfo(allGames, userTeam)
     team = league:findTeam(userTeam)
-    local gameInfo = team.schedule[league.gameNum]
-    opponent = league:findTeam(gameInfo.opponent)
+    
+    if(gameInfo.home == userTeam) then
+        opponent = league:findTeam(gameInfo.away)
+    else
+        userIsHome = false
+        opponent = league:findTeam(gameInfo.home)
+    end
 
     controlPlayers()
 end
@@ -182,6 +307,10 @@ end
 -- create()
 function scene:create( event )
 	-- Code here runs when the scene is first created but has not yet appeared on screen
+    backGroup = display.newGroup()
+    mainGroup = display.newGroup()
+    uiGroup = display.newGroup()
+
     setBackdrop()
     gameLoop()
 end

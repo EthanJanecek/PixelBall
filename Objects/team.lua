@@ -15,7 +15,6 @@ function team:create(name, logo, conference, division, color)
         starters=createRandomPlayers(),
         logo=logo,
         conf=conference,
-        schedule={},
         division=division,
         color=color,
         playbook=PlaybookLib:createPlaybook()

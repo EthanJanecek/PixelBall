@@ -6,10 +6,10 @@ function league:createLeague()
 
     return setmetatable({
         teams=createTeams(),
-        gameNum=1,
+        weekNum=1,
+        schedule={}
     }, self)
 end
-
 
 function createTeams()
     local teams = {}
@@ -61,38 +61,88 @@ function createTeams()
     return teams
 end
 
-function league:createSchedule()
-    for i = 1, 30 do
-        local team1 = self.teams[i]
+function league:shuffleGames()
+    for j = 1, 50 do
+        -- Shuffle weekly games 50 times
+        local old = math.random(1, 72)
+        local new = math.random(1, 72)
+        self.schedule[old], self.schedule[new] = self.schedule[new], self.schedule[old]
+    end
+end
 
-        for j = (i + 1), 30 do
-            local team2 = self.teams[j]
-
-            if(team1.conference == team2.conference) then
-                -- Play 3 games
-                table.insert(team1.schedule, {location="home", opponent=team2.name})
-                table.insert(team2.schedule, {location="away", opponent=team1.name})
-
-                table.insert(team1.schedule, {location="home", opponent=team2.name})
-                table.insert(team2.schedule, {location="away", opponent=team1.name})
-
-                table.insert(team1.schedule, {location="away", opponent=team2.name})
-                table.insert(team2.schedule, {location="home", opponent=team1.name})
-            else
-                -- Play 2 games
-                table.insert(team1.schedule, {location="home", opponent=team2.name})
-                table.insert(team2.schedule, {location="away", opponent=team1.name})
-
-                table.insert(team1.schedule, {location="away", opponent=team2.name})
-                table.insert(team2.schedule, {location="home", opponent=team1.name})
+function checkIfTeamPlays(weeklySchedule, team)
+    if(weeklySchedule) then
+        for i = 1, #weeklySchedule do
+            if(weeklySchedule[i].home == team or weeklySchedule[i].away == team) then
+                return true
             end
         end
     end
+
+    return false
+end
+
+function league:findGameInfo(weeklySchedule, team)
+    if(weeklySchedule) then
+        for i = 1, #weeklySchedule do
+            if(weeklySchedule[i].home == team or weeklySchedule[i].away == team) then
+                return weeklySchedule[i]
+            end
+        end
+    end
+
+    return nil
+end
+
+function league:createSchedule()
+    for i = 1, 100 do
+        local weeklySchedule = {}
+        table.insert(self.schedule, weeklySchedule)
+    end
+
+    for i = 1, 30 do
+        local team1 = self.teams[i]
+        local weekNum = 1
+
+        for j = i + 1, 30 do
+            local team2 = self.teams[j]
+
+            local numGames = 2
+            if(team1.conf == team2.conf) then
+                numGames = 3
+            end
+
+            for k = 1, numGames do
+                if(weekNum > #self.schedule) then
+                    weekNum = 1
+                end
+
+                while(checkIfTeamPlays(self.schedule[weekNum], team1.name) or checkIfTeamPlays(self.schedule[weekNum], team2.name)) do
+                    weekNum = weekNum + 1
+
+                    if(weekNum > #self.schedule) then
+                        weekNum = 1
+                    end
+                end
+                
+                if(k % 2 == 0) then
+                    table.insert(self.schedule[weekNum], {away=team1.name, home=team2.name})
+                else
+                    table.insert(self.schedule[weekNum], {away=team2.name, home=team1.name})
+                end
+                
+                weekNum = weekNum + 1
+            end
+        end
+    end
+
+    self:shuffleGames()
 end
 
 function league:findTeam(name)
     for i = 1, 30 do
         local team = self.teams[i]
+
         if(team.name == name) then
             return team
         end
