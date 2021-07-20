@@ -7,13 +7,6 @@ local backGroup = display.newGroup()
 local mainGroup = display.newGroup()
 local uiGroup = display.newGroup()
 
-offense = true
-userPlayer = 3
-basketball = nil
-team = nil
-opponent = nil
-userIsHome = true
-
 local standingData = {width=32, height=32, numFrames=1}
 local standingSheet = graphics.newImageSheet("images/playerModels/TopDownStandingRed.png", standingData)
 
@@ -25,13 +18,18 @@ local sequenceData = {
     {name="moving", sheet=movingSheet, start=1, count=4, time=750}
 }
 
+offense = true
+userPlayer = 3
+basketball = nil
+team = nil
+opponent = nil
+userIsHome = true
+
 local holdingShoot = false
 local start = 0
 local maxTime = 2000
 local deadzoneFactor = 3
 local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
-local score = {away=0, home=0}
-local gameDetails = {qtr=1, min=12, sec=0, shotClockMax=24, shotClock=24}
 local scoreboard = {away=nil, home=nil, qtr=nil, min=nil, sec=nil, shotClock=nil}
 local result = ""
 
@@ -41,7 +39,8 @@ local result = ""
 -- -----------------------------------------------------------------------------------
 local function reset()
     Runtime:removeEventListener("touch", reset)
-    scene.create()
+    composer.removeScene("Scenes.game")
+    composer.gotoScene("Scenes.game")
 end
 
 local function getDist(a, b)
@@ -267,7 +266,7 @@ local function controlPlayers()
 
     local function move()
         if(playing) then
-            MyStick:move(team.starters[userPlayer].sprite, 1, team.starters[userPlayer].hasBall)
+            MyStick:move(team.starters[userPlayer].sprite, 1.75, team.starters[userPlayer].hasBall)
         end
     end
 
@@ -307,10 +306,6 @@ end
 -- create()
 function scene:create( event )
 	-- Code here runs when the scene is first created but has not yet appeared on screen
-    backGroup = display.newGroup()
-    mainGroup = display.newGroup()
-    uiGroup = display.newGroup()
-
     setBackdrop()
     gameLoop()
 end

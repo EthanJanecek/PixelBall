@@ -29,6 +29,10 @@ league = LeagueLib:createLeague()
 league:createSchedule()
 userTeam = ""
 
+-- Game Details
+score = {away=0, home=0}
+gameDetails = {qtr=1, min=12, sec=0, shotClockMax=24, shotClock=24}
+
 display.setStatusBar(display.HiddenStatusBar)
 
 composer.gotoScene("Scenes.menu")
