@@ -9,13 +9,20 @@ local uiGroup = display.newGroup()
 
 local standingData = {width=32, height=32, numFrames=1}
 local standingSheet = graphics.newImageSheet("images/playerModels/TopDownStandingRed.png", standingData)
+local standingSheetBlue = graphics.newImageSheet("images/playerModels/TopDownStandingBlue.png", standingData)
 
 local movingData = {width=32, height=32, numFrames=4}
 local movingSheet = graphics.newImageSheet("images/playerModels/TopDownWalkingRed.png", movingData)
+local movingSheetBlue = graphics.newImageSheet("images/playerModels/TopDownWalkingBlue.png", movingData)
 
 local sequenceData = {
     {name="standing", sheet=standingSheet, start=1, count=1, time=750},
     {name="moving", sheet=movingSheet, start=1, count=4, time=750}
+}
+
+local sequenceDataBlue = {
+    {name="standing", sheet=standingSheetBlue, start=1, count=1, time=750},
+    {name="moving", sheet=movingSheetBlue, start=1, count=4, time=750}
 }
 
 offense = true
@@ -203,11 +210,21 @@ function calculateBballLoc(angle)
     return {x=x, y=y}
 end
 
-function getRotationToBasket(position)
-    local o = position.y - hoopCenter.y
-    local a = position.x - hoopCenter.x
+function getRotation(position1, position2)
+    local o = position1.y - position2.y
+    local a = position1.x - position2.x
     local h = math.sqrt(o * o + a * a)
-    return math.deg(math.acos(a / h)) - 90
+    local angle = math.deg(math.acos(a / h)) - 90
+
+    if(position1.y >= position2.y) then
+        return angle
+    else
+        return -angle + 180
+    end
+end
+
+function getRotationToBasket(position)
+    return getRotation(position, hoopCenter)
 end
 
 local function controlPlayers()
@@ -234,7 +251,7 @@ local function controlPlayers()
 
     -- Create offensive players
     for i = 1, 5 do
-        local play = team.playbook.plays[1]
+        local play = opponent.playbook.plays[1]
         local positions = play.routes[i].points[1]
         local player = team.starters[i]
 
@@ -257,6 +274,20 @@ local function controlPlayers()
         end
 
         playerSprite:addEventListener("tap", changePlayer)
+    end
+
+    -- Create defensive players
+    for i = 1, 5 do
+        local play = opponent.playbook.defensePlays[1]
+        local positions = play.routes[i].points[1]
+        local player = opponent.starters[i]
+
+        local playerSprite = display.newSprite(mainGroup, standingSheetBlue, sequenceDataBlue)
+        playerSprite.x = tonumber(positions.x)
+        playerSprite.y = tonumber(positions.y)
+        playerSprite.rotation = getRotation(positions, team.starters[i].sprite)
+        playerSprite:play()
+        player.sprite = playerSprite
     end
 
     team.starters[userPlayer].hasBall = true

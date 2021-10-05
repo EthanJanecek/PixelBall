@@ -1,6 +1,5 @@
 local PlayerLib = require("Objects.player")
 PlaybookLib = require("Objects.playbook")
-local playbook = require "Objects.playbook"
 
 local team = {}
 

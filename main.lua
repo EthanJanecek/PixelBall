@@ -24,6 +24,14 @@ startPositionsOffense = {
     {x = offsetX + courtW - 4, y = hoopCenter.y},
 }
 
+startPositionsDefense = {
+    {x = offsetX + 40, y = hoopCenter.y},
+    {x = offsetX + courtW * .2, y = 160},
+    {x = centerX, y = 180},
+    {x = offsetX + courtW * .8, y = 160},
+    {x = offsetX + courtW - 40, y = hoopCenter.y},
+}
+
 LeagueLib = require("Objects.league")
 league = LeagueLib:createLeague()
 league:createSchedule()
