@@ -129,6 +129,10 @@ function NewStick( Props )
                 Obj.rotation = self.angle
             end
 
+            Obj.name.x = Obj.x
+            Obj.name.y = Obj.y
+            Obj.name.rotation = Obj.rotation
+
             if(hasBall) then
                 local ballLoc = calculateBballLoc(Obj.rotation)
                 basketball.x = ballLoc.x

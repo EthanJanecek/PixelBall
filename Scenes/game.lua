@@ -34,7 +34,7 @@ userIsHome = true
 
 local holdingShoot = false
 local start = 0
-local maxTime = 2000
+local maxTime = 1500
 local deadzoneFactor = 3
 local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
 local scoreboard = {away=nil, home=nil, qtr=nil, min=nil, sec=nil, shotClock=nil}
@@ -55,14 +55,14 @@ local function getDist(a, b)
 end
 
 local function calculateShot()
-    local angle = getRotationToBasket(team.starters[userPlayer].sprite)
+    local angle = getRotationToBasket(team.players[userPlayer].sprite)
     local dist = 23.75
 
     if(angle > (90 - 24.44) or angle < (-90 + 24.44)) then
         dist = 22
     end
 
-    if(getDist(team.starters[userPlayer].sprite, hoopCenter) < (dist * 20 * conversionFactor)) then
+    if(getDist(team.players[userPlayer].sprite, hoopCenter) < (dist * 20 * conversionFactor)) then
         return "2"
     else
         return "3"
@@ -126,18 +126,18 @@ local function shootBall(event)
             holdingShoot = true
             timer.performWithDelay(20, shootTime)
         elseif (event.phase == "ended") then
-            team.starters[userPlayer].hasBall = false
+            team.players[userPlayer].hasBall = false
             holdingShoot = false
             playing = false
             local endTime = socket.gettime() * 1000
             local power = (endTime - start) / maxTime
-            local dist = bounds.maxY * power * .9
-            local rotation = 90 - getRotationToBasket(team.starters[userPlayer].sprite)
+            local dist = bounds.maxY * power * .75
+            local rotation = 90 - getRotationToBasket(team.players[userPlayer].sprite)
     
             local endPos = {x = 0, y = 0}
-            local distToHoop = getDist(team.starters[userPlayer].sprite, hoopCenter)
+            local distToHoop = getDist(team.players[userPlayer].sprite, hoopCenter)
             local deadzone = 15 -- default
-            deadzone = deadzone + (team.starters[userPlayer].shooting * deadzoneFactor)
+            deadzone = deadzone + (team.players[userPlayer].shooting * deadzoneFactor)
     
             if(math.abs(distToHoop - dist) < deadzone) then
                 result = calculateShot()
@@ -204,8 +204,8 @@ local function displayScoreboard()
 end
 
 function calculateBballLoc(angle)
-    local x = team.starters[userPlayer].sprite.x + 15*math.cos(math.rad(90 - angle))
-    local y = team.starters[userPlayer].sprite.y - 15*math.sin(math.rad(90 - angle))
+    local x = team.players[userPlayer].sprite.x + 15*math.cos(math.rad(90 - angle))
+    local y = team.players[userPlayer].sprite.y - 15*math.sin(math.rad(90 - angle))
 
     return {x=x, y=y}
 end
@@ -225,6 +225,23 @@ end
 
 function getRotationToBasket(position)
     return getRotation(position, hoopCenter)
+end
+
+function getInitials(name)
+    local initials = ""
+    local i = 0
+
+    for param in string.gmatch(name, "([^ ]+)") do
+        initials = initials .. string.sub(param, 1, 1)
+
+        i = i + 1
+
+        if(i >= 2) then
+            break
+        end
+    end
+
+    return initials
 end
 
 local function controlPlayers()
@@ -253,7 +270,7 @@ local function controlPlayers()
     for i = 1, 5 do
         local play = opponent.playbook.plays[1]
         local positions = play.routes[i].points[1]
-        local player = team.starters[i]
+        local player = team.players[i]
 
         local playerSprite = display.newSprite(mainGroup, standingSheet, sequenceData)
         playerSprite.x = tonumber(positions.x)
@@ -262,14 +279,19 @@ local function controlPlayers()
         playerSprite:play()
         player.sprite = playerSprite
 
+        local name = display.newText(uiGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, 8)
+        name:setFillColor(1, 1, 1)
+        name.rotation = playerSprite.rotation
+        player.sprite.name = name
+
         local function changePlayer()
             if(playing) then
-                team.starters[userPlayer].hasBall = false
+                team.players[userPlayer].hasBall = false
                 local oldPlayer = userPlayer
                 userPlayer = i
-                team.starters[userPlayer].hasBall = true
-                local ballLoc = calculateBballLoc(team.starters[userPlayer].sprite.rotation)
-                transition.moveTo(basketball, {x=ballLoc.x, y=ballLoc.y, time=getDist(team.starters[oldPlayer].sprite, team.starters[userPlayer].sprite) * 3})
+                team.players[userPlayer].hasBall = true
+                local ballLoc = calculateBballLoc(team.players[userPlayer].sprite.rotation)
+                transition.moveTo(basketball, {x=ballLoc.x, y=ballLoc.y, time=getDist(team.players[oldPlayer].sprite, team.players[userPlayer].sprite) * 3})
             end
         end
 
@@ -280,24 +302,29 @@ local function controlPlayers()
     for i = 1, 5 do
         local play = opponent.playbook.defensePlays[1]
         local positions = play.routes[i].points[1]
-        local player = opponent.starters[i]
+        local player = opponent.players[i]
 
         local playerSprite = display.newSprite(mainGroup, standingSheetBlue, sequenceDataBlue)
         playerSprite.x = tonumber(positions.x)
         playerSprite.y = tonumber(positions.y)
-        playerSprite.rotation = getRotation(positions, team.starters[i].sprite)
+        playerSprite.rotation = getRotation(positions, team.players[i].sprite)
         playerSprite:play()
         player.sprite = playerSprite
+
+        local name = display.newText(uiGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, 8)
+        name:setFillColor(1, 1, 1)
+        name.rotation = playerSprite.rotation
+        player.sprite.name = name
     end
 
-    team.starters[userPlayer].hasBall = true
+    team.players[userPlayer].hasBall = true
     basketball = display.newImageRect(mainGroup, "images/basketball.png", 15, 15)
-    basketball.x = team.starters[userPlayer].sprite.x
-    basketball.y = team.starters[userPlayer].sprite.y - 15
+    basketball.x = team.players[userPlayer].sprite.x
+    basketball.y = team.players[userPlayer].sprite.y - 15
 
     local function move()
         if(playing) then
-            MyStick:move(team.starters[userPlayer].sprite, 1.75, team.starters[userPlayer].hasBall)
+            MyStick:move(team.players[userPlayer].sprite, 1.75, team.players[userPlayer].hasBall)
         end
     end
 

@@ -14,7 +14,7 @@ function player:createRandom()
         contesting = math.random(1, 10),
         height = math.random(72, 84),
         speed = math.random(1, 10),
-        maxStamina = maxStamina,
+        maxStamina = 10,
         stamina = maxStamina,
         attitude = math.random(1, 10),
         position = math.random(1, 5),
@@ -23,7 +23,7 @@ function player:createRandom()
     }, self)
 end
 
-function player:createPlayer(name, dribbling, shooting, finishing, stealing, blocking, contesting, height, speed, maxStamina, attitude, position)
+function player:createPlayer(name, dribbling, shooting, finishing, stealing, blocking, contesting, height, speed, attitude, position)
     self.__index = self
 
     return setmetatable({
@@ -36,7 +36,7 @@ function player:createPlayer(name, dribbling, shooting, finishing, stealing, blo
         contesting = contesting,
         height = height,
         speed = speed,
-        maxStamina = maxStamina,
+        maxStamina = 10,
         stamina = maxStamina,
         attitude = attitude,
         position = position,
