@@ -31,6 +31,8 @@ basketball = nil
 team = nil
 opponent = nil
 userIsHome = true
+activePlay = nil
+activeDefense = nil
 
 local holdingShoot = false
 local start = 0
@@ -39,6 +41,11 @@ local deadzoneFactor = 3
 local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
 local scoreboard = {away=nil, home=nil, qtr=nil, min=nil, sec=nil, shotClock=nil}
 local result = ""
+
+MyStick = nil
+local minSpeed = 1.25
+local speedScaling = .1
+local nameFontSize = 8
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -244,12 +251,30 @@ function getInitials(name)
     return initials
 end
 
-local function controlPlayers()
-    -- Create scoreboard
-    displayScoreboard()
-    playing = true
+local function moveOffense()
+    -- TODO
+end
 
-    -- CREATE ANALOG STICK
+local function moveDefense()
+    -- TODO
+end
+
+local function move()
+    if(playing) then
+        local player = team.players[userPlayer]
+        MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling), player.hasBall)
+
+        if(activePlay) then
+            moveOffense()
+        end
+    
+        if(activeDefense) then
+            moveDefense()
+        end
+    end
+end
+
+local function createJoystick()
     MyStick = StickLib.NewStick( 
         {
         x = display.contentWidth * .055,
@@ -262,27 +287,29 @@ local function controlPlayers()
         B = 255,
         group = display.newGroup(),
     })
+end
 
-    -- Create shot button and power bar
-    displayShotBar()
+local function createPlayer(player, positions, standingSequenceData, movingSequenceData)
+    local playerSprite = display.newSprite(mainGroup, standingSequenceData, movingSequenceData)
+    playerSprite.x = tonumber(positions.x)
+    playerSprite.y = tonumber(positions.y)
+    playerSprite.rotation = getRotationToBasket(positions)
+    playerSprite:play()
 
-    -- Create offensive players
+    local name = display.newText(uiGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, nameFontSize)
+    name:setFillColor(1, 1, 1)
+    name.rotation = playerSprite.rotation
+    playerSprite.name = name
+
+    return playerSprite
+end
+
+local function createOffense()
     for i = 1, 5 do
-        local play = opponent.playbook.plays[1]
+        local play = team.playbook.plays[1]
         local positions = play.routes[i].points[1]
         local player = team.players[i]
-
-        local playerSprite = display.newSprite(mainGroup, standingSheet, sequenceData)
-        playerSprite.x = tonumber(positions.x)
-        playerSprite.y = tonumber(positions.y)
-        playerSprite.rotation = getRotationToBasket(positions)
-        playerSprite:play()
-        player.sprite = playerSprite
-
-        local name = display.newText(uiGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, 8)
-        name:setFillColor(1, 1, 1)
-        name.rotation = playerSprite.rotation
-        player.sprite.name = name
+        player.sprite = createPlayer(player, positions, standingSheet, sequenceData)
 
         local function changePlayer()
             if(playing) then
@@ -295,38 +322,32 @@ local function controlPlayers()
             end
         end
 
-        playerSprite:addEventListener("tap", changePlayer)
+        player.sprite:addEventListener("tap", changePlayer)
     end
 
-    -- Create defensive players
+    team.players[userPlayer].hasBall = true
+end
+
+local function createDefense()
     for i = 1, 5 do
         local play = opponent.playbook.defensePlays[1]
         local positions = play.routes[i].points[1]
         local player = opponent.players[i]
-
-        local playerSprite = display.newSprite(mainGroup, standingSheetBlue, sequenceDataBlue)
-        playerSprite.x = tonumber(positions.x)
-        playerSprite.y = tonumber(positions.y)
-        playerSprite.rotation = getRotation(positions, team.players[i].sprite)
-        playerSprite:play()
-        player.sprite = playerSprite
-
-        local name = display.newText(uiGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, 8)
-        name:setFillColor(1, 1, 1)
-        name.rotation = playerSprite.rotation
-        player.sprite.name = name
+        player.sprite = createPlayer(player, positions, standingSheetBlue, sequenceDataBlue)
     end
+end
 
-    team.players[userPlayer].hasBall = true
+local function controlPlayers()
+    playing = true
+    displayScoreboard()
+    displayShotBar()
+    createJoystick()
+    createOffense()
+    createDefense()    
+
     basketball = display.newImageRect(mainGroup, "images/basketball.png", 15, 15)
     basketball.x = team.players[userPlayer].sprite.x
     basketball.y = team.players[userPlayer].sprite.y - 15
-
-    local function move()
-        if(playing) then
-            MyStick:move(team.players[userPlayer].sprite, 1.75, team.players[userPlayer].hasBall)
-        end
-    end
 
     Runtime:addEventListener("enterFrame", move)
 end
