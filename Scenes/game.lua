@@ -37,7 +37,6 @@ activeDefense = nil
 local holdingShoot = false
 local start = 0
 local maxTime = 1500
-local deadzoneFactor = 3
 local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
 local scoreboard = {away=nil, home=nil, qtr=nil, min=nil, sec=nil, shotClock=nil}
 local result = ""
@@ -46,6 +45,11 @@ MyStick = nil
 local minSpeed = 1.25
 local speedScaling = .1
 local nameFontSize = 8
+local deadzoneBase = 10 -- default
+local deadzoneFactor = 5
+local contestRadius = 3 * feetToPixels -- 3 feet away
+local finishingRadius = 4 * feetToPixels
+local maxBlockedProb = 50
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -61,7 +65,7 @@ local function getDist(a, b)
     return math.sqrt(math.pow(a.x - b.x, 2) + math.pow(a.y - b.y, 2))
 end
 
-local function calculateShot()
+local function calculateShotPoints()
     local angle = getRotationToBasket(team.players[userPlayer].sprite)
     local dist = 23.75
 
@@ -69,7 +73,7 @@ local function calculateShot()
         dist = 22
     end
 
-    if(getDist(team.players[userPlayer].sprite, hoopCenter) < (dist * 20 * conversionFactor)) then
+    if(getDist(team.players[userPlayer].sprite, hoopCenter) < (dist * feetToPixels * conversionFactor)) then
         return "2"
     else
         return "3"
@@ -102,6 +106,8 @@ local function endPossession()
         message = "The 3 is good!"
     elseif(result == "Miss") then
         message = "The shot is no good!"
+    elseif(result == "Blocked") then
+        message = "The shot is blocked!"
     end
 
     local displayMessage = display.newText(uiGroup, message, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
@@ -126,6 +132,122 @@ local function shootTime()
     end
 end
 
+local function calculateDeadzone(shooter, skill)
+    local deadzone = deadzoneBase -- Base value
+
+    -- Scale up based on how good of a shooter they are
+    deadzone = deadzone + (skill * deadzoneFactor)
+
+    -- Scale down for each defender in the area and how good they are at contesting
+    for i = 1, 5 do
+        local defender = opponent.players[i]
+        local distance = getDist(shooter.sprite, defender.sprite)
+
+        if(math.floor(distance) <= feetToPixels) then
+            distance = feetToPixels
+        end
+
+        if(distance < contestRadius) then
+            -- Scale down based off of how close they are, height difference, and skill at defending
+            local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
+            local contestSkill = defender.contesting * deadzoneFactor
+            local distanceFactor = 1 / (distance / feetToPixels) -- Will be in the range of 1/3 - 1
+            local factor = math.floor((heightDiff / 20) * distanceFactor * contestSkill)
+            deadzone = deadzone - factor
+        end
+    end
+
+    if(deadzone < 1) then
+        deadzone = 1
+    end
+
+    return deadzone
+end
+
+local function calculateShotEndPosition(result, rotation, dist)
+    local endPos = nil
+
+    if(result == "Miss") then
+        endPos = {x = basketball.x + (dist * math.cos(math.rad(rotation))), y = basketball.y - (dist * math.sin(math.rad(rotation)))}
+
+        if(endPos.y < 0) then
+            endPos.y = 0
+        end
+
+        if(endPos.x > bounds.maxX) then
+            endPos.x = bounds.maxX
+        elseif(endPos.x < bounds.minX) then
+            endPos.x = bounds.minX
+        end
+    else
+        endPos = {x = hoopCenter.x, y = hoopCenter.y}
+    end
+
+    return endPos
+end
+
+local function isBlocked(shooter)
+    for i = 1, 5 do
+        local defender = opponent.players[i]
+        local distance = getDist(shooter.sprite, defender.sprite)
+
+        if(math.floor(distance) <= feetToPixels) then
+            distance = feetToPixels
+        end
+
+        if(distance < contestRadius) then
+            -- Scale down based off of how close they are, height difference, and skill at defending
+            local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
+            local contestSkill = defender.blocking * (maxBlockedProb / 10)
+            local distanceFactor = 1 / (distance / feetToPixels) -- Will be in the range of 1/3 - 1
+            local probability = (heightDiff / 20) * distanceFactor * contestSkill
+            local num = math.random(100)
+
+            if(num < probability) then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+local function finishShot()
+    team.players[userPlayer].hasBall = false
+    holdingShoot = false
+    playing = false
+
+    local endTime = socket.gettime() * 1000
+    local power = (endTime - start) / maxTime
+    local dist = bounds.maxY * power * .75
+    local rotation = 90 - getRotationToBasket(team.players[userPlayer].sprite)
+
+    local distToHoop = getDist(team.players[userPlayer].sprite, hoopCenter)
+    local blocked = isBlocked(team.players[userPlayer])
+
+    if(blocked) then
+        result = "Blocked"
+        transition.moveTo(basketball, {x=team.players[userPlayer].sprite.x , y=team.players[userPlayer].sprite.y, time = 1, onComplete=endPossession})
+    else
+        local deadzone = 0
+
+        if(distToHoop < finishingRadius) then
+            deadzone = calculateDeadzone(team.players[userPlayer], team.players[userPlayer].finishing)
+        else
+            deadzone = calculateDeadzone(team.players[userPlayer], team.players[userPlayer].shooting)
+        end
+
+        if(math.abs(distToHoop - dist) <= deadzone) then
+            result = calculateShotPoints()
+        else
+            result = "Miss"
+        end
+
+        local endPos = calculateShotEndPosition(result, rotation, dist)
+        transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * 3, onComplete=endPossession})
+    end
+end
+
 local function shootBall(event)
     if(playing) then
         if(event.phase == "began") then
@@ -133,38 +255,7 @@ local function shootBall(event)
             holdingShoot = true
             timer.performWithDelay(20, shootTime)
         elseif (event.phase == "ended") then
-            team.players[userPlayer].hasBall = false
-            holdingShoot = false
-            playing = false
-            local endTime = socket.gettime() * 1000
-            local power = (endTime - start) / maxTime
-            local dist = bounds.maxY * power * .75
-            local rotation = 90 - getRotationToBasket(team.players[userPlayer].sprite)
-    
-            local endPos = {x = 0, y = 0}
-            local distToHoop = getDist(team.players[userPlayer].sprite, hoopCenter)
-            local deadzone = 15 -- default
-            deadzone = deadzone + (team.players[userPlayer].shooting * deadzoneFactor)
-    
-            if(math.abs(distToHoop - dist) < deadzone) then
-                result = calculateShot()
-                endPos = {x = hoopCenter.x, y = hoopCenter.y}
-            else
-                result = "Miss"
-                endPos = {x = basketball.x + (dist * math.cos(math.rad(rotation))), y = basketball.y - (dist * math.sin(math.rad(rotation)))}
-    
-                if(endPos.y < 0) then
-                    endPos.y = 0
-                end
-    
-                if(endPos.x > bounds.maxX) then
-                    endPos.x = bounds.maxX
-                elseif(endPos.x < bounds.minX) then
-                    endPos.x = bounds.minX
-                end
-            end
-    
-            transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * 3, onComplete=endPossession})
+            finishShot()
         end
     end
 end
@@ -256,21 +347,21 @@ local function moveOffense()
 end
 
 local function moveDefense()
-    -- TODO
+    if(activeDefense) then
+        -- TODO
+    else
+        local player = opponent.players[userPlayer]
+        MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling), player.hasBall, team.players[userPlayer].sprite)
+    end
 end
 
 local function move()
     if(playing) then
         local player = team.players[userPlayer]
-        MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling), player.hasBall)
+        MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling), player.hasBall, hoopCenter)
 
-        if(activePlay) then
-            moveOffense()
-        end
-    
-        if(activeDefense) then
-            moveDefense()
-        end
+        moveOffense()
+        moveDefense()
     end
 end
 
@@ -289,11 +380,11 @@ local function createJoystick()
     })
 end
 
-local function createPlayer(player, positions, standingSequenceData, movingSequenceData)
+local function createPlayer(player, positions, standingSequenceData, movingSequenceData, pointTowards)
     local playerSprite = display.newSprite(mainGroup, standingSequenceData, movingSequenceData)
     playerSprite.x = tonumber(positions.x)
     playerSprite.y = tonumber(positions.y)
-    playerSprite.rotation = getRotationToBasket(positions)
+    playerSprite.rotation = getRotation(positions, pointTowards)
     playerSprite:play()
 
     local name = display.newText(uiGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, nameFontSize)
@@ -309,7 +400,7 @@ local function createOffense()
         local play = team.playbook.plays[1]
         local positions = play.routes[i].points[1]
         local player = team.players[i]
-        player.sprite = createPlayer(player, positions, standingSheet, sequenceData)
+        player.sprite = createPlayer(player, positions, standingSheet, sequenceData, hoopCenter)
 
         local function changePlayer()
             if(playing) then
@@ -333,7 +424,7 @@ local function createDefense()
         local play = opponent.playbook.defensePlays[1]
         local positions = play.routes[i].points[1]
         local player = opponent.players[i]
-        player.sprite = createPlayer(player, positions, standingSheetBlue, sequenceDataBlue)
+        player.sprite = createPlayer(player, positions, standingSheetBlue, sequenceDataBlue, team.players[i].sprite)
     end
 end
 

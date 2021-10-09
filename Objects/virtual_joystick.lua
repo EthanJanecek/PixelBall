@@ -107,7 +107,7 @@ function NewStick( Props )
         ---------------------------------------------
         -- METHOD: MOVE AN OBJECT
         ---------------------------------------------
-        function Group:move(Obj, maxSpeed, hasBall)
+        function Group:move(Obj, maxSpeed, hasBall, pointTowards)
             local newX = Obj.x + Cos( Rad(self.angle-90) ) * (maxSpeed * self.percent)
             local newY = Obj.y + Sin( Rad(self.angle-90) ) * (maxSpeed * self.percent)
 
@@ -117,7 +117,7 @@ function NewStick( Props )
                     Obj:play()
                 end
 
-                Obj.rotation = getRotationToBasket(Obj)
+                Obj.rotation = getRotation(Obj, pointTowards)
             elseif(newX >= bounds.minX and newX <= bounds.maxX and newY >= bounds.minY and newY <= bounds.maxY) then
                 if(not Obj.isPlaying or Obj.sequence == "standing") then
                     Obj:setSequence("moving")

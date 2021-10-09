@@ -13,8 +13,9 @@ offsetX = 240 - (330 / 2)
 centerX = display.contentCenterX
 courtW = (centerX - offsetX) * 2
 bounds = {minX = offsetX, maxX = offsetX + courtW, minY = 0, maxY = display.contentHeight}
+feetToPixels = 20
 
-hoopCenter = {x = centerX, y = conversionFactor * 5.5 * 20, radius = conversionFactor * 1.5 * 20}
+hoopCenter = {x = centerX, y = conversionFactor * 5.5 * feetToPixels, radius = conversionFactor * 1.5 * feetToPixels}
 
 startPositionsOffense = {
     {x = offsetX + 4, y = hoopCenter.y},
