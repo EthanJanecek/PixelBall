@@ -8,7 +8,9 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 function nextScene()
-    composer.gotoScene("Scenes.pregame");
+	league:nextWeek()
+	composer.removeScene("Scenes.pregame")
+    composer.gotoScene("Scenes.pregame")
 end
 
 
@@ -27,7 +29,7 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+    local playButton = display.newText(sceneGroup, "Next Week", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
     playButton:setFillColor(0, 0, 0)
     playButton:addEventListener("tap", nextScene)
 end

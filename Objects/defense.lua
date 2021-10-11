@@ -8,7 +8,8 @@ function defense:createPlay(routes)
         routes=routes,
         name="",
         coverage="man",
-        coverPositions={1, 2, 3, 4, 5}
+        coverPositions={1, 2, 3, 4, 5},
+        aggresiveness=5
     }, self)
 end
 
@@ -26,7 +27,8 @@ function defense:createDefensePlay()
         routes=routes,
         name="standard",
         coverage="man",
-        coverPositions={1, 2, 3, 4, 5}
+        coverPositions={1, 2, 3, 4, 5},
+        aggresiveness=5
     }, self)
 end
 

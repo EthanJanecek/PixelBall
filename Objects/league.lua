@@ -62,7 +62,7 @@ function createTeams()
 end
 
 function league:shuffleGames()
-    for j = 1, 50 do
+    for j = 1, 200 do
         -- Shuffle weekly games 50 times
         local old = math.random(1, 72)
         local new = math.random(1, 72)
@@ -149,6 +149,12 @@ function league:findTeam(name)
     end
 
     return {}
+end
+
+function league:nextWeek()
+    self.weekNum = self.weekNum + 1
+
+    -- TODO: Simulate games
 end
 
 return league

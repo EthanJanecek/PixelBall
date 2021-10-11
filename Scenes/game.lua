@@ -55,6 +55,33 @@ local maxBlockedProb = 50
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+function move(Obj, maxSpeed, pointTowards, angle, percent)
+    local newX = Obj.x + math.cos(math.rad(angle-90)) * (maxSpeed * percent)
+    local newY = Obj.y + math.sin(math.rad(angle-90)) * (maxSpeed * percent)
+
+    if(percent == 0) then
+        if(not Obj.isPlaying or Obj.sequence == "moving") then
+            Obj:setSequence("standing")
+            Obj:play()
+        end
+
+        Obj.rotation = getRotation(Obj, pointTowards)
+    elseif(newX >= bounds.minX and newX <= bounds.maxX and newY >= bounds.minY and newY <= bounds.maxY) then
+        if(not Obj.isPlaying or Obj.sequence == "standing") then
+            Obj:setSequence("moving")
+            Obj:play()
+        end
+        
+        Obj.x = newX
+        Obj.y = newY
+        Obj.rotation = angle
+    end
+
+    Obj.name.x = Obj.x
+    Obj.name.y = Obj.y
+    Obj.name.rotation = Obj.rotation
+end
+
 local function reset()
     Runtime:removeEventListener("touch", reset)
     composer.removeScene("Scenes.game")
@@ -347,15 +374,42 @@ local function moveOffense()
 end
 
 local function moveDefense()
-    if(activeDefense) then
-        -- TODO
-    else
+    if(holdingShoot) then
+        -- Have defender close out to shooter
         local player = opponent.players[userPlayer]
-        MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling), player.hasBall, team.players[userPlayer].sprite)
+        move(player.sprite, minSpeed + (player.speed * speedScaling), team.players[userPlayer].sprite, getRotation(player.sprite, team.players[userPlayer].sprite), 1)
+    elseif(activeDefense.coverage == "zone") then
+        -- TODO
+    elseif(activeDefense.coverage == "man") then
+        -- Move player defending ball handler
+        local player = opponent.players[userPlayer]
+        local shooter = team.players[userPlayer]
+        local rotationToBasket = getRotationToBasket(shooter.sprite)
+        local distAway = math.abs(activeDefense.aggresiveness - 6) * feetToPixels -- Distance away that defender should stand
+        local distToBasket = getDist(shooter.sprite, hoopCenter)
+
+        if(distAway > distToBasket) then
+            distAway = distToBasket / 2
+        end
+
+        local newPos = {x = shooter.sprite.x + (math.cos(math.rad(rotationToBasket - 90)) * distAway),
+                        y = shooter.sprite.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
+        local newAngle = getRotation(player.sprite, newPos)
+        local percent = getDist(player.sprite, newPos) / (minSpeed + (player.speed * speedScaling))
+
+        if(getDist(player.sprite, newPos) < .1 * feetToPixels and MyStick.percent == 0) then
+            percent = 0
+        elseif(getDist(player.sprite, newPos) < .1 * feetToPixels and MyStick.percent ~= 0) then
+            percent = .001
+        elseif(percent > 1) then
+            percent = 1
+        end
+
+        move(player.sprite, minSpeed + (player.speed * speedScaling), shooter.sprite, newAngle, percent)
     end
 end
 
-local function move()
+local function movePlayers()
     if(playing) then
         local player = team.players[userPlayer]
         MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling), player.hasBall, hoopCenter)
@@ -366,8 +420,7 @@ local function move()
 end
 
 local function createJoystick()
-    MyStick = StickLib.NewStick( 
-        {
+    MyStick = StickLib.NewStick({
         x = display.contentWidth * .055,
         y = display.contentHeight * .85,
         thumbSize = 8,
@@ -396,9 +449,10 @@ local function createPlayer(player, positions, standingSequenceData, movingSeque
 end
 
 local function createOffense()
+    activePlay = team.playbook.plays[1]
+
     for i = 1, 5 do
-        local play = team.playbook.plays[1]
-        local positions = play.routes[i].points[1]
+        local positions = activePlay.routes[i].points[1]
         local player = team.players[i]
         player.sprite = createPlayer(player, positions, standingSheet, sequenceData, hoopCenter)
 
@@ -420,9 +474,10 @@ local function createOffense()
 end
 
 local function createDefense()
+    activeDefense = opponent.playbook.defensePlays[1]
+
     for i = 1, 5 do
-        local play = opponent.playbook.defensePlays[1]
-        local positions = play.routes[i].points[1]
+        local positions = activeDefense.routes[i].points[1]
         local player = opponent.players[i]
         player.sprite = createPlayer(player, positions, standingSheetBlue, sequenceDataBlue, team.players[i].sprite)
     end
@@ -440,7 +495,7 @@ local function controlPlayers()
     basketball.x = team.players[userPlayer].sprite.x
     basketball.y = team.players[userPlayer].sprite.y - 15
 
-    Runtime:addEventListener("enterFrame", move)
+    Runtime:addEventListener("enterFrame", movePlayers)
 end
 
 local function gameLoop()

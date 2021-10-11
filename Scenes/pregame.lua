@@ -7,8 +7,12 @@ local scene = composer.newScene()
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-function nextScene()
-    composer.gotoScene("Scenes.game");
+function toGame()
+    composer.gotoScene("Scenes.game")
+end
+
+function nextWeek()
+    composer.gotoScene("Scenes.postgame")
 end
 
 
@@ -27,6 +31,7 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
+    print(league.weekNum)
     local allGames = league.schedule[league.weekNum]
     local gameInfo = league:findGameInfo(allGames, userTeam)
 
@@ -38,16 +43,16 @@ function scene:create( event )
 
         local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
         playButton:setFillColor(0, 0, 0)
-        playButton:addEventListener("tap", nextScene)
+        playButton:addEventListener("tap", nextWeek)
     else
-        local title = gameInfo.away .. " vs. " .. gameInfo.home
+        local titleStr = gameInfo.away .. " vs. " .. gameInfo.home
 
-        local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
+        local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
         title:setFillColor(.922, .910, .329)
 
         local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
         playButton:setFillColor(0, 0, 0)
-        playButton:addEventListener("tap", nextScene)
+        playButton:addEventListener("tap", toGame)
     end
 end
 
