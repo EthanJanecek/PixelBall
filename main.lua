@@ -41,6 +41,7 @@ userTeam = ""
 -- Game Details
 score = {away=0, home=0}
 gameDetails = {qtr=1, min=12, sec=0, shotClock=24}
+gameInProgress = true
 
 display.setStatusBar(display.HiddenStatusBar)
 

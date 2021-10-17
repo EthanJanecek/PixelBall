@@ -8,6 +8,7 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 function toGame()
+    gameInProgress = true
     composer.gotoScene("Scenes.game")
 end
 

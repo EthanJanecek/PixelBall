@@ -34,7 +34,7 @@ activeDefense = nil
 
 local holdingShoot = false
 local start = 0
-local maxTime = 1500
+local maxTime = 1250
 local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
 local endedPossession = false -- Keeps track of if the possession is still active. Is basically playing but with the time to shoot
 local scoreboard = {away=nil, home=nil, qtr=nil, time=nil, shotClock=nil}
@@ -44,11 +44,12 @@ MyStick = nil
 local minSpeed = 1.25
 local speedScaling = .1
 local nameFontSize = 8
-local deadzoneBase = 1 -- default
-local deadzoneFactor = 5
+local deadzoneBase = 5 -- default
+local deadzoneFactor = 3
+local deadzoneMin = 4
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels
-local maxBlockedProb = 50
+local maxBlockedProb = 30
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -81,6 +82,18 @@ function move(Obj, maxSpeed, pointTowards, angle, percent)
     Obj.name.rotation = Obj.rotation
 end
 
+local function reset()
+    Runtime:removeEventListener("enterFrame", movePlayers)
+    Runtime:removeEventListener("touch", reset)
+    composer.removeScene("Scenes.game")
+
+    if(gameInProgress) then
+        composer.gotoScene("Scenes.game")
+    else
+        composer.gotoScene("Scenes.postgame")
+    end
+end
+
 local function getQuarterString()
     if(gameDetails.qtr == 1) then
         return "1st"
@@ -93,11 +106,43 @@ local function getQuarterString()
     end
 end
 
-local function reset()
-    Runtime:removeEventListener("enterFrame", movePlayers)
-    Runtime:removeEventListener("touch", reset)
-    composer.removeScene("Scenes.game")
-    composer.gotoScene("Scenes.game")
+local function simulateDefense()
+    local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
+    background:setFillColor(.286, .835, .961)
+    background.x = display.contentCenterX
+    background.y = display.contentCenterY
+
+    local playResult = simulatePossession(opponent, team)
+    local points = playResult.points
+    local timeUsed = playResult.time
+
+    if(userIsHome) then
+        score.away = score.away + points
+    else
+        score.home = score.home + points
+    end
+
+    if(timeUsed > gameDetails.sec) then
+        gameDetails.sec = gameDetails.sec - timeUsed + 60
+        gameDetails.min = gameDetails.min - 1
+    else
+        gameDetails.sec = gameDetails.sec - timeUsed
+    end
+
+    if(gameDetails.min < 0) then
+        gameDetails.qtr = gameDetails.qtr + 1
+        gameDetails.min = 12
+        gameDetails.sec = 0
+        
+        if(gameDetails.qtr == 5) then
+            gameInProgress = false
+        end
+    end
+
+    local message = opponent.abbrev .. " scored " .. points .. " points"
+    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
+    displayMessage:setFillColor(.922, .910, .329)
+    Runtime:addEventListener("touch", reset)
 end
 
 local function getDist(a, b)
@@ -117,6 +162,11 @@ local function calculateShotPoints()
     else
         return "3"
     end
+end
+
+local function nextMenu()
+    Runtime:removeEventListener("touch", nextMenu)
+    timer.performWithDelay(250, simulateDefense)
 end
 
 local function endPossession()
@@ -154,12 +204,13 @@ local function endPossession()
         message = "The " .. getQuarterString() .. " quarter has ended"
     elseif(result == "game end") then
         message = "The game has ended"
+        gameInProgress = false
     end
 
     local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
     displayMessage:setFillColor(.922, .910, .329)
 
-    Runtime:addEventListener("touch", reset)
+    Runtime:addEventListener("touch", nextMenu)
 end
 
 local function shootTime()
@@ -189,25 +240,63 @@ local function calculateDeadzone(shooter, skill)
         local defender = opponent.players[i]
         local distance = getDist(shooter.sprite, defender.sprite)
 
-        if(math.floor(distance) <= feetToPixels / 2) then
-            distance = feetToPixels / 2
+        if(distance <= feetToPixels / 1.5) then
+            distance = feetToPixels / 1.5
         end
 
         if(distance < contestRadius) then
             -- Scale down based off of how close they are, height difference, and skill at defending
             local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
+            if(heightDiff < 7.5) then
+                heightDiff = 7.5
+            elseif(heightDiff > 12.5) then
+                heightDiff = 12.5
+            end
+
             local contestSkill = defender.contesting * deadzoneFactor
             local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
-            local factor = math.floor((heightDiff / 20) * distanceFactor * contestSkill)
+            local factor = (heightDiff / 10) * distanceFactor * contestSkill
             deadzone = deadzone - factor
         end
     end
 
-    if(deadzone < 1) then
-        deadzone = 1
+    if(deadzone < deadzoneMin) then
+        deadzone = deadzoneMin
     end
 
     return deadzone
+end
+
+local function isBlocked(shooter)
+    for i = 1, 5 do
+        local defender = opponent.players[i]
+        local distance = getDist(shooter.sprite, defender.sprite)
+
+        if(math.floor(distance) <= feetToPixels / 1.5) then
+            distance = feetToPixels / 1.5
+        end
+
+        if(distance < contestRadius) then
+            -- Scale down based off of how close they are, height difference, and skill at defending
+            local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
+            if(heightDiff < 7.5) then
+                heightDiff = 7.5
+            elseif(heightDiff > 12.5) then
+                heightDiff = 12.5
+            end
+
+            local contestSkill = defender.blocking * (maxBlockedProb / 10)
+            local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
+            local probability = (heightDiff / 10) * distanceFactor * contestSkill
+            local num = math.random(100)
+
+            if(num < probability) then
+                return true
+            end
+        end
+    end
+
+    return false
 end
 
 local function calculateShotEndPosition(result, rotation, dist)
@@ -230,32 +319,6 @@ local function calculateShotEndPosition(result, rotation, dist)
     end
 
     return endPos
-end
-
-local function isBlocked(shooter)
-    for i = 1, 5 do
-        local defender = opponent.players[i]
-        local distance = getDist(shooter.sprite, defender.sprite)
-
-        if(math.floor(distance) <= feetToPixels / 2) then
-            distance = feetToPixels / 2
-        end
-
-        if(distance < contestRadius) then
-            -- Scale down based off of how close they are, height difference, and skill at defending
-            local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
-            local contestSkill = defender.blocking * (maxBlockedProb / 10)
-            local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
-            local probability = (heightDiff / 20) * distanceFactor * contestSkill
-            local num = math.random(100)
-
-            if(num < probability) then
-                return true
-            end
-        end
-    end
-
-    return false
 end
 
 local function finishShot()
@@ -582,6 +645,7 @@ local function controlClock()
                 else
                     playing = false
                     gameDetails.min = 12
+                    gameDetails.sec = 0
                     gameDetails.qtr = gameDetails.qtr + 1
                     result = "qtr end"
                     endPossession()

@@ -157,4 +157,34 @@ function league:nextWeek()
     -- TODO: Simulate games
 end
 
+
+function simulateGame()
+    
+end
+
+function simulatePossession(offense, defense)
+    local shotType = math.random(100)
+    local time = math.random(24)
+    local shotPercent = math.random(100)
+    local points = 0
+
+    if(shotType < 72) then
+        -- 2
+        local percentageMade = 47
+
+        if(shotPercent < percentageMade) then
+            points = 2
+        end
+    else
+        -- 3
+        local percentageMade = 37
+
+        if(shotPercent < percentageMade) then
+            points = 3
+        end
+    end
+
+    return {points=points, time=time}
+end
+
 return league
