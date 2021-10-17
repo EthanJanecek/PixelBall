@@ -3,9 +3,7 @@ local StickLib   = require("Objects.virtual_joystick")
 local composer = require("composer")
 
 local scene = composer.newScene()
-local backGroup = display.newGroup()
-local mainGroup = display.newGroup()
-local uiGroup = display.newGroup()
+local sceneGroup = nil
 
 local standingData = {width=32, height=32, numFrames=1}
 local standingSheet = graphics.newImageSheet("images/playerModels/TopDownStandingRed.png", standingData)
@@ -38,14 +36,15 @@ local holdingShoot = false
 local start = 0
 local maxTime = 1500
 local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
-local scoreboard = {away=nil, home=nil, qtr=nil, min=nil, sec=nil, shotClock=nil}
+local endedPossession = false -- Keeps track of if the possession is still active. Is basically playing but with the time to shoot
+local scoreboard = {away=nil, home=nil, qtr=nil, time=nil, shotClock=nil}
 local result = ""
 
 MyStick = nil
 local minSpeed = 1.25
 local speedScaling = .1
 local nameFontSize = 8
-local deadzoneBase = 10 -- default
+local deadzoneBase = 1 -- default
 local deadzoneFactor = 5
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels
@@ -82,7 +81,20 @@ function move(Obj, maxSpeed, pointTowards, angle, percent)
     Obj.name.rotation = Obj.rotation
 end
 
+local function getQuarterString()
+    if(gameDetails.qtr == 1) then
+        return "1st"
+    elseif(gameDetails.qtr == 2) then
+        return "2nd"
+    elseif(gameDetails.qtr == 3) then
+        return "3rd"
+    else
+        return "4th"
+    end
+end
+
 local function reset()
+    Runtime:removeEventListener("enterFrame", movePlayers)
     Runtime:removeEventListener("touch", reset)
     composer.removeScene("Scenes.game")
     composer.gotoScene("Scenes.game")
@@ -108,12 +120,13 @@ local function calculateShotPoints()
 end
 
 local function endPossession()
-    local background = display.newRect(uiGroup, 0, 0, 800, 1280)
+    endedPossession = true
+    local message = ""
+
+    local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
-
-    local message = ""
 
     if(result == "2") then
         if(userIsHome) then
@@ -135,9 +148,15 @@ local function endPossession()
         message = "The shot is no good!"
     elseif(result == "Blocked") then
         message = "The shot is blocked!"
+    elseif(result == "shot clock") then
+        message = "The shot clock has expired"
+    elseif(result == "qtr end") then
+        message = "The " .. getQuarterString() .. " quarter has ended"
+    elseif(result == "game end") then
+        message = "The game has ended"
     end
 
-    local displayMessage = display.newText(uiGroup, message, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
+    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
     displayMessage:setFillColor(.922, .910, .329)
 
     Runtime:addEventListener("touch", reset)
@@ -149,7 +168,7 @@ local function shootTime()
 
     if(diff < maxTime) then
         local height = 150.0 * diff / maxTime
-        local powerBar = display.newRect(uiGroup, bounds.maxX + 45, 235 - height / 2, 25, height)
+        local powerBar = display.newRect(sceneGroup, bounds.maxX + 45, 235 - height / 2, 25, height)
         powerBar:setStrokeColor(0, 0, 0, 0)
         powerBar:setFillColor(47 / 255.0, 209 / 255.0, 25 / 255.0)
 
@@ -170,15 +189,15 @@ local function calculateDeadzone(shooter, skill)
         local defender = opponent.players[i]
         local distance = getDist(shooter.sprite, defender.sprite)
 
-        if(math.floor(distance) <= feetToPixels) then
-            distance = feetToPixels
+        if(math.floor(distance) <= feetToPixels / 2) then
+            distance = feetToPixels / 2
         end
 
         if(distance < contestRadius) then
             -- Scale down based off of how close they are, height difference, and skill at defending
             local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
             local contestSkill = defender.contesting * deadzoneFactor
-            local distanceFactor = 1 / (distance / feetToPixels) -- Will be in the range of 1/3 - 1
+            local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
             local factor = math.floor((heightDiff / 20) * distanceFactor * contestSkill)
             deadzone = deadzone - factor
         end
@@ -218,15 +237,15 @@ local function isBlocked(shooter)
         local defender = opponent.players[i]
         local distance = getDist(shooter.sprite, defender.sprite)
 
-        if(math.floor(distance) <= feetToPixels) then
-            distance = feetToPixels
+        if(math.floor(distance) <= feetToPixels / 2) then
+            distance = feetToPixels / 2
         end
 
         if(distance < contestRadius) then
             -- Scale down based off of how close they are, height difference, and skill at defending
             local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
             local contestSkill = defender.blocking * (maxBlockedProb / 10)
-            local distanceFactor = 1 / (distance / feetToPixels) -- Will be in the range of 1/3 - 1
+            local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
             local probability = (heightDiff / 20) * distanceFactor * contestSkill
             local num = math.random(100)
 
@@ -246,6 +265,11 @@ local function finishShot()
 
     local endTime = socket.gettime() * 1000
     local power = (endTime - start) / maxTime
+
+    if(power > 1) then
+        power = 1
+    end
+
     local dist = bounds.maxY * power * .75
     local rotation = 90 - getRotationToBasket(team.players[userPlayer].sprite)
 
@@ -289,43 +313,85 @@ end
 
 local function displayShotBar()
     -- Create shoot button
-    local shootBtn = display.newImageRect(uiGroup, "images/basketball_shoot_btn.png", 75, 75)
+    local shootBtn = display.newImageRect(sceneGroup, "images/basketball_shoot_btn.png", 75, 75)
     shootBtn.x = bounds.maxX + 50
     shootBtn.y = bounds.maxY - 40
     shootBtn:addEventListener("touch", shootBall)
 
     -- Create shot power bar
-    local shotBar = display.newRect(uiGroup, bounds.maxX + 45, 160, 25, 150)
+    local shotBar = display.newRect(sceneGroup, bounds.maxX + 45, 160, 25, 150)
     shotBar:setStrokeColor(0, 0, 0)
     shotBar:setFillColor(0, 0, 0, 0)
     shotBar.strokeWidth = 2
 end
 
+local function displayScore()
+    local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 40/2, 2, 40)
+    dividerVertical:setStrokeColor(0, 0, 0)
+    dividerVertical:setFillColor(0, 0, 0)
+
+    local homeStr = opponent.abbrev
+    local awayStr = team.abbrev
+
+    if(userIsHome) then
+        homeStr = team.abbrev
+        awayStr = opponent.abbrev
+    end
+
+    local awayLabel = display.newText(sceneGroup, awayStr, 9, 12, native.systemFont, 12)
+    awayLabel:setFillColor(.922, .910, .329)
+
+    local homeLabel = display.newText(sceneGroup, homeStr, 47, 12, native.systemFont, 12)
+    homeLabel:setFillColor(.922, .910, .329)
+
+    local scoreLabelDividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 20, 78, 2)
+    scoreLabelDividerHorizontal:setStrokeColor(0, 0, 0)
+    scoreLabelDividerHorizontal:setFillColor(0, 0, 0)
+
+    scoreboard.away = display.newText(sceneGroup, score.away, 9, 27, native.systemFont, 12)
+    scoreboard.away:setFillColor(.922, .910, .329)
+
+    scoreboard.home = display.newText(sceneGroup, score.home, 47, 27, native.systemFont, 12)
+    scoreboard.home:setFillColor(.922, .910, .329)
+
+    local scoreDividerHorizontal = display.newRect(sceneGroup, 25 + (8 / 2), 40, 78, 8)
+    scoreDividerHorizontal:setStrokeColor(0, 0, 0)
+    scoreDividerHorizontal:setFillColor(0, 0, 0)
+end
+
+local function displayTime()
+    scoreboard.time = display.newText(sceneGroup, string.format("%02d", gameDetails.min) .. ":" .. string.format("%02d", gameDetails.sec), 25, 33 + 24, native.systemFont, 24)
+    scoreboard.time:setFillColor(.922, .910, .329)
+
+    dividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 70, 78, 2)
+    dividerHorizontal:setStrokeColor(0, 0, 0)
+    dividerHorizontal:setFillColor(0, 0, 0)
+
+    local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 70 + (30 / 2), 2, 30)
+    dividerVertical:setStrokeColor(0, 0, 0)
+    dividerVertical:setFillColor(0, 0, 0)
+
+    scoreboard.qtr = display.newText(sceneGroup, getQuarterString(), 9, 65 + 20, native.systemFont, 20)
+    scoreboard.qtr:setFillColor(.922, .910, .329)
+
+    scoreboard.shotClock = display.newText(sceneGroup, string.format("%02d", gameDetails.shotClock), 47, 65 + 20, native.systemFont, 20)
+    scoreboard.shotClock:setFillColor(.922, .910, .329)
+end
+
 local function displayScoreboard()
-    local scoreboardOutline = display.newRect(uiGroup, 27, 52, 78, 100)
+    local scoreboardOutline = display.newRect(sceneGroup, 27, 52, 78, 100)
     scoreboardOutline:setStrokeColor(0, 0, 0)
     scoreboardOutline:setFillColor(0, 0, 0, 0)
     scoreboardOutline.strokeWidth = 4
 
-    local dividerVertical = display.newRect(uiGroup, 27, 52, 2, 100)
-    dividerVertical:setStrokeColor(0, 0, 0, 0)
-    dividerVertical:setFillColor(0, 0, 0)
+    displayScore()
+    displayTime()
+end
 
-    local awayLabel = display.newText(uiGroup, "Away", 9, 12, native.systemFont, 12)
-    awayLabel:setFillColor(.922, .910, .329)
-
-    local homeLabel = display.newText(uiGroup, "Home", 47, 12, native.systemFont, 12)
-    homeLabel:setFillColor(.922, .910, .329)
-
-    local dividerHorizontal = display.newRect(uiGroup, 27, 20, 78, 2)
-    dividerHorizontal:setStrokeColor(0, 0, 0, 0)
-    dividerHorizontal:setFillColor(0, 0, 0)
-
-    scoreboard.away = display.newText(uiGroup, score.away, 9, 27, native.systemFont, 12)
-    scoreboard.away:setFillColor(.922, .910, .329)
-
-    scoreboard.home = display.newText(uiGroup, score.home, 47, 27, native.systemFont, 12)
-    scoreboard.home:setFillColor(.922, .910, .329)
+local function clearScoreboard()
+    local clearRect = display.newRect(sceneGroup, 27, 52, 78, 100)
+    clearRect:setFillColor(.286, .835, .961)
+    clearRect.strokeWidth = 4
 end
 
 function calculateBballLoc(angle)
@@ -373,39 +439,40 @@ local function moveOffense()
     -- TODO
 end
 
+local function defenderCloseOut(defender, shooter, distAway)
+    local rotationToBasket = getRotationToBasket(shooter.sprite)
+    local distToBasket = getDist(shooter.sprite, hoopCenter)
+
+    if(distAway > distToBasket) then
+        distAway = distToBasket / 2
+    end
+
+    local newPos = {x = shooter.sprite.x + (math.cos(math.rad(rotationToBasket - 90)) * distAway),
+                    y = shooter.sprite.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
+    local newAngle = getRotation(defender.sprite, newPos)
+    local percent = getDist(defender.sprite, newPos) / (minSpeed + (defender.speed * speedScaling))
+
+    if(getDist(defender.sprite, newPos) < .1 * feetToPixels and shooter.sprite.sequence == "standing") then
+        percent = 0
+    elseif(getDist(defender.sprite, newPos) < .1 * feetToPixels) then
+        percent = .001
+    elseif(percent > 1) then
+        percent = 1
+    end
+
+    move(defender.sprite, minSpeed + (defender.speed * speedScaling), shooter.sprite, newAngle, percent)
+end
+
 local function moveDefense()
-    if(holdingShoot) then
-        -- Have defender close out to shooter
-        local player = opponent.players[userPlayer]
-        move(player.sprite, minSpeed + (player.speed * speedScaling), team.players[userPlayer].sprite, getRotation(player.sprite, team.players[userPlayer].sprite), 1)
-    elseif(activeDefense.coverage == "zone") then
+    if(activeDefense.coverage == "zone") then
         -- TODO
     elseif(activeDefense.coverage == "man") then
-        -- Move player defending ball handler
-        local player = opponent.players[userPlayer]
-        local shooter = team.players[userPlayer]
-        local rotationToBasket = getRotationToBasket(shooter.sprite)
+        -- Move players
         local distAway = math.abs(activeDefense.aggresiveness - 6) * feetToPixels -- Distance away that defender should stand
-        local distToBasket = getDist(shooter.sprite, hoopCenter)
 
-        if(distAway > distToBasket) then
-            distAway = distToBasket / 2
+        for i = 1, 5 do
+            defenderCloseOut(opponent.players[i], team.players[i], distAway)
         end
-
-        local newPos = {x = shooter.sprite.x + (math.cos(math.rad(rotationToBasket - 90)) * distAway),
-                        y = shooter.sprite.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
-        local newAngle = getRotation(player.sprite, newPos)
-        local percent = getDist(player.sprite, newPos) / (minSpeed + (player.speed * speedScaling))
-
-        if(getDist(player.sprite, newPos) < .1 * feetToPixels and MyStick.percent == 0) then
-            percent = 0
-        elseif(getDist(player.sprite, newPos) < .1 * feetToPixels and MyStick.percent ~= 0) then
-            percent = .001
-        elseif(percent > 1) then
-            percent = 1
-        end
-
-        move(player.sprite, minSpeed + (player.speed * speedScaling), shooter.sprite, newAngle, percent)
     end
 end
 
@@ -434,13 +501,13 @@ local function createJoystick()
 end
 
 local function createPlayer(player, positions, standingSequenceData, movingSequenceData, pointTowards)
-    local playerSprite = display.newSprite(mainGroup, standingSequenceData, movingSequenceData)
+    local playerSprite = display.newSprite(sceneGroup, standingSequenceData, movingSequenceData)
     playerSprite.x = tonumber(positions.x)
     playerSprite.y = tonumber(positions.y)
     playerSprite.rotation = getRotation(positions, pointTowards)
     playerSprite:play()
 
-    local name = display.newText(uiGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, nameFontSize)
+    local name = display.newText(sceneGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, nameFontSize)
     name:setFillColor(1, 1, 1)
     name.rotation = playerSprite.rotation
     playerSprite.name = name
@@ -458,9 +525,12 @@ local function createOffense()
 
         local function changePlayer()
             if(playing) then
-                team.players[userPlayer].hasBall = false
                 local oldPlayer = userPlayer
                 userPlayer = i
+
+                team.players[oldPlayer].sprite:removeEventListener("tap", changePlayer)
+                team.players[oldPlayer].hasBall = false
+                
                 team.players[userPlayer].hasBall = true
                 local ballLoc = calculateBballLoc(team.players[userPlayer].sprite.rotation)
                 transition.moveTo(basketball, {x=ballLoc.x, y=ballLoc.y, time=getDist(team.players[oldPlayer].sprite, team.players[userPlayer].sprite) * 3})
@@ -483,15 +553,64 @@ local function createDefense()
     end
 end
 
-local function controlPlayers()
+local function controlClock()
+    gameDetails.sec = gameDetails.sec - 1
+
+    if(gameDetails.shotClock > 0 and playing) then
+        gameDetails.shotClock = gameDetails.shotClock - 1
+    end
+
+    if(gameDetails.shotClock == 0) then
+        if(playing ~= false) then
+            -- They didn't get the shot off in time
+            playing = false
+            result = "shot clock"
+            endPossession()
+        end
+    end
+
+    if(not endedPossession) then
+        if(gameDetails.sec < 0) then
+            gameDetails.sec = 59
+            gameDetails.min = gameDetails.min - 1
+
+            if(gameDetails.min < 0) then
+                if(gameDetails.qtr > 4) then
+                    playing = false
+                    result = "game end"
+                    endPossession()
+                else
+                    playing = false
+                    gameDetails.min = 12
+                    gameDetails.qtr = gameDetails.qtr + 1
+                    result = "qtr end"
+                    endPossession()
+                end
+            end
+        end
+    end
+
+    if(not endedPossession) then
+        clearScoreboard()
+        displayScoreboard()
+        timer.performWithDelay(1000, controlClock)
+    end
+end
+
+local function startGame()
     playing = true
+    endedPossession = false
+    result = ""
+    gameDetails.shotClock = 24
+
     displayScoreboard()
     displayShotBar()
     createJoystick()
     createOffense()
-    createDefense()    
+    createDefense()
+    timer.performWithDelay(1000, controlClock)
 
-    basketball = display.newImageRect(mainGroup, "images/basketball.png", 15, 15)
+    basketball = display.newImageRect(sceneGroup, "images/basketball.png", 15, 15)
     basketball.x = team.players[userPlayer].sprite.x
     basketball.y = team.players[userPlayer].sprite.y - 15
 
@@ -509,17 +628,17 @@ local function gameLoop()
         userIsHome = false
         opponent = league:findTeam(gameInfo.home)
     end
-
-    controlPlayers()
+    
+    startGame()
 end
 
 local function setBackdrop()
-    local background = display.newRect(backGroup, 0, 0, 800, 1280)
+    local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local backgroundImage = display.newImageRect(backGroup, "images/NbaCourt.png", 1000 * conversionFactor, 940 * conversionFactor)
+    local backgroundImage = display.newImageRect(sceneGroup, "images/NbaCourt.png", 1000 * conversionFactor, 940 * conversionFactor)
     backgroundImage.x = display.contentCenterX
     backgroundImage.y = display.contentCenterY
 end
@@ -531,6 +650,7 @@ end
 -- create()
 function scene:create( event )
 	-- Code here runs when the scene is first created but has not yet appeared on screen
+    sceneGroup = self.view
     setBackdrop()
     gameLoop()
 end

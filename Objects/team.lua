@@ -3,11 +3,12 @@ PlaybookLib = require("Objects.playbook")
 
 local team = {}
 
-function team:create(name, logo, conference, division, color, rosterData)
+function team:create(name, abbrev, logo, conference, division, color, rosterData)
     self.__index = self
 
     return setmetatable({
         name=name,
+        abbrev=abbrev,
         players=createRoster(rosterData),
         wins=0,
         losses=0,

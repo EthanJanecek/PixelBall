@@ -31,7 +31,6 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    print(league.weekNum)
     local allGames = league.schedule[league.weekNum]
     local gameInfo = league:findGameInfo(allGames, userTeam)
 
