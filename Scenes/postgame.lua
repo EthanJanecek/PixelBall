@@ -9,7 +9,7 @@ local scene = composer.newScene()
 -- -----------------------------------------------------------------------------------
 function nextScene()
 	league:nextWeek()
-	composer.removeScene("Scenes.pregame")
+	composer.removeScene("Scenes.postgame")
     composer.gotoScene("Scenes.pregame")
 end
 
@@ -32,6 +32,12 @@ function scene:create( event )
     local playButton = display.newText(sceneGroup, "Next Week", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
     playButton:setFillColor(0, 0, 0)
     playButton:addEventListener("tap", nextScene)
+
+	local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
+	buttonBorder:setStrokeColor(0, 0, 0)
+	buttonBorder.strokeWidth = 2
+	buttonBorder:setFillColor(0, 0, 0, 0)
+	buttonBorder:addEventListener("tap", nextScene)
 end
 
 

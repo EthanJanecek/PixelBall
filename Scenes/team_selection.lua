@@ -6,7 +6,10 @@ local scene = composer.newScene()
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-
+local function nextScene()
+    composer.removeScene("Scenes.team_selection")
+    composer.gotoScene("Scenes.pregame")
+end
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -38,7 +41,7 @@ function scene:create( event )
 
         function chooseTeam()
             userTeam = teams[i].name
-            composer.gotoScene("Scenes.pregame")
+            nextScene()
         end
 
         team:addEventListener("tap", chooseTeam)

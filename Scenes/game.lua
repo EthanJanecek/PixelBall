@@ -24,7 +24,7 @@ local sequenceDataBlue = {
 }
 
 offense = true
-userPlayer = 3
+userPlayer = 1
 basketball = nil
 team = nil
 opponent = nil
@@ -84,7 +84,7 @@ end
 
 local function reset()
     Runtime:removeEventListener("enterFrame", movePlayers)
-    Runtime:removeEventListener("touch", reset)
+    Runtime:removeEventListener("tap", reset)
     composer.removeScene("Scenes.game")
 
     if(gameInProgress) then
@@ -104,6 +104,75 @@ local function getQuarterString()
     else
         return "4th"
     end
+end
+
+local function displayScore()
+    local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 40/2, 2, 40)
+    dividerVertical:setStrokeColor(0, 0, 0)
+    dividerVertical:setFillColor(0, 0, 0)
+
+    local homeStr = opponent.abbrev
+    local awayStr = team.abbrev
+
+    if(userIsHome) then
+        homeStr = team.abbrev
+        awayStr = opponent.abbrev
+    end
+
+    local awayLabel = display.newText(sceneGroup, awayStr, 9, 12, native.systemFont, 12)
+    awayLabel:setFillColor(.922, .910, .329)
+
+    local homeLabel = display.newText(sceneGroup, homeStr, 47, 12, native.systemFont, 12)
+    homeLabel:setFillColor(.922, .910, .329)
+
+    local scoreLabelDividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 20, 78, 2)
+    scoreLabelDividerHorizontal:setStrokeColor(0, 0, 0)
+    scoreLabelDividerHorizontal:setFillColor(0, 0, 0)
+
+    scoreboard.away = display.newText(sceneGroup, score.away, 9, 27, native.systemFont, 12)
+    scoreboard.away:setFillColor(.922, .910, .329)
+
+    scoreboard.home = display.newText(sceneGroup, score.home, 47, 27, native.systemFont, 12)
+    scoreboard.home:setFillColor(.922, .910, .329)
+
+    local scoreDividerHorizontal = display.newRect(sceneGroup, 25 + (8 / 2), 40, 78, 8)
+    scoreDividerHorizontal:setStrokeColor(0, 0, 0)
+    scoreDividerHorizontal:setFillColor(0, 0, 0)
+end
+
+local function displayTime()
+    scoreboard.time = display.newText(sceneGroup, string.format("%02d", gameDetails.min) .. ":" .. string.format("%02d", gameDetails.sec), 25, 33 + 24, native.systemFont, 24)
+    scoreboard.time:setFillColor(.922, .910, .329)
+
+    dividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 70, 78, 2)
+    dividerHorizontal:setStrokeColor(0, 0, 0)
+    dividerHorizontal:setFillColor(0, 0, 0)
+
+    local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 70 + (30 / 2), 2, 30)
+    dividerVertical:setStrokeColor(0, 0, 0)
+    dividerVertical:setFillColor(0, 0, 0)
+
+    scoreboard.qtr = display.newText(sceneGroup, getQuarterString(), 9, 65 + 20, native.systemFont, 20)
+    scoreboard.qtr:setFillColor(.922, .910, .329)
+
+    scoreboard.shotClock = display.newText(sceneGroup, string.format("%02d", gameDetails.shotClock), 47, 65 + 20, native.systemFont, 20)
+    scoreboard.shotClock:setFillColor(.922, .910, .329)
+end
+
+local function displayScoreboard()
+    local scoreboardOutline = display.newRect(sceneGroup, 27, 52, 78, 100)
+    scoreboardOutline:setStrokeColor(0, 0, 0)
+    scoreboardOutline:setFillColor(0, 0, 0, 0)
+    scoreboardOutline.strokeWidth = 4
+
+    displayScore()
+    displayTime()
+end
+
+local function clearScoreboard()
+    local clearRect = display.newRect(sceneGroup, 27, 52, 78, 100)
+    clearRect:setFillColor(.286, .835, .961)
+    clearRect.strokeWidth = 4
 end
 
 local function simulateDefense()
@@ -140,9 +209,10 @@ local function simulateDefense()
     end
 
     local message = opponent.abbrev .. " scored " .. points .. " points"
-    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
+    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
     displayMessage:setFillColor(.922, .910, .329)
-    Runtime:addEventListener("touch", reset)
+    displayScoreboard()
+    Runtime:addEventListener("tap", reset)
 end
 
 local function getDist(a, b)
@@ -165,7 +235,7 @@ local function calculateShotPoints()
 end
 
 local function nextMenu()
-    Runtime:removeEventListener("touch", nextMenu)
+    Runtime:removeEventListener("tap", nextMenu)
     timer.performWithDelay(250, simulateDefense)
 end
 
@@ -207,10 +277,11 @@ local function endPossession()
         gameInProgress = false
     end
 
-    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
+    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
     displayMessage:setFillColor(.922, .910, .329)
+    displayScoreboard()
 
-    Runtime:addEventListener("touch", nextMenu)
+    Runtime:addEventListener("tap", nextMenu)
 end
 
 local function shootTime()
@@ -386,75 +457,6 @@ local function displayShotBar()
     shotBar:setStrokeColor(0, 0, 0)
     shotBar:setFillColor(0, 0, 0, 0)
     shotBar.strokeWidth = 2
-end
-
-local function displayScore()
-    local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 40/2, 2, 40)
-    dividerVertical:setStrokeColor(0, 0, 0)
-    dividerVertical:setFillColor(0, 0, 0)
-
-    local homeStr = opponent.abbrev
-    local awayStr = team.abbrev
-
-    if(userIsHome) then
-        homeStr = team.abbrev
-        awayStr = opponent.abbrev
-    end
-
-    local awayLabel = display.newText(sceneGroup, awayStr, 9, 12, native.systemFont, 12)
-    awayLabel:setFillColor(.922, .910, .329)
-
-    local homeLabel = display.newText(sceneGroup, homeStr, 47, 12, native.systemFont, 12)
-    homeLabel:setFillColor(.922, .910, .329)
-
-    local scoreLabelDividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 20, 78, 2)
-    scoreLabelDividerHorizontal:setStrokeColor(0, 0, 0)
-    scoreLabelDividerHorizontal:setFillColor(0, 0, 0)
-
-    scoreboard.away = display.newText(sceneGroup, score.away, 9, 27, native.systemFont, 12)
-    scoreboard.away:setFillColor(.922, .910, .329)
-
-    scoreboard.home = display.newText(sceneGroup, score.home, 47, 27, native.systemFont, 12)
-    scoreboard.home:setFillColor(.922, .910, .329)
-
-    local scoreDividerHorizontal = display.newRect(sceneGroup, 25 + (8 / 2), 40, 78, 8)
-    scoreDividerHorizontal:setStrokeColor(0, 0, 0)
-    scoreDividerHorizontal:setFillColor(0, 0, 0)
-end
-
-local function displayTime()
-    scoreboard.time = display.newText(sceneGroup, string.format("%02d", gameDetails.min) .. ":" .. string.format("%02d", gameDetails.sec), 25, 33 + 24, native.systemFont, 24)
-    scoreboard.time:setFillColor(.922, .910, .329)
-
-    dividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 70, 78, 2)
-    dividerHorizontal:setStrokeColor(0, 0, 0)
-    dividerHorizontal:setFillColor(0, 0, 0)
-
-    local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 70 + (30 / 2), 2, 30)
-    dividerVertical:setStrokeColor(0, 0, 0)
-    dividerVertical:setFillColor(0, 0, 0)
-
-    scoreboard.qtr = display.newText(sceneGroup, getQuarterString(), 9, 65 + 20, native.systemFont, 20)
-    scoreboard.qtr:setFillColor(.922, .910, .329)
-
-    scoreboard.shotClock = display.newText(sceneGroup, string.format("%02d", gameDetails.shotClock), 47, 65 + 20, native.systemFont, 20)
-    scoreboard.shotClock:setFillColor(.922, .910, .329)
-end
-
-local function displayScoreboard()
-    local scoreboardOutline = display.newRect(sceneGroup, 27, 52, 78, 100)
-    scoreboardOutline:setStrokeColor(0, 0, 0)
-    scoreboardOutline:setFillColor(0, 0, 0, 0)
-    scoreboardOutline.strokeWidth = 4
-
-    displayScore()
-    displayTime()
-end
-
-local function clearScoreboard()
-    local clearRect = display.newRect(sceneGroup, 27, 52, 78, 100)
-    clearRect:setFillColor(.286, .835, .961)
-    clearRect.strokeWidth = 4
 end
 
 function calculateBballLoc(angle)

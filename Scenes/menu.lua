@@ -8,7 +8,8 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 function nextScene()
-    composer.gotoScene("Scenes.team_selection");
+	composer.removeScene("Scenes.menu")
+    composer.gotoScene("Scenes.team_selection")
 end
 
 

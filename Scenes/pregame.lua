@@ -9,14 +9,19 @@ local scene = composer.newScene()
 -- -----------------------------------------------------------------------------------
 function toGame()
     gameInProgress = true
+    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.game")
 end
 
 function nextWeek()
+    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.postgame")
 end
 
-
+function changeLineup()
+    composer.removeScene("Scenes.pregame")
+    composer.gotoScene("Scenes.lineup")
+end
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -24,7 +29,9 @@ end
 
 -- create()
 function scene:create( event )
+    lineupSwitch = {-1, -1}
 	local sceneGroup = self.view
+	composer.removeScene("Scenes.postgame")
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
@@ -44,6 +51,12 @@ function scene:create( event )
         local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
         playButton:setFillColor(0, 0, 0)
         playButton:addEventListener("tap", nextWeek)
+
+        local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
+        buttonBorder:setStrokeColor(0, 0, 0)
+        buttonBorder.strokeWidth = 2
+        buttonBorder:setFillColor(0, 0, 0, 0)
+        buttonBorder:addEventListener("tap", nextScene)
     else
         local titleStr = gameInfo.away .. " vs. " .. gameInfo.home
 
@@ -53,6 +66,22 @@ function scene:create( event )
         local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
         playButton:setFillColor(0, 0, 0)
         playButton:addEventListener("tap", toGame)
+
+        local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
+        buttonBorder:setStrokeColor(0, 0, 0)
+        buttonBorder.strokeWidth = 2
+        buttonBorder:setFillColor(0, 0, 0, 0)
+        buttonBorder:addEventListener("tap", nextScene)
+
+        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.5, native.systemFont, 32)
+        lineupButton:setFillColor(0, 0, 0)
+        lineupButton:addEventListener("tap", changeLineup)
+
+        local lineupButtonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY * 1.5, lineupButton.width, lineupButton.height)
+        lineupButtonBorder:setStrokeColor(0, 0, 0)
+        lineupButtonBorder.strokeWidth = 2
+        lineupButtonBorder:setFillColor(0, 0, 0, 0)
+        lineupButtonBorder:addEventListener("tap", changeLineup)
     end
 end
 
