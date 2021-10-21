@@ -46,9 +46,9 @@ MyStick = nil
 local minSpeed = 1.25
 local speedScaling = .1
 local nameFontSize = 8
-local deadzoneBase = 5 -- default
-local deadzoneFactor = 3
-local deadzoneMin = 4
+local deadzoneBase = 6 -- default
+local deadzoneFactor = 2
+local deadzoneMin = 3
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels
 local maxBlockedProb = 30
@@ -564,24 +564,6 @@ function getInitials(name)
     return initials
 end
 
--- local function calculateEndPointMovement(player, route)
---     local maxDist = minSpeed + (player.speed * speedScaling)
---     local nextPoint = route.points[1]
---     local distToNext = getDist(player.sprite, nextPoint)
-
---     local newAngle = getRotation(player.sprite, nextPoint)
---     local percent = distToNext / maxDist
-
---     if(distToNext < .1 * feetToPixels) then
---         table.remove(route.points, 1)
---         percent = .001
---     elseif(percent > 1) then
---         percent = 1
---     end
-
---     move(player.sprite, minSpeed + (player.speed * speedScaling), hoopCenter, newAngle, percent)
--- end
-
 local function calculateEndPointMovement(player, route)
     local maxDist = minSpeed + (player.speed * speedScaling)
     local nextPoint = route.points[1]
@@ -814,6 +796,33 @@ local function startGame()
     Runtime:addEventListener("enterFrame", movePlayers)
 end
 
+local function indexOf(table, value)
+    for i = 1, #table do
+        if(table[i] == value) then
+            return i
+        end
+    end
+
+    return -1
+end
+
+local function setDefenseMatchups()
+    local teamStarters = {unpack(team.players, 1, 5)}
+    table.sort(teamStarters, function(a, b)
+        return a.speed < b.speed
+    end)
+
+    local opponentStarters = {unpack(opponent.players, 1, 5)}
+    table.sort(opponentStarters, function(a, b)
+        return a.speed < b.speed
+    end)
+
+    for i = 1, 5 do
+        local index = indexOf(team.players, teamStarters[i])
+        opponent.players[index] = opponentStarters[i]
+    end
+end
+
 local function gameLoop()
     local allGames = league.schedule[league.weekNum]
     local gameInfo = league:findGameInfo(allGames, userTeam)
@@ -826,6 +835,7 @@ local function gameLoop()
         opponent = league:findTeam(gameInfo.home)
     end
     
+    setDefenseMatchups()
     startGame()
 end
 
