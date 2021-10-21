@@ -11,7 +11,9 @@ local composer = require("composer")
 conversionFactor = display.contentHeight / 940
 offsetX = 240 - (330 / 2)
 centerX = display.contentCenterX
+centerY = display.contentCenterY
 courtW = (centerX - offsetX) * 2
+courtH = display.contentHeight
 bounds = {minX = offsetX, maxX = offsetX + courtW, minY = 0, maxY = display.contentHeight}
 feetToPixels = 20
 

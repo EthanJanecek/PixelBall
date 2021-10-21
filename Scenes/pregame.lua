@@ -23,6 +23,11 @@ function changeLineup()
     composer.gotoScene("Scenes.lineup")
 end
 
+function createPlays()
+    composer.removeScene("Scenes.pregame")
+    composer.gotoScene("Scenes.play_creation")
+end
+
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -73,15 +78,25 @@ function scene:create( event )
         buttonBorder:setFillColor(0, 0, 0, 0)
         buttonBorder:addEventListener("tap", nextScene)
 
-        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.5, native.systemFont, 32)
+        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
         lineupButton:setFillColor(0, 0, 0)
         lineupButton:addEventListener("tap", changeLineup)
 
-        local lineupButtonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY * 1.5, lineupButton.width, lineupButton.height)
+        local lineupButtonBorder = display.newRect(sceneGroup, lineupButton.x, lineupButton.y, lineupButton.width, lineupButton.height)
         lineupButtonBorder:setStrokeColor(0, 0, 0)
         lineupButtonBorder.strokeWidth = 2
         lineupButtonBorder:setFillColor(0, 0, 0, 0)
         lineupButtonBorder:addEventListener("tap", changeLineup)
+
+        local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX, display.contentCenterY * 1.6, native.systemFont, 32)
+        playCreationButton:setFillColor(0, 0, 0)
+        playCreationButton:addEventListener("tap", createPlays)
+
+        local playCreationButtonBorder = display.newRect(sceneGroup, playCreationButton.x, playCreationButton.y, playCreationButton.width, playCreationButton.height)
+        playCreationButtonBorder:setStrokeColor(0, 0, 0)
+        playCreationButtonBorder.strokeWidth = 2
+        playCreationButtonBorder:setFillColor(0, 0, 0, 0)
+        playCreationButtonBorder:addEventListener("tap", createPlays)
     end
 end
 

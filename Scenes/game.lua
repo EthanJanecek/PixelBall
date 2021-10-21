@@ -106,6 +106,47 @@ local function getQuarterString()
     end
 end
 
+local function convertPoints(courtX, courtY, x, y)
+    -- Converts an (x, y) coordinate on the full sized court to a new coordinate on the mini drawing of the play
+    local width = 1000 * conversionFactor / 6.5
+    local height = 940 * conversionFactor / 6.5
+
+    local xScale = (x - centerX) / courtW
+    local x = courtX + (xScale * width)
+
+    local yScale = (y - centerY) / courtH
+    local y = courtY + (yScale * height)
+
+    return {x=x, y=y}
+end
+
+local function displayPlays()
+    local numPlays = #team.playbook.plays
+    if(numPlays > 5) then
+        numPlays = 5
+    end
+
+    for i = 1, numPlays do
+        local play = team.playbook.plays[i]
+        local backgroundImage = display.newImageRect(sceneGroup, "images/NbaCourt.png", 1000 * conversionFactor / 6.5, 940 * conversionFactor / 6.5)
+        backgroundImage.x = -backgroundImage.width
+        backgroundImage.y = display.contentHeight * i / 6
+
+        -- Draw routes on minimap
+        for j = 1, #play.routes do
+            local route = play.routes[j]
+
+            for k = 1, #route.points do
+                local point = route.points[k]
+                local circleLoc = convertPoints(backgroundImage.x, backgroundImage.y, point.x, point.y)
+
+                local circle = display.newCircle(sceneGroup, circleLoc.x, circleLoc.y, 2)
+                circle:setFillColor(0, 0, .5, .25)
+            end
+        end
+    end
+end
+
 local function displayScore()
     local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 40/2, 2, 40)
     dividerVertical:setStrokeColor(0, 0, 0)
@@ -370,7 +411,7 @@ local function isBlocked(shooter)
     return false
 end
 
-local function calculateShotEndPosition(result, rotation, dist)
+local function calculateShotEndPosition(rotation, dist)
     local endPos = nil
 
     if(result == "Miss") then
@@ -428,7 +469,7 @@ local function finishShot()
             result = "Miss"
         end
 
-        local endPos = calculateShotEndPosition(result, rotation, dist)
+        local endPos = calculateShotEndPosition(rotation, dist)
         transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * 3, onComplete=endPossession})
     end
 end
@@ -671,6 +712,7 @@ local function startGame()
 
     displayScoreboard()
     displayShotBar()
+    displayPlays()
     createJoystick()
     createOffense()
     createDefense()

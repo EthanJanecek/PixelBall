@@ -1,12 +1,12 @@
 RouteLib = require("Objects.route")
 local play = {}
 
-function play:createPlay(routes)
+function play:createPlay(routes, name)
     self.__index = self
 
     return setmetatable({
         routes=routes,
-        name="",
+        name=name,
     }, self)
 end
 

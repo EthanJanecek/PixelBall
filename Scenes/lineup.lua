@@ -49,7 +49,7 @@ local function showPlayerCard(player, initialX, initialY, i)
         redraw()
     end
 
-    local playerBorder = display.newRect(initialX, initialY, display.contentWidth / 8, display.contentHeight / 5)
+    local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 8, display.contentHeight / 5)
     playerBorder:setFillColor(0, 0, 0, 0)
     playerBorder:addEventListener("tap", selectPlayer)
     if(i == lineupSwitch[1]) then
@@ -69,31 +69,15 @@ local function showPlayerCard(player, initialX, initialY, i)
     playerName:setFillColor(.922, .910, .329)
     playerName:addEventListener("tap", selectPlayer)
 
-    local paramStr1 = "DRB: " .. player.dribbling .. "  STL: " .. player.stealing
-    local paramStr2 = "SHT: " .. player.shooting .. "  BLK: " .. player.blocking
-    local paramStr3 = "FNS: " .. player.finishing .. "  CNT: " .. player.contesting
-    local paramStr4 = "SPD: " .. player.speed .. "  HGT: " .. player.height
-    local paramStr5 = "STAMINA: " .. player.stamina
+    local paramStr = "DRB: " .. player.dribbling .. "  STL: " .. player.stealing .. 
+                        "\nSHT: " .. player.shooting .. "  BLK: " .. player.blocking .. 
+                        "\nFNS: " .. player.finishing .. "  CNT: " .. player.contesting .. 
+                        "\nSPD: " .. player.speed .. "  HGT: " .. player.height .. 
+                        "\n  STAMINA: " .. player.stamina
 
-    local param1 = display.newText(sceneGroup, paramStr1, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 12, native.systemFont, 8)
-    param1:setFillColor(.922, .910, .329)
-    param1:addEventListener("tap", selectPlayer)
-
-    local param2 = display.newText(sceneGroup, paramStr2, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 12 + 8, native.systemFont, 8)
-    param2:setFillColor(.922, .910, .329)
-    param2:addEventListener("tap", selectPlayer)
-
-    local param3 = display.newText(sceneGroup, paramStr3, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 12 + 8 * 2, native.systemFont, 8)
-    param3:setFillColor(.922, .910, .329)
-    param3:addEventListener("tap", selectPlayer)
-
-    local param4 = display.newText(sceneGroup, paramStr4, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 12 + 8 * 3, native.systemFont, 8)
-    param4:setFillColor(.922, .910, .329)
-    param4:addEventListener("tap", selectPlayer)
-
-    local param5 = display.newText(sceneGroup, paramStr5, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 12 + 8 * 4, native.systemFont, 8)
-    param5:setFillColor(.922, .910, .329)
-    param5:addEventListener("tap", selectPlayer)
+    local params = display.newText(sceneGroup, paramStr, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 12 + 8 * 2, native.systemFont, 8)
+    params:setFillColor(.922, .910, .329)
+    params:addEventListener("tap", selectPlayer)
 end
 
 local function showPlayer(i)
