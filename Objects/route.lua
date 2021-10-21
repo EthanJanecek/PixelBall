@@ -10,4 +10,12 @@ function route:createRoute(startX, startY, position)
     }, self)
 end
 
+function route:createRouteByPoints(points, position)
+    self.__index = self
+
+    return setmetatable({
+        position=position, points=points
+    }, self)
+end
+
 return route

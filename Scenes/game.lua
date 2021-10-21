@@ -1,6 +1,8 @@
 local socket = require("socket")
 local StickLib   = require("Objects.virtual_joystick")
 local composer = require("composer")
+local RouteLib = require("Objects.route")
+local PlayLib = require("Objects.play")
 
 local scene = composer.newScene()
 local sceneGroup = nil
@@ -55,6 +57,21 @@ local maxBlockedProb = 30
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+local function copyPlay(play)
+    -- Copies the play to a new object so that the orginal routes do not get modified
+    local newRoutes = {}
+
+    for i = 1, 5 do
+        local points = {}
+        for j = 1, #play.routes[i].points do
+            table.insert(points, play.routes[i].points[j])
+        end
+        newRoutes[i] = RouteLib:createRouteByPoints(points, i)
+    end
+
+    return PlayLib:createPlay(newRoutes, play.name)
+end
+
 function move(Obj, maxSpeed, pointTowards, angle, percent)
     local newX = Obj.x + math.cos(math.rad(angle-90)) * (maxSpeed * percent)
     local newY = Obj.y + math.sin(math.rad(angle-90)) * (maxSpeed * percent)
@@ -128,9 +145,15 @@ local function displayPlays()
 
     for i = 1, numPlays do
         local play = team.playbook.plays[i]
+
+        local function choosePlay()
+            activePlay = copyPlay(play)
+        end
+
         local backgroundImage = display.newImageRect(sceneGroup, "images/NbaCourt.png", 1000 * conversionFactor / 6.5, 940 * conversionFactor / 6.5)
         backgroundImage.x = -backgroundImage.width
         backgroundImage.y = display.contentHeight * i / 6
+        backgroundImage:addEventListener("tap", choosePlay)
 
         -- Draw routes on minimap
         for j = 1, #play.routes do
@@ -541,8 +564,74 @@ function getInitials(name)
     return initials
 end
 
+-- local function calculateEndPointMovement(player, route)
+--     local maxDist = minSpeed + (player.speed * speedScaling)
+--     local nextPoint = route.points[1]
+--     local distToNext = getDist(player.sprite, nextPoint)
+
+--     local newAngle = getRotation(player.sprite, nextPoint)
+--     local percent = distToNext / maxDist
+
+--     if(distToNext < .1 * feetToPixels) then
+--         table.remove(route.points, 1)
+--         percent = .001
+--     elseif(percent > 1) then
+--         percent = 1
+--     end
+
+--     move(player.sprite, minSpeed + (player.speed * speedScaling), hoopCenter, newAngle, percent)
+-- end
+
+local function calculateEndPointMovement(player, route)
+    local maxDist = minSpeed + (player.speed * speedScaling)
+    local nextPoint = route.points[1]
+    local distToNext = getDist(player.sprite, nextPoint)
+
+    while(route.points[1] and distToNext < .1 * feetToPixels) do
+        table.remove(route.points, 1)
+
+        if(route.points[1] == nil) then
+            break
+        end
+        nextPoint = route.points[1]
+        distToNext = getDist(player.sprite, nextPoint)
+    end
+
+    local newAngle = getRotation(player.sprite, nextPoint)
+    local percent = distToNext / maxDist
+
+    if(route.points[1] == nil) then
+        percent = 0
+    elseif(distToNext < .1 * feetToPixels) then
+        table.remove(route.points, 1)
+        percent = .001
+    elseif(percent > 1) then
+        percent = 1
+    end
+    
+    move(player.sprite, minSpeed + (player.speed * speedScaling), hoopCenter, newAngle, percent)
+end
+
 local function moveOffense()
-    -- TODO
+    if(activePlay) then
+        for i = 1, 5 do
+            local player = team.players[i]
+            local route = activePlay.routes[i]
+    
+            if(not player.hasBall) then
+                -- Follow defined route
+                local nextPoint = route.points[1]
+
+                if(nextPoint) then
+                    calculateEndPointMovement(player, route)
+                else
+                    move(player.sprite, minSpeed + (player.speed * speedScaling), hoopCenter, 0, 0)
+                end
+            else
+                activePlay.routes[i].points = {nil}
+            end
+        end
+    end
 end
 
 local function defenderCloseOut(defender, shooter, distAway)
@@ -622,7 +711,7 @@ local function createPlayer(player, positions, standingSequenceData, movingSeque
 end
 
 local function createOffense()
-    activePlay = team.playbook.plays[1]
+    activePlay = copyPlay(team.playbook.plays[1])
 
     for i = 1, 5 do
         local positions = activePlay.routes[i].points[1]
