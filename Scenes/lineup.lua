@@ -9,8 +9,9 @@ local sceneGroup = nil
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 function nextScene()
+    local prevScene = composer.getSceneName( "previous" )
 	composer.removeScene("Scenes.lineup")
-    composer.gotoScene("Scenes.pregame")
+    composer.gotoScene(prevScene)
 end
 
 function redraw()

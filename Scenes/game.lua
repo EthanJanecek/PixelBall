@@ -48,7 +48,8 @@ local speedScaling = .1
 local nameFontSize = 8
 local deadzoneBase = 6 -- default
 local deadzoneFactor = 2
-local deadzoneMin = 3
+local deadzoneMin = 2
+local defenseScale = .8
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels
 local maxBlockedProb = 30
@@ -70,6 +71,32 @@ local function copyPlay(play)
     end
 
     return PlayLib:createPlay(newRoutes, play.name)
+end
+
+local function gameClockSubtract(time, offense)
+    if(time > gameDetails.sec) then
+        gameDetails.sec = gameDetails.sec - time + 60
+        gameDetails.min = gameDetails.min - 1
+    else
+        gameDetails.sec = gameDetails.sec - time
+    end
+
+    if(gameDetails.min < 0) then
+        gameDetails.qtr = gameDetails.qtr + 1
+        gameDetails.min = 12
+        gameDetails.sec = 0
+        result = "qtr end"
+        
+        if(gameDetails.qtr == 5) then
+            gameInProgress = false
+            result = "game end"
+        end
+
+        if(offense) then
+            playing = false
+            endedPossession()
+        end
+    end
 end
 
 function move(Obj, maxSpeed, pointTowards, angle, percent)
@@ -239,6 +266,14 @@ local function clearScoreboard()
     clearRect.strokeWidth = 4
 end
 
+function changeLineup()
+    Runtime:removeEventListener("enterFrame", movePlayers)
+    Runtime:removeEventListener("tap", reset)
+    composer.removeScene("Scenes.game")
+    composer.gotoScene("Scenes.lineup")
+    return true
+end
+
 local function simulateDefense()
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
@@ -247,7 +282,7 @@ local function simulateDefense()
 
     local playResult = simulatePossession(opponent, team)
     local points = playResult.points
-    local timeUsed = playResult.time
+    gameClockSubtract(playResult.time, false)
 
     if(userIsHome) then
         score.away = score.away + points
@@ -255,27 +290,21 @@ local function simulateDefense()
         score.home = score.home + points
     end
 
-    if(timeUsed > gameDetails.sec) then
-        gameDetails.sec = gameDetails.sec - timeUsed + 60
-        gameDetails.min = gameDetails.min - 1
-    else
-        gameDetails.sec = gameDetails.sec - timeUsed
-    end
-
-    if(gameDetails.min < 0) then
-        gameDetails.qtr = gameDetails.qtr + 1
-        gameDetails.min = 12
-        gameDetails.sec = 0
-        
-        if(gameDetails.qtr == 5) then
-            gameInProgress = false
-        end
-    end
-
     local message = opponent.abbrev .. " scored " .. points .. " points"
     local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
     displayMessage:setFillColor(.922, .910, .329)
     displayScoreboard()
+
+    local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
+    lineupButton:setFillColor(0, 0, 0)
+    lineupButton:addEventListener("tap", changeLineup)
+
+    local lineupButtonBorder = display.newRect(sceneGroup, lineupButton.x, lineupButton.y, lineupButton.width, lineupButton.height)
+    lineupButtonBorder:setStrokeColor(0, 0, 0)
+    lineupButtonBorder.strokeWidth = 2
+    lineupButtonBorder:setFillColor(0, 0, 0, 0)
+    lineupButtonBorder:addEventListener("tap", changeLineup)
+
     Runtime:addEventListener("tap", reset)
 end
 
@@ -303,7 +332,7 @@ local function nextMenu()
     timer.performWithDelay(250, simulateDefense)
 end
 
-local function endPossession()
+function endPossession()
     endedPossession = true
     local message = ""
 
@@ -382,15 +411,15 @@ local function calculateDeadzone(shooter, skill)
         if(distance < contestRadius) then
             -- Scale down based off of how close they are, height difference, and skill at defending
             local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
-            if(heightDiff < 7.5) then
-                heightDiff = 7.5
-            elseif(heightDiff > 12.5) then
-                heightDiff = 12.5
+            if(heightDiff < 5) then
+                heightDiff = 5
+            elseif(heightDiff > 15) then
+                heightDiff = 15
             end
 
             local contestSkill = defender.contesting * deadzoneFactor
             local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
-            local factor = (heightDiff / 10) * distanceFactor * contestSkill
+            local factor = (heightDiff / 10) * distanceFactor * contestSkill * defenseScale
             deadzone = deadzone - factor
         end
     end
@@ -414,16 +443,15 @@ local function isBlocked(shooter)
         if(distance < contestRadius) then
             -- Scale down based off of how close they are, height difference, and skill at defending
             local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
-            if(heightDiff < 7.5) then
-                heightDiff = 7.5
-            elseif(heightDiff > 12.5) then
-                heightDiff = 12.5
-            end
 
-            local contestSkill = defender.blocking * (maxBlockedProb / 10)
+            local contestSkill = defender.blocking * 5
             local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
             local probability = (heightDiff / 10) * distanceFactor * contestSkill
             local num = math.random(100)
+
+            if(probability > maxBlockedProb) then
+                probability = maxBlockedProb
+            end
 
             if(num < probability) then
                 return true
@@ -731,7 +759,7 @@ local function createDefense()
 end
 
 local function controlClock()
-    gameDetails.sec = gameDetails.sec - 1
+    gameClockSubtract(1, true)
 
     if(gameDetails.shotClock > 0 and playing) then
         gameDetails.shotClock = gameDetails.shotClock - 1
@@ -747,28 +775,6 @@ local function controlClock()
     end
 
     if(not endedPossession) then
-        if(gameDetails.sec < 0) then
-            gameDetails.sec = 59
-            gameDetails.min = gameDetails.min - 1
-
-            if(gameDetails.min < 0) then
-                if(gameDetails.qtr > 4) then
-                    playing = false
-                    result = "game end"
-                    endPossession()
-                else
-                    playing = false
-                    gameDetails.min = 12
-                    gameDetails.sec = 0
-                    gameDetails.qtr = gameDetails.qtr + 1
-                    result = "qtr end"
-                    endPossession()
-                end
-            end
-        end
-    end
-
-    if(not endedPossession) then
         clearScoreboard()
         displayScoreboard()
         timer.performWithDelay(1000, controlClock)
@@ -779,7 +785,8 @@ local function startGame()
     playing = true
     endedPossession = false
     result = ""
-    gameDetails.shotClock = 24
+    gameDetails.shotClock = 18
+    gameClockSubtract(6)
 
     displayScoreboard()
     displayShotBar()

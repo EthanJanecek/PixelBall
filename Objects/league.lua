@@ -164,7 +164,7 @@ end
 
 function simulatePossession(offense, defense)
     local shotType = math.random(100)
-    local time = math.random(24)
+    local time = math.random(6, 24)
     local shotPercent = math.random(100)
     local points = 0
 
