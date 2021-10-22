@@ -33,31 +33,56 @@ opponent = nil
 userIsHome = true
 activePlay = nil
 activeDefense = nil
+MyStick = nil
 
 local holdingShoot = false
 local start = 0
 local maxTime = 1250
+
 local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
 local endedPossession = false -- Keeps track of if the possession is still active. Is basically playing but with the time to shoot
 local scoreboard = {away=nil, home=nil, qtr=nil, time=nil, shotClock=nil}
 local result = ""
 
-MyStick = nil
 local minSpeed = 1.25
 local speedScaling = .1
+
 local nameFontSize = 8
 local deadzoneBase = 6 -- default
 local deadzoneFactor = 2
 local deadzoneMin = 2
 local defenseScale = .8
+
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels
 local maxBlockedProb = 30
+
+local staminaRunningUsage = -.0001
+local shotStaminaUsage = -.1
+local staminaStandingRegen = -staminaRunningUsage / 2
+local staminaBenchRegen = -staminaRunningUsage
+
+local maxShotPower = .8
+local powerScalingStamina = 5
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+local function changeStamina(player, diff)
+    player.stamina = player.stamina + diff
+
+    if(player.stamina > player.maxStamina) then
+        player.stamina = player.maxStamina
+    elseif(player.stamina < 1) then
+        player.stamina = 1
+    end
+end
+
+local function staminaPercent(player)
+    return player.stamina / player.maxStamina
+end
+
 local function copyPlay(play)
     -- Copies the play to a new object so that the orginal routes do not get modified
     local newRoutes = {}
@@ -397,7 +422,7 @@ local function calculateDeadzone(shooter, skill)
     local deadzone = deadzoneBase -- Base value
 
     -- Scale up based on how good of a shooter they are
-    deadzone = deadzone + (skill * deadzoneFactor)
+    deadzone = deadzone + (skill * deadzoneFactor * staminaPercent(shooter))
 
     -- Scale down for each defender in the area and how good they are at contesting
     for i = 1, 5 do
@@ -496,7 +521,7 @@ local function finishShot()
         power = 1
     end
 
-    local dist = bounds.maxY * power * .75
+    local dist = (bounds.maxY * power * maxShotPower) - (powerScalingStamina / staminaPercent(team.players[userPlayer]))
     local rotation = 90 - getRotationToBasket(team.players[userPlayer].sprite)
 
     local distToHoop = getDist(team.players[userPlayer].sprite, hoopCenter)
@@ -523,6 +548,8 @@ local function finishShot()
         local endPos = calculateShotEndPosition(rotation, dist)
         transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * 3, onComplete=endPossession})
     end
+
+    changeStamina(team.players[userPlayer], shotStaminaUsage)
 end
 
 local function shootBall(event)
@@ -619,7 +646,8 @@ local function calculateEndPointMovement(player, route)
         percent = 1
     end
     
-    move(player.sprite, minSpeed + (player.speed * speedScaling), hoopCenter, newAngle, percent)
+    move(player.sprite, minSpeed + (player.speed * speedScaling) * staminaPercent(player), hoopCenter, newAngle, percent)
+    changeStamina(player, staminaRunningUsage * percent)
 end
 
 local function moveOffense()
@@ -636,9 +664,18 @@ local function moveOffense()
                     calculateEndPointMovement(player, route)
                 else
                     move(player.sprite, minSpeed + (player.speed * speedScaling), hoopCenter, 0, 0)
+                    changeStamina(player, staminaStandingRegen)
                 end
             else
+                local player = team.players[userPlayer]
+                MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling * staminaPercent(player)), player.hasBall, hoopCenter)
                 activePlay.routes[i].points = {nil}
+
+                if(MyStick.percent == 0) then
+                    changeStamina(player, staminaStandingRegen)
+                else
+                    changeStamina(player, staminaRunningUsage * MyStick.percent)
+                end
             end
         end
     end
@@ -681,13 +718,17 @@ local function moveDefense()
     end
 end
 
+local function regenBench()
+    for i = 6, 15 do
+        changeStamina(team.players[i], staminaBenchRegen)
+    end
+end
+
 local function movePlayers()
     if(playing) then
-        local player = team.players[userPlayer]
-        MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling), player.hasBall, hoopCenter)
-
         moveOffense()
         moveDefense()
+        regenBench()
     end
 end
 
