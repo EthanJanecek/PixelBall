@@ -49,7 +49,7 @@ function createRoster(file)
                 table.insert(params, param)
             end
 
-            table.insert(players, PlayerLib:createPlayer(params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], 10, 1))
+            table.insert(players, PlayerLib:createPlayer(params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], 10, params[10]))
         end
 
         i = i + 1

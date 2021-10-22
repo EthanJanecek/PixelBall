@@ -1,16 +1,16 @@
-﻿Player,Dribbling,Shooting,Finishing,Stealing,Blocking,Contesting,Height,Speed
-Nikola Jokic,5,8,8,2,4,4,10,3
-Jamal Murray,8,6,8,2,1,6,2,6
-Michael Porter Jr.,6,8,7,1,3,3,8,6
-Monte Morris,7,6,6,1,1,2,1,7
-Aaron Gordon,2,5,9,1,2,5,6,4
-Facundo Campazzo,6,5,4,7,1,6,1,4
-Will Barton,6,6,7,1,1,6,3,5
-JaMychal Green,1,4,4,1,2,4,6,2
-Jeff Green,5,6,6,1,1,4,6,3
-Austin Rivers,7,5,6,2,1,6,1,5
-Zeke Nnaji,1,5,6,1,1,4,9,3
-PJ Dozier,5,5,5,1,2,5,4,7
-NahShon Hyland,6,6,5,2,1,2,1,7
-Bol Bol,3,6,7,1,8,4,10,4
-Petr Cornelie,1,1,1,1,1,1,9,1
+﻿Player,Dribbling,Shooting,Finishing,Stealing,Blocking,Contesting,Height,Speed,Number
+Nikola Jokic,5,8,8,2,4,4,10,3,15
+Jamal Murray,8,6,8,2,1,6,2,6,27
+Michael Porter Jr.,6,8,7,1,3,3,8,6,1
+Monte Morris,7,6,6,1,1,2,1,7,11
+Aaron Gordon,2,5,9,1,2,5,6,4,50
+Facundo Campazzo,6,5,4,7,1,6,1,4,7
+Will Barton,6,6,7,1,1,6,3,5,5
+JaMychal Green,1,4,4,1,2,4,6,2,0
+Jeff Green,5,6,6,1,1,4,6,3,32
+Austin Rivers,7,5,6,2,1,6,1,5,25
+Zeke Nnaji,1,5,6,1,1,4,9,3,22
+PJ Dozier,5,5,5,1,2,5,4,7,35
+NahShon Hyland,6,6,5,2,1,2,1,7,3
+Bol Bol,3,6,7,1,8,4,10,4,10
+Petr Cornelie,1,1,1,1,1,1,9,1,21

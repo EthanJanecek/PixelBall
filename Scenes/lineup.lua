@@ -35,7 +35,7 @@ local function getName(name)
         table.insert(params, param)
     end
     
-    return string.sub(params[1], 1, 1) .. ". " .. string.sub(params[2], 1, 7)
+    return string.sub(params[2], 1, 7)
 end
 
 local function showPlayerCard(player, initialX, initialY, i)
@@ -66,7 +66,7 @@ local function showPlayerCard(player, initialX, initialY, i)
         positionStr:setFillColor(0, 0, 0)
     end
 
-    local playerName = display.newText(sceneGroup, getName(player.name), playerBorder.x, playerBorder.y - playerBorder.height / 3, native.systemFont, 12)
+    local playerName = display.newText(sceneGroup, player.number .. " " .. getName(player.name), playerBorder.x, playerBorder.y - playerBorder.height / 3, native.systemFont, 12)
     playerName:setFillColor(.922, .910, .329)
     playerName:addEventListener("tap", selectPlayer)
 
@@ -74,7 +74,7 @@ local function showPlayerCard(player, initialX, initialY, i)
                         "\nSHT: " .. player.shooting .. "  BLK: " .. player.blocking .. 
                         "\nFNS: " .. player.finishing .. "  CNT: " .. player.contesting .. 
                         "\nSPD: " .. player.speed .. "  HGT: " .. player.height .. 
-                        "\n  STAMINA: " .. string.format("%.2f", player.stamina)
+                        "\nSTAMINA: " .. string.format("%.1f", player.stamina)
 
     local params = display.newText(sceneGroup, paramStr, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 12 + 8 * 2, native.systemFont, 8)
     params:setFillColor(.922, .910, .329)

@@ -1,16 +1,16 @@
-﻿Player,Dribbling,Shooting,Finishing,Stealing,Blocking,Contesting,Height,Speed
-Julius Randle,5,7,8,1,1,5,6,5
-Kemba Walker,9,6,6,1,1,5,1,7
-RJ Barrett,7,5,7,1,1,5,4,7
-Derrick Rose,7,8,7,2,2,3,1,7
-Mitchell Robinson,1,1,8,3,7,7,10,1
-Evan Fournier,6,7,5,2,2,4,5,4
-Immanuel Quickley,7,5,6,1,1,4,2,6
-Nerlens Noel,1,1,8,4,9,7,8,3
-Alec Burks,6,7,6,1,1,4,4,6
-Obi Toppin,2,6,8,1,2,3,7,4
-Taj Gibson,1,5,5,1,7,4,7,1
-Kevin Knox II,5,4,5,1,1,4,5,5
-Quentin Grimes,5,5,5,1,1,4,3,7
-Rokas Jokubaitis,1,1,1,1,1,1,2,1
-Jericho Sims,1,1,1,1,1,1,8,1
+﻿Player,Dribbling,Shooting,Finishing,Stealing,Blocking,Contesting,Height,Speed,Number
+Julius Randle,5,7,8,1,1,5,6,5,30
+Kemba Walker,9,6,6,1,1,5,1,7,8
+RJ Barrett,7,5,7,1,1,5,4,7,9
+Derrick Rose,7,8,7,2,2,3,1,7,4
+Mitchell Robinson,1,1,8,3,7,7,10,1,23
+Evan Fournier,6,7,5,2,2,4,5,4,13
+Immanuel Quickley,7,5,6,1,1,4,2,6,5
+Nerlens Noel,1,1,8,4,9,7,8,3,3
+Alec Burks,6,7,6,1,1,4,4,6,18
+Obi Toppin,2,6,8,1,2,3,7,4,1
+Taj Gibson,1,5,5,1,7,4,7,1,67
+Kevin Knox II,5,4,5,1,1,4,5,5,20
+Quentin Grimes,5,5,5,1,1,4,3,7,6
+Rokas Jokubaitis,1,1,1,1,1,1,2,1,-1
+Jericho Sims,1,1,1,1,1,1,8,1,45

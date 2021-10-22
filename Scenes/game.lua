@@ -48,14 +48,15 @@ local minSpeed = 1.25
 local speedScaling = .1
 
 local nameFontSize = 8
-local deadzoneBase = 6 -- default
+local deadzoneBase = 5 -- default
 local deadzoneFactor = 2
 local deadzoneMin = 2
+local shootingScale = 1.4
 local defenseScale = .8
 
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels
-local maxBlockedProb = 30
+local maxBlockedProb = 25
 
 local staminaRunningUsage = -.0001
 local shotStaminaUsage = -.1
@@ -64,6 +65,9 @@ local staminaBenchRegen = -staminaRunningUsage
 
 local maxShotPower = .8
 local powerScalingStamina = 5
+
+local heightDiffMin = 5
+local heightDiffMax = 15
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -422,7 +426,7 @@ local function calculateDeadzone(shooter, skill)
     local deadzone = deadzoneBase -- Base value
 
     -- Scale up based on how good of a shooter they are
-    deadzone = deadzone + (skill * deadzoneFactor * staminaPercent(shooter))
+    deadzone = deadzone + (math.pow(shootingScale, skill) * staminaPercent(shooter))
 
     -- Scale down for each defender in the area and how good they are at contesting
     for i = 1, 5 do
@@ -436,13 +440,13 @@ local function calculateDeadzone(shooter, skill)
         if(distance < contestRadius) then
             -- Scale down based off of how close they are, height difference, and skill at defending
             local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
-            if(heightDiff < 5) then
-                heightDiff = 5
-            elseif(heightDiff > 15) then
-                heightDiff = 15
+            if(heightDiff < heightDiffMin) then
+                heightDiff = heightDiffMin
+            elseif(heightDiff > heightDiffMax) then
+                heightDiff = heightDiffMax
             end
 
-            local contestSkill = defender.contesting * deadzoneFactor
+            local contestSkill = defender.contesting * deadzoneFactor * staminaPercent(defender)
             local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
             local factor = (heightDiff / 10) * distanceFactor * contestSkill * defenseScale
             deadzone = deadzone - factor
@@ -469,7 +473,7 @@ local function isBlocked(shooter)
             -- Scale down based off of how close they are, height difference, and skill at defending
             local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
 
-            local contestSkill = defender.blocking * 5
+            local contestSkill = defender.blocking * 5 * staminaPercent(defender)
             local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
             local probability = (heightDiff / 10) * distanceFactor * contestSkill
             local num = math.random(100)
@@ -602,23 +606,6 @@ function getRotationToBasket(position)
     return getRotation(position, hoopCenter)
 end
 
-function getInitials(name)
-    local initials = ""
-    local i = 0
-
-    for param in string.gmatch(name, "([^ ]+)") do
-        initials = initials .. string.sub(param, 1, 1)
-
-        i = i + 1
-
-        if(i >= 2) then
-            break
-        end
-    end
-
-    return initials
-end
-
 local function calculateEndPointMovement(player, route)
     local maxDist = minSpeed + (player.speed * speedScaling)
     local nextPoint = route.points[1]
@@ -703,6 +690,12 @@ local function defenderCloseOut(defender, shooter, distAway)
     end
 
     move(defender.sprite, minSpeed + (defender.speed * speedScaling), shooter.sprite, newAngle, percent)
+
+    if(percent == 0) then
+        changeStamina(defender, staminaStandingRegen)
+    else
+        changeStamina(defender, staminaRunningUsage * percent)
+    end
 end
 
 local function moveDefense()
@@ -733,6 +726,9 @@ local function movePlayers()
 end
 
 local function createJoystick()
+    local newGroup = display.newGroup()
+    sceneGroup:insert(newGroup)
+
     MyStick = StickLib.NewStick({
         x = display.contentWidth * .055,
         y = display.contentHeight * .85,
@@ -742,7 +738,7 @@ local function createJoystick()
         R = 25,
         G = 255,
         B = 255,
-        group = display.newGroup(),
+        group = newGroup,
     })
 end
 
@@ -753,7 +749,7 @@ local function createPlayer(player, positions, standingSequenceData, movingSeque
     playerSprite.rotation = getRotation(positions, pointTowards)
     playerSprite:play()
 
-    local name = display.newText(sceneGroup, getInitials(player.name), positions.x, positions.y, native.systemFont, nameFontSize)
+    local name = display.newText(sceneGroup, player.number, positions.x, positions.y, native.systemFont, nameFontSize)
     name:setFillColor(1, 1, 1)
     name.rotation = playerSprite.rotation
     playerSprite.name = name

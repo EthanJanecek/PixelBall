@@ -1,16 +1,16 @@
-﻿Player,Dribbling,Shooting,Finishing,Stealing,Blocking,Contesting,Height,Speed
-LaMelo Ball,7,7,8,7,1,6,5,7
-Gordon Hayward,5,7,6,1,1,5,5,6
-Terry Rozier III,7,7,6,2,1,5,1,6
-Mason Plumlee,1,2,6,1,4,5,9,2
-PJ Washington,4,4,6,1,6,2,5,5
-Miles Bridges,5,4,8,1,3,2,4,5
-Kelly Oubre Jr.,6,4,7,1,2,5,5,4
-James Bouknight,6,4,7,4,1,4,3,7
-Jalen McDaniels,2,5,3,1,2,2,8,5
-Ish Smith,7,6,6,1,1,5,1,7
-Kai Jones,1,4,6,1,5,5,9,3
-Vernon Carey Jr.,1,4,6,1,6,3,8,1
-Cody Martin,4,3,6,3,2,2,3,2
-Arnoldas Kulboka,1,1,1,1,1,1,8,1
-Scottie Lewis,1,1,1,1,1,1,3,1
+﻿Player,Dribbling,Shooting,Finishing,Stealing,Blocking,Contesting,Height,Speed,Number
+LaMelo Ball,7,7,8,7,1,6,5,7,2
+Gordon Hayward,5,7,6,1,1,5,5,6,20
+Terry Rozier III,7,7,6,2,1,5,1,6,3
+Mason Plumlee,1,2,6,1,4,5,9,2,24
+PJ Washington,4,4,6,1,6,2,5,5,25
+Miles Bridges,5,4,8,1,3,2,4,5,0
+Kelly Oubre Jr.,6,4,7,1,2,5,5,4,12
+James Bouknight,6,4,7,4,1,4,3,7,5
+Jalen McDaniels,2,5,3,1,2,2,8,5,6
+Ish Smith,7,6,6,1,1,5,1,7,14
+Kai Jones,1,4,6,1,5,5,9,3,23
+Vernon Carey Jr.,1,4,6,1,6,3,8,1,22
+Cody Martin,4,3,6,3,2,2,3,2,11
+Arnoldas Kulboka,1,1,1,1,1,1,8,1,98
+Scottie Lewis,1,1,1,1,1,1,3,1,16

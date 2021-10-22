@@ -1,16 +1,16 @@
-﻿Player,Dribbling,Shooting,Finishing,Stealing,Blocking,Contesting,Height,Speed
-Jeremi Grant,5,6,8,1,4,4,6,5
-Cade Cunningham,7,6,6,2,2,5,6,7
-Saddiq Bey,5,5,5,1,1,5,6,3
-Isaiah Stewart,1,6,5,1,7,4,7,3
-Kelly Olynyk,1,5,4,2,2,4,9,1
-Hamidou Diallo,6,4,7,1,2,3,3,7
-Saben Lee,7,5,6,2,2,2,1,5
-Josh Jackson,4,6,6,1,3,5,6,6
-Cory Joseph,7,5,6,2,1,6,1,4
-Frank Jackson,5,6,6,1,1,2,1,7
-Trey Lyles,2,5,5,1,1,4,7,2
-Rodney McGruder,5,6,2,2,1,6,2,4
-Luka Garza,1,1,1,1,1,1,9,1
-Balsa Koprivica,1,1,1,1,1,1,10,1
-Chris Smith,1,1,1,1,1,1,7,1
+﻿Player,Dribbling,Shooting,Finishing,Stealing,Blocking,Contesting,Height,Speed,Number
+Jeremi Grant,5,6,8,1,4,4,6,5,9
+Cade Cunningham,7,6,6,2,2,5,6,7,2
+Saddiq Bey,5,5,5,1,1,5,6,3,41
+Isaiah Stewart,1,6,5,1,7,4,7,3,28
+Kelly Olynyk,1,5,4,2,2,4,9,1,13
+Hamidou Diallo,6,4,7,1,2,3,3,7,6
+Saben Lee,7,5,6,2,2,2,1,5,38
+Josh Jackson,4,6,6,1,3,5,6,6,20
+Cory Joseph,7,5,6,2,1,6,1,4,18
+Frank Jackson,5,6,6,1,1,2,1,7,5
+Trey Lyles,2,5,5,1,1,4,7,2,8
+Rodney McGruder,5,6,2,2,1,6,2,4,17
+Luka Garza,1,1,1,1,1,1,9,1,55
+Balsa Koprivica,1,1,1,1,1,1,10,1,-1
+Chris Smith,1,1,1,1,1,1,7,1,0
