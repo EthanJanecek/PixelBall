@@ -50,19 +50,19 @@ local minSpeed = 1.25
 local speedScaling = .1
 
 local deadzoneBase = 5 -- default
-local deadzoneFactor = 2
+local deadzoneFactor = 3
 local deadzoneMin = 2
 local shootingScale = 1.4
 
-local defenseScale = .8
+local defenseScale = 1
 local zoneSize = 3 * feetToPixels
 
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels
 local maxBlockedProb = 25
 
-local staminaRunningUsage = -.0001
-local shotStaminaUsage = -.1
+local staminaRunningUsage = -.0002
+local shotStaminaUsage = -.2
 local staminaStandingRegen = -staminaRunningUsage / 2
 local staminaBenchRegen = -staminaRunningUsage
 
