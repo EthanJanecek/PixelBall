@@ -170,6 +170,7 @@ function league:nextWeek()
         end
     end
 
+    print()
     self.weekNum = self.weekNum + 1
 end
 
@@ -193,6 +194,20 @@ function simulateGame(away, home)
 
         index = index + 1
     end
+
+    -- Don't allow ties
+    while(score.home == score.away) do
+        -- Simulate 5 possessions each
+        for i = 1, 5 do
+            local result = simulatePossession(home, away)
+            score.home = score.home + result.points
+            time = time + result.time
+
+            result = simulatePossession(away, home)
+            score.away = score.away + result.points
+            time = time + result.time
+        end
+    end
     
     -- TODO: Store results somewhere
     print(away.abbrev .. ": " .. score.away .. " - " .. home.abbrev .. ": " .. score.home)
@@ -201,12 +216,12 @@ end
 function simulatePossession(offense, defense)
     local teamStarters = {unpack(offense.players, 1, 5)}
     table.sort(teamStarters, function (a, b)
-        return (a.shooting + a.finishing) < (b.shooting + b.finishing)
+        return (a.shooting + a.finishing) > (b.shooting + b.finishing)
     end)
 
     local opponentStarters = {unpack(defense.players, 1, 5)}
     table.sort(opponentStarters, function (a, b)
-        return a.contesting < b.contesting
+        return a.contesting > b.contesting
     end)
 
     local playerNum = math.random(1, 100)
