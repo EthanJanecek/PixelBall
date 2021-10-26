@@ -8,7 +8,6 @@ function defense:createPlay(routes)
         routes=routes,
         name="",
         coverage="man",
-        coverPositions={1, 2, 3, 4, 5},
         aggresiveness=5
     }, self)
 end
@@ -27,7 +26,42 @@ function defense:createDefensePlay()
         routes=routes,
         name="standard",
         coverage="man",
-        coverPositions={1, 2, 3, 4, 5},
+        aggresiveness=5
+    }, self)
+end
+
+function defense:createManDefense(aggresiveness)
+    self.__index = self
+
+    local routes = {}
+    for i = 1, 5 do
+        local startPositions = startPositionsDefense[i]
+        local route = RouteLib:createRoute(startPositions.x, startPositions.y, i)
+        table.insert(routes, route)
+    end
+
+    return setmetatable({
+        routes=routes,
+        name="standard",
+        coverage="man",
+        aggresiveness=aggresiveness
+    }, self)
+end
+
+function defense:createZoneDefense(startPositions, name)
+    self.__index = self
+
+    local routes = {}
+    for i = 1, 5 do
+        local startPosition = startPositions[i]
+        local route = RouteLib:createRoute(startPosition.x, startPosition.y, i)
+        table.insert(routes, route)
+    end
+
+    return setmetatable({
+        routes=routes,
+        name=name,
+        coverage="zone",
         aggresiveness=5
     }, self)
 end

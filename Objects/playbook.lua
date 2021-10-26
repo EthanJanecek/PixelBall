@@ -8,7 +8,8 @@ function playbook:createPlaybook()
 
     return setmetatable({
         plays={PlayLib:createIsoPlay()},
-        defensePlays={DefenseLib:createDefensePlay()}
+        defensePlays={DefenseLib:createManDefense(5), DefenseLib:createManDefense(4), DefenseLib:createManDefense(-1),
+                    DefenseLib:createZoneDefense(zone122, "1-2-2"), DefenseLib:createZoneDefense(zone23, "2-3")}
     }, self)
 end
 

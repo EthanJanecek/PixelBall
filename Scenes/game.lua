@@ -44,15 +44,18 @@ local endedPossession = false -- Keeps track of if the possession is still activ
 local scoreboard = {away=nil, home=nil, qtr=nil, time=nil, shotClock=nil}
 local result = ""
 
+local nameFontSize = 8
+
 local minSpeed = 1.25
 local speedScaling = .1
 
-local nameFontSize = 8
 local deadzoneBase = 5 -- default
 local deadzoneFactor = 2
 local deadzoneMin = 2
 local shootingScale = 1.4
+
 local defenseScale = .8
+local zoneSize = 3 * feetToPixels
 
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels
@@ -111,8 +114,7 @@ local function gameClockSubtract(time, offense)
     end
 
     if(gameDetails.min < 0) then
-        gameDetails.qtr = gameDetails.qtr + 1
-        gameDetails.min = 12
+        gameDetails.min = minutesInQtr
         gameDetails.sec = 0
         result = "qtr end"
         
@@ -123,8 +125,10 @@ local function gameClockSubtract(time, offense)
 
         if(offense) then
             playing = false
-            endedPossession()
+            endPossession()
         end
+
+        gameDetails.qtr = gameDetails.qtr + 1
     end
 end
 
@@ -303,38 +307,42 @@ function changeLineup()
     return true
 end
 
-local function simulateDefense()
-    local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
-    background.x = display.contentCenterX
-    background.y = display.contentCenterY
+local function simulateDefense()    
+    if(gameInProgress) then
+        local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
+        background:setFillColor(.286, .835, .961)
+        background.x = display.contentCenterX
+        background.y = display.contentCenterY
 
-    local playResult = simulatePossession(opponent, team)
-    local points = playResult.points
-    gameClockSubtract(playResult.time, false)
+        local playResult = simulatePossession(opponent, team)
+        local points = playResult.points
+        gameClockSubtract(playResult.time, false)
 
-    if(userIsHome) then
-        score.away = score.away + points
+        if(userIsHome) then
+            score.away = score.away + points
+        else
+            score.home = score.home + points
+        end
+
+        local message = opponent.abbrev .. " scored " .. points .. " points"
+        local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+        displayMessage:setFillColor(.922, .910, .329)
+        displayScoreboard()
+
+        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
+        lineupButton:setFillColor(0, 0, 0)
+        lineupButton:addEventListener("tap", changeLineup)
+
+        local lineupButtonBorder = display.newRect(sceneGroup, lineupButton.x, lineupButton.y, lineupButton.width, lineupButton.height)
+        lineupButtonBorder:setStrokeColor(0, 0, 0)
+        lineupButtonBorder.strokeWidth = 2
+        lineupButtonBorder:setFillColor(0, 0, 0, 0)
+        lineupButtonBorder:addEventListener("tap", changeLineup)
+
+        Runtime:addEventListener("tap", reset)
     else
-        score.home = score.home + points
+        reset()
     end
-
-    local message = opponent.abbrev .. " scored " .. points .. " points"
-    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-    displayMessage:setFillColor(.922, .910, .329)
-    displayScoreboard()
-
-    local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
-    lineupButton:setFillColor(0, 0, 0)
-    lineupButton:addEventListener("tap", changeLineup)
-
-    local lineupButtonBorder = display.newRect(sceneGroup, lineupButton.x, lineupButton.y, lineupButton.width, lineupButton.height)
-    lineupButtonBorder:setStrokeColor(0, 0, 0)
-    lineupButtonBorder.strokeWidth = 2
-    lineupButtonBorder:setFillColor(0, 0, 0, 0)
-    lineupButtonBorder:addEventListener("tap", changeLineup)
-
-    Runtime:addEventListener("tap", reset)
 end
 
 local function getDist(a, b)
@@ -625,6 +633,29 @@ local function calculateEndPointMovement(player, route)
     local percent = distToNext / maxDist
 
     if(route.points[1] == nil) then
+        player.moving = false
+        percent = 0
+    elseif(distToNext < .1 * feetToPixels) then
+        table.remove(route.points, 1)
+        percent = .001
+        player.moving = true
+    elseif(percent > 1) then
+        player.moving = true
+        percent = 1
+    end
+    
+    move(player.sprite, minSpeed + (player.speed * speedScaling) * staminaPercent(player), hoopCenter, newAngle, percent)
+    changeStamina(player, staminaRunningUsage * percent)
+end
+
+local function calculateEndPointMovementZone(player, route, pointTowards)
+    local maxDist = minSpeed + (player.speed * speedScaling)
+    local nextPoint = route.points[1]
+    local distToNext = getDist(player.sprite, nextPoint)
+    local newAngle = getRotation(player.sprite, nextPoint)
+    local percent = distToNext / maxDist
+
+    if(distToNext < .1 * feetToPixels and not pointTowards.moving) then
         percent = 0
     elseif(distToNext < .1 * feetToPixels) then
         table.remove(route.points, 1)
@@ -633,7 +664,7 @@ local function calculateEndPointMovement(player, route)
         percent = 1
     end
     
-    move(player.sprite, minSpeed + (player.speed * speedScaling) * staminaPercent(player), hoopCenter, newAngle, percent)
+    move(player.sprite, minSpeed + (player.speed * speedScaling) * staminaPercent(player), pointTowards.sprite, newAngle, percent)
     changeStamina(player, staminaRunningUsage * percent)
 end
 
@@ -650,6 +681,7 @@ local function moveOffense()
                 if(nextPoint) then
                     calculateEndPointMovement(player, route)
                 else
+                    moving = false
                     move(player.sprite, minSpeed + (player.speed * speedScaling), hoopCenter, 0, 0)
                     changeStamina(player, staminaStandingRegen)
                 end
@@ -659,8 +691,10 @@ local function moveOffense()
                 activePlay.routes[i].points = {nil}
 
                 if(MyStick.percent == 0) then
+                    player.moving = false
                     changeStamina(player, staminaStandingRegen)
                 else
+                    player.moving = true
                     changeStamina(player, staminaRunningUsage * MyStick.percent)
                 end
             end
@@ -698,14 +732,73 @@ local function defenderCloseOut(defender, shooter, distAway)
     end
 end
 
+local function findPlayersInZone(zoneCenter, offensePlayers)
+    local players = {}
+
+    for i = 1, 5 do
+        local offensePlayer = offensePlayers[i]
+        local dist = getDist(zoneCenter, offensePlayer.sprite)
+
+        if(dist < zoneSize) then
+            table.insert(players, offensePlayer)
+        end
+    end
+
+    return players
+end
+
+local function findBallCarrier(players)
+    for i = 1, #players do
+        if(players[i].hasBall) then
+            return i
+        end
+    end
+
+    return -1
+end
+
+local function moveZone(defender, zoneCenter)
+    local offensePlayers = {unpack(team.players, 1, 5)}
+    table.sort(offensePlayers, function (a, b)
+        return getDist(zoneCenter, a.sprite) < getDist(zoneCenter, b.sprite)
+    end)
+
+    local playersInZone = findPlayersInZone(zoneCenter, offensePlayers)
+    local ballCarrier = findBallCarrier(playersInZone)
+
+    if(ballCarrier ~= -1) then
+        defenderCloseOut(defender, offensePlayers[ballCarrier], feetToPixels)
+    elseif(#playersInZone ~= 0) then
+        -- Choose random other player in zone
+        local num = math.random(1, #playersInZone)
+        defenderCloseOut(defender, offensePlayers[num], feetToPixels)
+    else
+        -- Move to edge of zone in direction of nearest player
+        local angle = getRotation(zoneCenter, offensePlayers[1].sprite)
+        local newPos = {x = zoneCenter.x + math.cos(math.rad(angle-90)) * zoneSize, y = zoneCenter.y + math.sin(math.rad(angle-90)) * zoneSize}
+        calculateEndPointMovementZone(defender, {points = {newPos}}, offensePlayers[1])
+    end
+end
+
 local function moveDefense()
     if(activeDefense.coverage == "zone") then
-        -- TODO
+        for i = 1, 5 do
+            if(activeDefense.name == "1-2-2") then
+                moveZone(opponent.players[i], zone122[i])
+            elseif(activeDefense.name == "2-3") then
+                moveZone(opponent.players[i], zone23[i])
+            end
+        end
     elseif(activeDefense.coverage == "man") then
         -- Move players
         local distAway = math.abs(activeDefense.aggresiveness - 6) * feetToPixels -- Distance away that defender should stand
 
         for i = 1, 5 do
+            if(activeDefense.aggresiveness == -1) then
+                -- Scale based on how good of a shooter they are
+                distAway = math.abs(team.players[i].shooting - 11) * (feetToPixels / 2.5)
+            end
+
             defenderCloseOut(opponent.players[i], team.players[i], distAway)
         end
     end
@@ -785,8 +878,87 @@ local function createOffense()
     team.players[userPlayer].hasBall = true
 end
 
+local function mapByFunction(offenseFunc, defenseFunc)
+    local teamStarters = {unpack(team.players, 1, 5)}
+    table.sort(teamStarters, offenseFunc)
+
+    local opponentStarters = {unpack(opponent.players, 1, 5)}
+    table.sort(opponentStarters, defenseFunc)
+
+    for i = 1, 5 do
+        local index = indexOf(team.players, teamStarters[i])
+        opponent.players[index] = opponentStarters[i]
+    end
+end
+
+local function setDefenseMatchups()
+    if(activeDefense.coverage == "man") then
+        local num = math.random(1, 3)
+
+        if(num == 1) then
+            mapByFunction(
+                function (a, b) 
+                    return a.speed < b.speed 
+                end,
+                function (a, b)
+                    return a.speed < b.speed
+                end
+            )
+        elseif(num == 2) then
+            mapByFunction(
+                function (a, b) 
+                    return a.height < b.height 
+                end,
+                function (a, b)
+                    return a.height < b.height
+                end
+            )
+        elseif(num == 3) then
+            mapByFunction(
+                function (a, b) 
+                    return (a.shooting + a.finishing) < (b.shooting + b.finishing)
+                end,
+                function (a, b)
+                    return a.contesting < b.contesting
+                end
+            )
+        end
+    elseif(activeDefense.coverage == "zone") then
+        local opponentStarters = {unpack(opponent.players, 1, 5)}
+
+        if(activeDefense.name == "1-2-2") then
+            -- 2 at baseline are tallest, 1 at top is best defender, 2 at wings are the 2 left over
+            table.sort(opponentStarters, function (a, b)
+                return a.height < b.height
+            end)
+
+            local max = {value = -1, index = -1}
+            for i = 1, 3 do
+                if(opponentStarters[i].contesting > max.value) then
+                    max.index = i
+                    max.value = opponentStarters[i].contesting
+                end
+            end
+
+            local tmp = opponentStarters[1]
+            opponentStarters[1] = opponentStarters[max.index]
+            opponentStarters[max.index] = tmp
+        elseif(activeDefense.name == "2-3") then
+            table.sort(opponentStarters, function (a, b)
+                return a.height < b.height
+            end)
+        end
+
+        for i = 1, 5 do
+            opponent.players[i] = opponentStarters[i]
+        end
+    end
+end
+
 local function createDefense()
-    activeDefense = opponent.playbook.defensePlays[1]
+    local playNum = math.random(1, #opponent.playbook.defensePlays)
+    activeDefense = opponent.playbook.defensePlays[playNum]
+    setDefenseMatchups()
 
     for i = 1, 5 do
         local positions = activeDefense.routes[i].points[1]
@@ -840,7 +1012,7 @@ local function startGame()
     Runtime:addEventListener("enterFrame", movePlayers)
 end
 
-local function indexOf(table, value)
+function indexOf(table, value)
     for i = 1, #table do
         if(table[i] == value) then
             return i
@@ -848,23 +1020,6 @@ local function indexOf(table, value)
     end
 
     return -1
-end
-
-local function setDefenseMatchups()
-    local teamStarters = {unpack(team.players, 1, 5)}
-    table.sort(teamStarters, function(a, b)
-        return a.speed < b.speed
-    end)
-
-    local opponentStarters = {unpack(opponent.players, 1, 5)}
-    table.sort(opponentStarters, function(a, b)
-        return a.speed < b.speed
-    end)
-
-    for i = 1, 5 do
-        local index = indexOf(team.players, teamStarters[i])
-        opponent.players[index] = opponentStarters[i]
-    end
 end
 
 local function gameLoop()
@@ -879,7 +1034,6 @@ local function gameLoop()
         opponent = league:findTeam(gameInfo.home)
     end
     
-    setDefenseMatchups()
     startGame()
 end
 

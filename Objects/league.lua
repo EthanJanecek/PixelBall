@@ -1,5 +1,14 @@
 local TeamLib = require("Objects.team")
 local league = {}
+local StartPositions = require("Constants.start_positions")
+
+local leagueAvg2 = 47
+local leageAvg3 = 37
+local percentShots2 = 72
+local skillScaling = 3
+local playerPercentages = {40, 70, 85, 95, 100}
+local heightDiffMin = 5
+local heightDiffMax = 15
 
 function league:createLeague()
     self.__index = self
@@ -152,34 +161,91 @@ function league:findTeam(name)
 end
 
 function league:nextWeek()
-    self.weekNum = self.weekNum + 1
+    local allGames = self.schedule[self.weekNum]
 
-    -- TODO: Simulate games
+    for i = 1, #allGames do
+        local game = allGames[i]
+        if(game.away ~= userTeam and game.home ~= userTeam) then
+            simulateGame(self:findTeam(game.away), self:findTeam(game.home))
+        end
+    end
+
+    self.weekNum = self.weekNum + 1
 end
 
 
-function simulateGame()
+function simulateGame(away, home)
+    local index = math.random(1, 2)
+    local maxTime = 4 * minutesInQtr * 60
+    local time = 0
+    local score = {away = 0, home = 0}
+
+    while time <= maxTime do
+        if index % 2 == 0 then
+            local result = simulatePossession(home, away)
+            score.home = score.home + result.points
+            time = time + result.time
+        else
+            local result = simulatePossession(away, home)
+            score.away = score.away + result.points
+            time = time + result.time
+        end
+
+        index = index + 1
+    end
     
+    -- TODO: Store results somewhere
+    print(away.abbrev .. ": " .. score.away .. " - " .. home.abbrev .. ": " .. score.home)
 end
 
 function simulatePossession(offense, defense)
+    local teamStarters = {unpack(offense.players, 1, 5)}
+    table.sort(teamStarters, function (a, b)
+        return (a.shooting + a.finishing) < (b.shooting + b.finishing)
+    end)
+
+    local opponentStarters = {unpack(defense.players, 1, 5)}
+    table.sort(opponentStarters, function (a, b)
+        return a.contesting < b.contesting
+    end)
+
+    local playerNum = math.random(1, 100)
+    local player = teamStarters[1]
+    local defender = opponentStarters[1]
+
+    for i = 1, 5 do
+        if(playerNum <= playerPercentages[i]) then
+            player = teamStarters[i]
+            defender = opponentStarters[i]
+            break
+        end
+    end
+
+    local shotTypeBounds = 50 + (player.finishing - player.shooting) * 5
     local shotType = math.random(100)
-    local time = math.random(6, 24)
     local shotPercent = math.random(100)
+    local time = math.random(6, 24)
     local points = 0
 
-    if(shotType < 72) then
-        -- 2
-        local percentageMade = 47
+    local heightDiff = player.height - defender.height + 10 -- Will be from 0-20
+    if(heightDiff < heightDiffMin) then
+        heightDiff = heightDiffMin
+    elseif(heightDiff > heightDiffMax) then
+        heightDiff = heightDiffMax
+    end
 
-        if(shotPercent < percentageMade) then
+    if(shotType <= shotTypeBounds) then
+        -- 2
+        local percentageMade = leagueAvg2 + (player.finishing - defender.contesting) * skillScaling * (heightDiff / 10)
+
+        if(shotPercent <= percentageMade) then
             points = 2
         end
     else
         -- 3
-        local percentageMade = 37
+        local percentageMade = leageAvg3 + (player.shooting - defender.contesting) * skillScaling * (heightDiff / 10)
 
-        if(shotPercent < percentageMade) then
+        if(shotPercent <= percentageMade) then
             points = 3
         end
     end

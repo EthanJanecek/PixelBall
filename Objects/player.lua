@@ -19,7 +19,8 @@ function player:createRandom()
         attitude = math.random(1, 10),
         number = math.random(0, 99),
         hasBall = false,
-        sprite = nil
+        sprite = nil,
+        moving = false
     }, self)
 end
 
@@ -28,20 +29,21 @@ function player:createPlayer(name, dribbling, shooting, finishing, stealing, blo
 
     return setmetatable({
         name = name,
-        dribbling = dribbling,
-        shooting = shooting,
-        finishing = finishing,
-        stealing = stealing,
-        blocking = blocking,
-        contesting = contesting,
-        height = height,
-        speed = speed,
+        dribbling = tonumber(dribbling),
+        shooting = tonumber(shooting),
+        finishing = tonumber(finishing),
+        stealing = tonumber(stealing),
+        blocking = tonumber(blocking),
+        contesting = tonumber(contesting),
+        height = tonumber(height),
+        speed = tonumber(speed),
         maxStamina = 10,
         stamina = 10,
-        attitude = attitude,
-        number = number,
+        attitude = tonumber(attitude),
+        number = "" .. number,
         hasBall = false,
-        sprite = nil
+        sprite = nil,
+        moving = false
     }, self)
 end
 
