@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import unidecode
+import re
 
 url_base = "https://www.2kratings.com/teams/"
 
@@ -12,10 +13,6 @@ teams = ["philadelphia-76ers", "milwaukee-bucks", "chicago-bulls", "charlotte-ho
 
 stats = ["Ball Handle", "Close Shot", "Mid-Range Shot", "Three-Point Shot", "Layup", "Steal", "Block", "Interior Defense", "Perimeter Defense", "Speed", 
             "Stamina", "Pass Accuracy"]
-
-allPlayersPage = requests.get("https://basketball.realgm.com/nba/players")
-allPlayers = BeautifulSoup(allPlayersPage.content, "html.parser")
-playerDiv = allPlayers.find("div", class_="main-container")
 
 for team in teams:
     with open('_python/WebScraper/data/' + team + '.csv', 'w', newline='') as csvfile:
@@ -59,16 +56,14 @@ for team in teams:
                     playerAttrs.append(scaledValue)
         
                 # Get height and number
-                nameElement = playerDiv.find(text=lambda t: nameToLook in t)
-                height = "1-1"
-                number = -1
+                heightElement = playerPage.find(text=lambda t: "Height:" in t).parent
+                numberElement = playerPage.find(text=lambda t: "Jersey: #" in t)
 
-                if(nameElement):
-                    children = nameElement.parent.parent.parent.find_all("td")
-                    height = children[3].text
-                    number = int(children[0].text)
+                height = heightElement.find("span").text.split(" ")[0]
+                numberStr = numberElement.split("#")[1]
+                number = int(numberStr)
                 
-                heightParts = height.split("-")
+                heightParts = re.split("'|\"", height)
                 heightInInches = int(heightParts[0]) * 12 + int(heightParts[1])
                 heightValue = heightInInches - 74
                 if heightValue < 1:
