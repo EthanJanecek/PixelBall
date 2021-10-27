@@ -58,7 +58,8 @@ local defenseScale = 1
 local zoneSize = 3 * feetToPixels
 
 local contestRadius = 3 * feetToPixels -- 3 feet away
-local finishingRadius = 4 * feetToPixels
+local finishingRadius = 4 * feetToPixels * conversionFactor
+local closeShotRadius = 10 * feetToPixels * conversionFactor
 local maxBlockedProb = 25
 
 local staminaRunningUsage = -.0002
@@ -83,6 +84,27 @@ local function changeStamina(player, diff)
         player.stamina = player.maxStamina
     elseif(player.stamina < 1) then
         player.stamina = 1
+    end
+end
+
+function findRange(player)
+    local angle = getRotationToBasket(player.sprite)
+    local dist = 23.75
+
+    if(angle > (90 - 24.44) or angle < (-90 + 24.44)) then
+        dist = 22
+    end
+
+    local distToHoop = getDist(player.sprite, hoopCenter)
+
+    if(distToHoop > (dist * feetToPixels * conversionFactor)) then
+        return "three"
+    elseif(distToHoop < finishingRadius) then
+        return "finishing"
+    elseif(distToHoop < closeShotRadius)  then
+        return "closeShot"
+    else
+        return "midRange"
     end
 end
 
@@ -345,7 +367,7 @@ local function simulateDefense()
     end
 end
 
-local function getDist(a, b)
+function getDist(a, b)
     return math.sqrt(math.pow(a.x - b.x, 2) + math.pow(a.y - b.y, 2))
 end
 
@@ -454,7 +476,14 @@ local function calculateDeadzone(shooter, skill)
                 heightDiff = heightDiffMax
             end
 
-            local contestSkill = defender.contesting * deadzoneFactor * staminaPercent(defender)
+            local range = findRange(defender)
+            local contestSkill = -1
+            if(range == "finishing" or range == "closeShot") then
+                contestSkill = defender.contestingInterior * deadzoneFactor * staminaPercent(defender)
+            else
+                contestSkill = defender.contestingExterior * deadzoneFactor * staminaPercent(defender)
+            end
+            
             local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
             local factor = (heightDiff / 10) * distanceFactor * contestSkill * defenseScale
             deadzone = deadzone - factor
@@ -544,11 +573,16 @@ local function finishShot()
         transition.moveTo(basketball, {x=team.players[userPlayer].sprite.x , y=team.players[userPlayer].sprite.y, time = 1, onComplete=endPossession})
     else
         local deadzone = 0
+        local range = findRange(team.players[userPlayer])
 
-        if(distToHoop < finishingRadius) then
+        if(range == "finishing") then
             deadzone = calculateDeadzone(team.players[userPlayer], team.players[userPlayer].finishing)
+        elseif(range == "closeShot") then
+            deadzone = calculateDeadzone(team.players[userPlayer], team.players[userPlayer].closeShot)
+        elseif(range == "midRange") then
+            deadzone = calculateDeadzone(team.players[userPlayer], team.players[userPlayer].midRange)
         else
-            deadzone = calculateDeadzone(team.players[userPlayer], team.players[userPlayer].shooting)
+            deadzone = calculateDeadzone(team.players[userPlayer], team.players[userPlayer].three)
         end
 
         if(math.abs(distToHoop - dist) <= deadzone) then
@@ -739,7 +773,7 @@ local function findPlayersInZone(zoneCenter, offensePlayers)
         local offensePlayer = offensePlayers[i]
         local dist = getDist(zoneCenter, offensePlayer.sprite)
 
-        if(dist < zoneSize) then
+        if(dist <= zoneSize) then
             table.insert(players, offensePlayer)
         end
     end
@@ -757,7 +791,7 @@ local function findBallCarrier(players)
     return -1
 end
 
-local function moveZone(defender, zoneCenter)
+local function moveZone(defender, zoneCenter, noCoverOnBallHandler, closestDefender)
     local offensePlayers = {unpack(team.players, 1, 5)}
     table.sort(offensePlayers, function (a, b)
         return getDist(zoneCenter, a.sprite) < getDist(zoneCenter, b.sprite)
@@ -766,7 +800,11 @@ local function moveZone(defender, zoneCenter)
     local playersInZone = findPlayersInZone(zoneCenter, offensePlayers)
     local ballCarrier = findBallCarrier(playersInZone)
 
-    if(ballCarrier ~= -1) then
+    if(noCoverOnBallHandler and closestDefender == defender) then
+        -- If nobody is covering ball carrier and this defender is the closest defender, move him to ball carrier
+        defenderCloseOut(defender, team.players[userPlayer], feetToPixels)
+    elseif(ballCarrier ~= -1) then
+        -- Ball carrier is in zone
         defenderCloseOut(defender, offensePlayers[ballCarrier], feetToPixels)
     elseif(#playersInZone ~= 0) then
         -- Choose random other player in zone
@@ -782,12 +820,24 @@ end
 
 local function moveDefense()
     if(activeDefense.coverage == "zone") then
+        local zone = nil
+
+        if(activeDefense.name == "1-2-2") then
+            zone = zone122
+        elseif(activeDefense.name == "2-3") then
+            zone = zone23
+        end
+
+        local defensePlayers = {unpack(opponent.players, 1, 5)}
+        table.sort(defensePlayers, function (a, b)
+            return getDist(team.players[userPlayer].sprite, zone[indexOf(opponent.players, a)]) < getDist(team.players[userPlayer].sprite, zone[indexOf(opponent.players, b)])
+        end)
+
+        local noCoverOnBallHandler = getDist(team.players[userPlayer].sprite, zone[indexOf(opponent.players, defensePlayers[1])]) > zoneSize
+        local closestDefender = defensePlayers[1]
+
         for i = 1, 5 do
-            if(activeDefense.name == "1-2-2") then
-                moveZone(opponent.players[i], zone122[i])
-            elseif(activeDefense.name == "2-3") then
-                moveZone(opponent.players[i], zone23[i])
-            end
+            moveZone(opponent.players[i], zone[i], noCoverOnBallHandler, closestDefender)
         end
     elseif(activeDefense.coverage == "man") then
         -- Move players
@@ -796,7 +846,7 @@ local function moveDefense()
         for i = 1, 5 do
             if(activeDefense.aggresiveness == -1) then
                 -- Scale based on how good of a shooter they are
-                distAway = math.abs(team.players[i].shooting - 11) * (feetToPixels / 2.5)
+                distAway = math.abs(team.players[i].three - 11) * (feetToPixels / 2.5)
             end
 
             defenderCloseOut(opponent.players[i], team.players[i], distAway)
@@ -916,10 +966,10 @@ local function setDefenseMatchups()
         elseif(num == 3) then
             mapByFunction(
                 function (a, b) 
-                    return (a.shooting + a.finishing) < (b.shooting + b.finishing)
+                    return (a.closeShot + a.midRange + a.three + a.finishing) < (b.closeShot + b.midRange + b.three + b.finishing)
                 end,
                 function (a, b)
-                    return a.contesting < b.contesting
+                    return (a.contestingInterior + a.contestingExterior) < (b.contestingInterior + b.contestingExterior)
                 end
             )
         end
@@ -934,9 +984,9 @@ local function setDefenseMatchups()
 
             local max = {value = -1, index = -1}
             for i = 1, 3 do
-                if(opponentStarters[i].contesting > max.value) then
+                if(opponentStarters[i].contestingInterior + opponentStarters[i].contestingExterior > max.value) then
                     max.index = i
-                    max.value = opponentStarters[i].contesting
+                    max.value = opponentStarters[i].contestingInterior + opponentStarters[i].contestingExterior
                 end
             end
 

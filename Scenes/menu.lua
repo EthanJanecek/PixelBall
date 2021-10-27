@@ -28,7 +28,7 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-	local title = display.newText(sceneGroup, "Retro-Ball", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)
+	local title = display.newText(sceneGroup, "Pixel-Ball", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)
     title:setFillColor(.922, .910, .329)
 
     local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY, native.systemFont, 32)

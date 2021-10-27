@@ -50,7 +50,7 @@ local function showPlayerCard(player, initialX, initialY, i)
         redraw()
     end
 
-    local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 8, display.contentHeight / 5)
+    local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 8, display.contentHeight / 4)
     playerBorder:setFillColor(0, 0, 0, 0)
     playerBorder:addEventListener("tap", selectPlayer)
     if(i == lineupSwitch[1]) then
@@ -66,31 +66,33 @@ local function showPlayerCard(player, initialX, initialY, i)
         positionStr:setFillColor(0, 0, 0)
     end
 
-    local playerName = display.newText(sceneGroup, player.number .. " " .. getName(player.name), playerBorder.x, playerBorder.y - playerBorder.height / 3, native.systemFont, 12)
+    local playerName = display.newText(sceneGroup, player.number .. " " .. getName(player.name), playerBorder.x, playerBorder.y - playerBorder.height / 2.5, native.systemFont, 12)
     playerName:setFillColor(.922, .910, .329)
     playerName:addEventListener("tap", selectPlayer)
 
     local paramStr = "DRB: " .. player.dribbling .. "  STL: " .. player.stealing .. 
-                        "\nSHT: " .. player.shooting .. "  BLK: " .. player.blocking .. 
-                        "\nFNS: " .. player.finishing .. "  CNT: " .. player.contesting .. 
+                        "\nFNS: " .. player.finishing .. "  CLS: " .. player.closeShot .. 
+                        "\nMDR: " .. player.midRange .. "  3PT: " .. player.three .. 
+                        "\nCTE: " .. player.contestingExterior .. "  CTI: " .. player.contestingInterior .. 
+                        "\nBLK: " .. player.blocking .. "  PSS: " .. player.passing .. 
                         "\nSPD: " .. player.speed .. "  HGT: " .. player.height .. 
                         "\nSTAMINA: " .. string.format("%.1f", player.stamina)
 
-    local params = display.newText(sceneGroup, paramStr, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 12 + 8 * 2, native.systemFont, 8)
+    local params = display.newText(sceneGroup, paramStr, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 16 + 8 * 2, native.systemFont, 8)
     params:setFillColor(.922, .910, .329)
     params:addEventListener("tap", selectPlayer)
 end
 
-local function showPlayer(i)
-    local team = league:findTeam(userTeam)
+local function showPlayer(team, i)
     local player = team.players[i]
+    local remainder = #team.players - 5
 
     if(i <= 5) then
         showPlayerCard(player, display.contentWidth * i / 6, display.contentHeight / 5, i)
-    elseif(i <= 10) then
-       showPlayerCard(player, display.contentWidth * (i - 5) / 6, display.contentHeight * 3 / 5, i)
+    elseif(i <= 5 + (remainder / 2)) then
+       showPlayerCard(player, display.contentWidth * (i - 5) / ((remainder / 2) + 1), display.contentHeight * 3 / 5, i)
     else
-        showPlayerCard(player, display.contentWidth * (i - 10) / 6, display.contentHeight * 4 / 5 + 10, i)
+        showPlayerCard(player, display.contentWidth * (i - (5 + (remainder / 2))) / ((remainder / 2) + 1), display.contentHeight * 4 / 5 + 20, i)
     end
 end
 
@@ -108,10 +110,10 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-	local startersLabel = display.newText(sceneGroup, "Starters", display.contentCenterX, 16, native.systemFont, 32)
+	local startersLabel = display.newText(sceneGroup, "Starters", display.contentCenterX, 12, native.systemFont, 24)
     startersLabel:setFillColor(.922, .910, .329)
 
-    local benchLabel = display.newText(sceneGroup, "Bench", display.contentCenterX, display.contentHeight / 3 + 25,  native.systemFont, 32)
+    local benchLabel = display.newText(sceneGroup, "Bench", display.contentCenterX, display.contentHeight / 3 + 27,  native.systemFont, 24)
     benchLabel:setFillColor(.922, .910, .329)
 
     local playButton = display.newText(sceneGroup, "<- Back", 8, 8, native.systemFont, 16)
@@ -124,8 +126,9 @@ function scene:create( event )
     buttonBorder:setFillColor(0, 0, 0, 0)
     buttonBorder:addEventListener("tap", nextScene)
     
-    for i = 1, 15 do
-        showPlayer(i)
+    local team = league:findTeam(userTeam)
+    for i = 1, #team.players do
+        showPlayer(team, i)
     end
 end
 

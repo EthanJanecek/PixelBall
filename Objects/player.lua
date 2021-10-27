@@ -2,20 +2,23 @@ local player = {}
 
 function player:createRandom()
     self.__index = self
-    local maxStamina = math.random(1, 10)
 
     return setmetatable({
         name = "Player " .. tostring(math.random(1, 10000)),
         dribbling = math.random(1, 10),
-        shooting = math.random(1, 10),
+        closeShot = math.random(1, 10),
+        midRange = math.random(1, 10),
+        three = math.random(1, 10),
         finishing = math.random(1, 10),
         stealing = math.random(1, 10),
         blocking = math.random(1, 10),
-        contesting = math.random(1, 10),
+        contestingInterior = math.random(1, 10),
+        contestingExterior = math.random(1, 10),
         height = math.random(72, 84),
         speed = math.random(1, 10),
         maxStamina = 10,
         stamina = 10,
+        passing = math.random(1, 10),
         attitude = math.random(1, 10),
         number = math.random(0, 99),
         hasBall = false,
@@ -24,22 +27,26 @@ function player:createRandom()
     }, self)
 end
 
-function player:createPlayer(name, dribbling, shooting, finishing, stealing, blocking, contesting, height, speed, attitude, number)
+function player:createPlayer(name, dribbling, closeShot, midRange, three, finishing, stealing, blocking, contestingInt, contestingExt, speed, stamina, passing, height, number)
     self.__index = self
 
     return setmetatable({
         name = name,
         dribbling = tonumber(dribbling),
-        shooting = tonumber(shooting),
+        closeShot = tonumber(closeShot),
+        midRange = tonumber(midRange),
+        three = tonumber(three),
         finishing = tonumber(finishing),
         stealing = tonumber(stealing),
         blocking = tonumber(blocking),
-        contesting = tonumber(contesting),
+        contestingInterior = tonumber(contestingInt),
+        contestingExterior = tonumber(contestingExt),
         height = tonumber(height),
         speed = tonumber(speed),
-        maxStamina = 10,
+        maxStamina = tonumber(stamina),
+        passing = tonumber(passing),
         stamina = 10,
-        attitude = tonumber(attitude),
+        attitude = 10,
         number = "" .. number,
         hasBall = false,
         sprite = nil,

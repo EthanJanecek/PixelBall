@@ -39,20 +39,16 @@ end
 
 function createRoster(file)
     local players = {}
-    local i = 0
 
     for line in io.lines("C:/Users/Ethan Janecek/Documents/Coding Projects/Corona Projects/PixelBall/" .. file) do
-        if i ~= 0 then
-            local params = {}
-            
-            for param in string.gmatch(line, "([^,]+)") do
-                table.insert(params, param)
-            end
-
-            table.insert(players, PlayerLib:createPlayer(params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], 10, params[10]))
+        local params = {}
+        
+        for param in string.gmatch(line, "([^,]+)") do
+            table.insert(params, param)
         end
 
-        i = i + 1
+        table.insert(players, PlayerLib:createPlayer(params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], params[10], 
+                params[11], params[12], params[13], params[14], params[15]))
     end
 
     return players

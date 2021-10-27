@@ -2,9 +2,10 @@ local TeamLib = require("Objects.team")
 local league = {}
 local StartPositions = require("Constants.start_positions")
 
-local leagueAvg2 = 47
+local leagueAvgFinishing = 68
+local leagueAvgClose = 43
+local leagueAvgMidRange = 40
 local leageAvg3 = 37
-local percentShots2 = 72
 local skillScaling = 3
 local playerPercentages = {40, 70, 85, 95, 100}
 local heightDiffMin = 5
@@ -25,47 +26,47 @@ function createTeams()
 
     -- Eastern Conference
     -- Atlantic Division
-    table.insert(teams, TeamLib:create("76ers", "PHI", "images/logos/76ers.png", "East", "Atlantic", "blue", "Data/76ers_roster.csv"))
-    table.insert(teams, TeamLib:create("Nets", "BKN", "images/logos/nets.png", "East", "Atlantic", "black", "Data/nets_roster.csv"))
-    table.insert(teams, TeamLib:create("Celtics", "BOS", "images/logos/celtics.png", "East", "Atlantic", "green", "Data/celtics_roster.csv"))
-    table.insert(teams, TeamLib:create("Raptors", "TOR", "images/logos/raptors.png", "East", "Atlantic", "red", "Data/raptors_roster.csv"))
-    table.insert(teams, TeamLib:create("Knicks", "NYK", "images/logos/knicks.png", "East", "Atlantic", "blue", "Data/knicks_roster.csv"))
+    table.insert(teams, TeamLib:create("76ers", "PHI", "images/logos/76ers.png", "East", "Atlantic", "blue", "_python/WebScraper/data/philadelphia-76ers.csv"))
+    table.insert(teams, TeamLib:create("Nets", "BKN", "images/logos/nets.png", "East", "Atlantic", "black", "_python/WebScraper/data/brooklyn-nets.csv"))
+    table.insert(teams, TeamLib:create("Celtics", "BOS", "images/logos/celtics.png", "East", "Atlantic", "green", "_python/WebScraper/data/boston-celtics.csv"))
+    table.insert(teams, TeamLib:create("Raptors", "TOR", "images/logos/raptors.png", "East", "Atlantic", "red", "_python/WebScraper/data/toronto-raptors.csv"))
+    table.insert(teams, TeamLib:create("Knicks", "NYK", "images/logos/knicks.png", "East", "Atlantic", "blue", "_python/WebScraper/data/new-york-knicks.csv"))
 
     -- Central Division
-    table.insert(teams, TeamLib:create("Bucks", "MIL", "images/logos/bucks.png", "East", "Central", "green", "Data/bucks_roster.csv"))
-    table.insert(teams, TeamLib:create("Pacers", "IND", "images/logos/pacers.png", "East", "Central", "yellow", "Data/pacers_roster.csv"))
-    table.insert(teams, TeamLib:create("Pistons", "DET", "images/logos/pistons.png", "East", "Central", "blue", "Data/pistons_roster.csv"))
-    table.insert(teams, TeamLib:create("Bulls", "CHI", "images/logos/bulls.png", "East", "Central", "red", "Data/bulls_roster.csv"))
-    table.insert(teams, TeamLib:create("Cavaliers", "CLE", "images/logos/cavaliers.png", "East", "Central", "black", "Data/cavaliers_roster.csv"))
+    table.insert(teams, TeamLib:create("Bucks", "MIL", "images/logos/bucks.png", "East", "Central", "green", "_python/WebScraper/data/milwaukee-bucks.csv"))
+    table.insert(teams, TeamLib:create("Pacers", "IND", "images/logos/pacers.png", "East", "Central", "yellow", "_python/WebScraper/data/indiana-pacers.csv"))
+    table.insert(teams, TeamLib:create("Pistons", "DET", "images/logos/pistons.png", "East", "Central", "blue", "_python/WebScraper/data/detroit-pistons.csv"))
+    table.insert(teams, TeamLib:create("Bulls", "CHI", "images/logos/bulls.png", "East", "Central", "red", "_python/WebScraper/data/chicago-bulls.csv"))
+    table.insert(teams, TeamLib:create("Cavaliers", "CLE", "images/logos/cavaliers.png", "East", "Central", "black", "_python/WebScraper/data/cleveland-cavaliers.csv"))
 
     -- Southeast Division
-    table.insert(teams, TeamLib:create("Heat", "MIA", "images/logos/heat.png", "East", "Southeast", "red", "Data/heat_roster.csv"))
-    table.insert(teams, TeamLib:create("Magic", "ORL", "images/logos/magic.png", "East", "Southeast", "blue", "Data/magic_roster.csv"))
-    table.insert(teams, TeamLib:create("Hawks", "ATL", "images/logos/hawks.png", "East", "Southeast", "red", "Data/hawks_roster.csv"))
-    table.insert(teams, TeamLib:create("Wizards", "WAS", "images/logos/wizards.png", "East", "Southeast", "blue", "Data/wizards_roster.csv"))
-    table.insert(teams, TeamLib:create("Hornets", "CHA", "images/logos/hornets.png", "East", "Southeast", "blue", "Data/hornets_roster.csv"))
+    table.insert(teams, TeamLib:create("Heat", "MIA", "images/logos/heat.png", "East", "Southeast", "red", "_python/WebScraper/data/miami-heat.csv"))
+    table.insert(teams, TeamLib:create("Magic", "ORL", "images/logos/magic.png", "East", "Southeast", "blue", "_python/WebScraper/data/orlando-magic.csv"))
+    table.insert(teams, TeamLib:create("Hawks", "ATL", "images/logos/hawks.png", "East", "Southeast", "red", "_python/WebScraper/data/atlanta-hawks.csv"))
+    table.insert(teams, TeamLib:create("Wizards", "WAS", "images/logos/wizards.png", "East", "Southeast", "blue", "_python/WebScraper/data/washington-wizards.csv"))
+    table.insert(teams, TeamLib:create("Hornets", "CHA", "images/logos/hornets.png", "East", "Southeast", "blue", "_python/WebScraper/data/charlotte-hornets.csv"))
 
     -- Western Conference
     -- Pacific Division
-    table.insert(teams, TeamLib:create("Lakers", "LAL", "images/logos/lakers.png", "West", "Pacific", "yellow", "Data/lakers_roster.csv"))
-    table.insert(teams, TeamLib:create("Clippers", "LAC", "images/logos/clippers.png", "West", "Pacific", "blue", "Data/clippers_roster.csv"))
-    table.insert(teams, TeamLib:create("Suns", "PHX", "images/logos/suns.png", "West", "Pacific", "purple", "Data/suns_roster.csv"))
-    table.insert(teams, TeamLib:create("Warriors", "GSW", "images/logos/warriors.png", "West", "Pacific", "blue", "Data/warriors_roster.csv"))
-    table.insert(teams, TeamLib:create("Kings", "SAC", "images/logos/kings.png", "West", "Pacific", "purple", "Data/kings_roster.csv"))
+    table.insert(teams, TeamLib:create("Lakers", "LAL", "images/logos/lakers.png", "West", "Pacific", "yellow", "_python/WebScraper/data/los-angeles-lakers.csv"))
+    table.insert(teams, TeamLib:create("Clippers", "LAC", "images/logos/clippers.png", "West", "Pacific", "blue", "_python/WebScraper/data/los-angeles-clippers.csv"))
+    table.insert(teams, TeamLib:create("Suns", "PHX", "images/logos/suns.png", "West", "Pacific", "purple", "_python/WebScraper/data/phoenix-suns.csv"))
+    table.insert(teams, TeamLib:create("Warriors", "GSW", "images/logos/warriors.png", "West", "Pacific", "blue", "_python/WebScraper/data/golden-state-warriors.csv"))
+    table.insert(teams, TeamLib:create("Kings", "SAC", "images/logos/kings.png", "West", "Pacific", "purple", "_python/WebScraper/data/sacramento-kings.csv"))
 
     -- Northwest Division
-    table.insert(teams, TeamLib:create("Nuggets", "DEN", "images/logos/nuggets.png", "West", "Northwest", "blue", "Data/nuggets_roster.csv"))
-    table.insert(teams, TeamLib:create("Jazz", "UTA", "images/logos/jazz.png", "West", "Northwest", "orange", "Data/jazz_roster.csv"))
-    table.insert(teams, TeamLib:create("Trail Blazers", "POR", "images/logos/trail blazers.png", "West", "Northwest", "black", "Data/trailblazers_roster.csv"))
-    table.insert(teams, TeamLib:create("Thunder", "OKC", "images/logos/thunder.png", "West", "Northwest", "blue", "Data/thunder_roster.csv"))
-    table.insert(teams, TeamLib:create("Timberwolves", "MIN", "images/logos/timberwolves.png", "West", "Northwest", "blue", "Data/timberwolves_roster.csv"))
+    table.insert(teams, TeamLib:create("Nuggets", "DEN", "images/logos/nuggets.png", "West", "Northwest", "blue", "_python/WebScraper/data/denver-nuggets.csv"))
+    table.insert(teams, TeamLib:create("Jazz", "UTA", "images/logos/jazz.png", "West", "Northwest", "orange", "_python/WebScraper/data/utah-jazz.csv"))
+    table.insert(teams, TeamLib:create("Trail Blazers", "POR", "images/logos/trail blazers.png", "West", "Northwest", "black", "_python/WebScraper/data/portland-trail-blazers.csv"))
+    table.insert(teams, TeamLib:create("Thunder", "OKC", "images/logos/thunder.png", "West", "Northwest", "blue", "_python/WebScraper/data/oklahoma-city-thunder.csv"))
+    table.insert(teams, TeamLib:create("Timberwolves", "MIN", "images/logos/timberwolves.png", "West", "Northwest", "blue", "_python/WebScraper/data/minnesota-timberwolves.csv"))
 
     -- Southwest Division
-    table.insert(teams, TeamLib:create("Rockets", "HOU", "images/logos/rockets.png", "West", "Southwest", "red", "Data/rockets_roster.csv"))
-    table.insert(teams, TeamLib:create("Spurs", "SAS", "images/logos/spurs.png", "West", "Southwest", "black", "Data/spurs_roster.csv"))
-    table.insert(teams, TeamLib:create("Pelicans", "NOP", "images/logos/pelicans.png", "West", "Southwest", "red", "Data/pelicans_roster.csv"))
-    table.insert(teams, TeamLib:create("Mavericks", "DAL", "images/logos/mavericks.png", "West", "Southwest", "blue", "Data/mavericks_roster.csv"))
-    table.insert(teams, TeamLib:create("Grizzlies", "MEM", "images/logos/grizzlies.png", "West", "Southwest", "cyan", "Data/grizzlies_roster.csv"))
+    table.insert(teams, TeamLib:create("Rockets", "HOU", "images/logos/rockets.png", "West", "Southwest", "red", "_python/WebScraper/data/houston-rockets.csv"))
+    table.insert(teams, TeamLib:create("Spurs", "SAS", "images/logos/spurs.png", "West", "Southwest", "black", "_python/WebScraper/data/san-antonio-spurs.csv"))
+    table.insert(teams, TeamLib:create("Pelicans", "NOP", "images/logos/pelicans.png", "West", "Southwest", "red", "_python/WebScraper/data/new-orleans-pelicans.csv"))
+    table.insert(teams, TeamLib:create("Mavericks", "DAL", "images/logos/mavericks.png", "West", "Southwest", "blue", "_python/WebScraper/data/dallas-mavericks.csv"))
+    table.insert(teams, TeamLib:create("Grizzlies", "MEM", "images/logos/grizzlies.png", "West", "Southwest", "cyan", "_python/WebScraper/data/memphis-grizzlies.csv"))
 
     return teams
 end
@@ -215,13 +216,13 @@ end
 
 function simulatePossession(offense, defense)
     local teamStarters = {unpack(offense.players, 1, 5)}
-    table.sort(teamStarters, function (a, b)
-        return (a.shooting + a.finishing) > (b.shooting + b.finishing)
+    table.sort(teamStarters, function (a, b) 
+        return (a.closeShot + a.midRange + a.three + a.finishing) < (b.closeShot + b.midRange + b.three + b.finishing)
     end)
 
     local opponentStarters = {unpack(defense.players, 1, 5)}
     table.sort(opponentStarters, function (a, b)
-        return a.contesting > b.contesting
+        return (a.contestingInterior + a.contestingExterior) < (b.contestingInterior + b.contestingExterior)
     end)
 
     local playerNum = math.random(1, 100)
@@ -236,8 +237,8 @@ function simulatePossession(offense, defense)
         end
     end
 
-    local shotTypeBounds = 50 + (player.finishing - player.shooting) * 5
-    local shotType = math.random(100)
+    local max = player.finishing + player.closeShot + player.midRange + player.three
+    local shotType = math.random(max)
     local shotPercent = math.random(100)
     local time = math.random(6, 24)
     local points = 0
@@ -249,16 +250,30 @@ function simulatePossession(offense, defense)
         heightDiff = heightDiffMax
     end
 
-    if(shotType <= shotTypeBounds) then
+    if(shotType <= player.finishing) then
         -- 2
-        local percentageMade = leagueAvg2 + (player.finishing - defender.contesting) * skillScaling * (heightDiff / 10)
+        local percentageMade = leagueAvgFinishing + (player.finishing - defender.contestingInterior) * skillScaling * (heightDiff / 10)
+
+        if(shotPercent <= percentageMade) then
+            points = 2
+        end
+    elseif(shotType <= (player.finishing + player.closeShot)) then
+        -- 2
+        local percentageMade = leagueAvgClose + (player.closeShot - defender.contestingInterior) * skillScaling * (heightDiff / 10)
+
+        if(shotPercent <= percentageMade) then
+            points = 2
+        end
+    elseif(shotType <= (player.finishing + player.closeShot + player.midRange)) then
+        -- 2
+        local percentageMade = leagueAvgMidRange + (player.midRange - defender.contestingExterior) * skillScaling * (heightDiff / 10)
 
         if(shotPercent <= percentageMade) then
             points = 2
         end
     else
         -- 3
-        local percentageMade = leageAvg3 + (player.shooting - defender.contesting) * skillScaling * (heightDiff / 10)
+        local percentageMade = leageAvg3 + (player.three - defender.contestingExterior) * skillScaling * (heightDiff / 10)
 
         if(shotPercent <= percentageMade) then
             points = 3
