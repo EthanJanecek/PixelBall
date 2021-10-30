@@ -56,6 +56,7 @@ local shootingScale = 1.4
 
 local defenseScale = 1
 local zoneSize = 3 * feetToPixels
+collisionRadius = .5 * feetToPixels
 
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels * conversionFactor
@@ -65,7 +66,7 @@ local maxBlockedProb = 25
 local staminaRunningUsage = -.0002
 local shotStaminaUsage = -.2
 local staminaStandingRegen = -staminaRunningUsage / 2
-local staminaBenchRegen = -staminaRunningUsage
+local staminaBenchRegen = -staminaRunningUsage * 3
 
 local maxShotPower = .8
 local powerScalingStamina = 5
@@ -151,9 +152,71 @@ local function gameClockSubtract(time)
     end
 end
 
+local function inBounds(x, y)
+    return (x <= bounds.maxX and x >= bounds.minX) and (y <= bounds.maxY and y >= bounds.minY)
+end
+
+function getCollisionObject(x, y, sprite, radius)
+    for i = 1, 5 do
+        local player = team.players[i]
+        local defender = opponent.players[i]
+        
+        if(player.sprite ~= sprite) then
+            if(getDist({x = x, y = y}, player.sprite) < radius) then
+                return player
+            end
+        end
+
+        if(defender.sprite ~= sprite) then
+            if(getDist({x = x, y = y}, defender.sprite) < radius) then
+                return defender
+            end
+        end
+    end
+
+    return nil
+end
+
+function detectCollision(x, y, sprite, radius)
+    for i = 1, 5 do
+        local player = team.players[i]
+        local defender = opponent.players[i]
+        
+        if(player.sprite ~= sprite) then
+            if(getDist({x = x, y = y}, player.sprite) < radius) then
+                return true
+            end
+        end
+
+        if(defender.sprite ~= sprite) then
+            if(getDist({x = x, y = y}, defender.sprite) < radius) then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
 function move(Obj, maxSpeed, pointTowards, angle, percent)
     local newX = Obj.x + math.cos(math.rad(angle-90)) * (maxSpeed * percent)
     local newY = Obj.y + math.sin(math.rad(angle-90)) * (maxSpeed * percent)
+
+    local loops = 0
+    while((not inBounds or detectCollision(newX, newY, Obj, collisionRadius))) do
+        angle = angle + 10
+        newX = Obj.x + math.cos(math.rad(angle-90)) * (maxSpeed * percent)
+        newY = Obj.y + math.sin(math.rad(angle-90)) * (maxSpeed * percent)
+
+        loops = loops + 1
+
+        if(loops > 36) then
+            -- Did a full 360 degree check
+            newX = Obj.x
+            newY = Obj.y
+            break
+        end
+    end
 
     if(percent == 0) then
         if(not Obj.isPlaying or Obj.sequence == "moving") then
@@ -611,7 +674,8 @@ local function calculateEndPointMovement(player, route)
     local nextPoint = route.points[1]
     local distToNext = getDist(player.sprite, nextPoint)
 
-    while(route.points[1] and distToNext < .1 * feetToPixels) do
+    while(nextPoint and distToNext < .1 * feetToPixels or (detectCollision(nextPoint.x, nextPoint.y, player.sprite, collisionRadius) and 
+                    getDist(nextPoint, player.sprite) < collisionRadius)) do
         table.remove(route.points, 1)
 
         if(route.points[1] == nil) then
@@ -647,9 +711,11 @@ local function calculateEndPointMovementZone(player, route, pointTowards)
     local newAngle = getRotation(player.sprite, nextPoint)
     local percent = distToNext / maxDist
 
-    if(distToNext < .1 * feetToPixels and not pointTowards.moving) then
+    if((distToNext < .1 * feetToPixels or (detectCollision(nextPoint.x, nextPoint.y, player.sprite, collisionRadius) and getDist(nextPoint, player.sprite) < collisionRadius)) 
+                    and not pointTowards.moving) then
         percent = 0
-    elseif(distToNext < .1 * feetToPixels) then
+    elseif(distToNext < .1 * feetToPixels or (detectCollision(nextPoint.x, nextPoint.y, player.sprite, collisionRadius) and 
+                    getDist(nextPoint, player.sprite) < collisionRadius)) then
         table.remove(route.points, 1)
         percent = .001
     elseif(percent > 1) then
@@ -707,9 +773,11 @@ local function defenderCloseOut(defender, shooter, distAway)
     local newAngle = getRotation(defender.sprite, newPos)
     local percent = getDist(defender.sprite, newPos) / (minSpeed + (defender.speed * speedScaling))
 
-    if(getDist(defender.sprite, newPos) < .1 * feetToPixels and shooter.sprite.sequence == "standing") then
+    if(getDist(defender.sprite, newPos) < .1 * feetToPixels or (detectCollision(newPos.x, newPos.y, defender.sprite, collisionRadius) and 
+                    getDist(newPos, defender.sprite) < collisionRadius) and shooter.sprite.sequence == "standing") then
         percent = 0
-    elseif(getDist(defender.sprite, newPos) < .1 * feetToPixels) then
+    elseif(getDist(defender.sprite, newPos) < .1 * feetToPixels or (detectCollision(newPos.x, newPos.y, defender.sprite, collisionRadius) and 
+                    getDist(newPos, defender.sprite) < collisionRadius)) then
         percent = .001
     elseif(percent > 1) then
         percent = 1

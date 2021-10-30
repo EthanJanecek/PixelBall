@@ -111,7 +111,38 @@ function NewStick( Props )
             local newX = Obj.x + Cos( Rad(self.angle-90) ) * (maxSpeed * self.percent)
             local newY = Obj.y + Sin( Rad(self.angle-90) ) * (maxSpeed * self.percent)
 
-            if(self.percent == 0) then
+            local collisionObject = getCollisionObject(newX, newY, Obj, collisionRadius)
+            local angleToCollision = 0
+            if(collisionObject) then
+                angleToCollision = getRotation(Obj, collisionObject.sprite)
+            end
+            local initialAngle = self.angle - angleToCollision
+
+            local loops = 0
+            while((detectCollision(newX, newY, Obj, collisionRadius))) do
+                if(initialAngle >= 0 and initialAngle <= 180) then
+                    self.angle = self.angle + 10
+                else
+                    self.angle = self.angle + 10
+                end
+
+                newX = Obj.x + math.cos(math.rad(self.angle-90)) * (maxSpeed * self.percent)
+                newY = Obj.y + math.sin(math.rad(self.angle-90)) * (maxSpeed * self.percent)
+
+                loops = loops + 1
+
+                if(loops > 36) then
+                    -- Did a full 360 degree check
+                    newX = Obj.x
+                    newY = Obj.y
+                    break
+                end
+            end
+
+            if(detectCollision(newX, newY, Obj, collisionRadius / 2)) then
+                newX = Obj.x
+                newY = Obj.y
+            elseif(self.percent == 0) then
                 if(not Obj.isPlaying or Obj.sequence == "moving") then
                     Obj:setSequence("standing")
                     Obj:play()

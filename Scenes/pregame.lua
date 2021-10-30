@@ -40,6 +40,11 @@ function scene:create( event )
     lineupSwitch = {-1, -1}
     score = {away=0, home=0}
     gameDetails = {qtr=1, min=minutesInQtr, sec=0, shotClock=24}
+
+    local team = league:findTeam(userTeam)
+    for i = 1, #team.players do
+        team.players[i].stamina = team.players[i].maxStamina
+    end
     
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
