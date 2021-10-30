@@ -1,80 +1,67 @@
-
 local composer = require( "composer" )
-
 local scene = composer.newScene()
+local sceneGroup = nil
+
+local imageSize = 30
+local offsetY = 40
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function nextScene()
-	composer.removeScene("Scenes.postgame")
-    composer.gotoScene("Scenes.score_recap")
+local function nextWeek()
+    composer.removeScene("Scenes.score_recap")
+    composer.gotoScene("Scenes.pregame")
 end
 
+local function showGameScore(game, xIndex, yIndex)
+    local awayTeam = league:findTeam(game.away)
+    local homeTeam = league:findTeam(game.home)
+    local x = xIndex * (display.contentWidth / 3)
+    local y = yIndex * (display.contentHeight / 5) + offsetY
 
+    local awayLogo = display.newImageRect(sceneGroup, awayTeam.logo, imageSize, imageSize)
+    awayLogo.x = x
+    awayLogo.y = y
 
+    local homeLogo = display.newImageRect(sceneGroup, homeTeam.logo, imageSize, imageSize)
+    homeLogo.x = x + 100
+    homeLogo.y = y
+
+    local scoreStr = game.score.away .. " - " .. game.score.home
+    local score = display.newText(sceneGroup, scoreStr, 0, y, native.systemFont, 16)
+    score.x = x + imageSize + ((110 - score.width) / 2)
+    score:setFillColor(.922, .910, .329)
+
+    local awayRecordStr = "(" .. awayTeam.wins .. "-" .. awayTeam.losses .. ")"
+    local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
+    awayRecord:setFillColor(.922, .910, .329)
+
+    local homeRecordStr = "(" .. homeTeam.wins .. "-" .. homeTeam.losses .. ")"
+    local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
+    homeRecord:setFillColor(.922, .910, .329)
+end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
 
 -- create()
 function scene:create( event )
-	local sceneGroup = self.view
+	sceneGroup = self.view
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
-	local allGames = league.schedule[league.weekNum]
-    local gameInfo = league:findGameInfo(allGames, userTeam)
-	local team = league:findTeam(userTeam)
-	local titleStr = ""
-
-	if(gameInfo) then
-		gameInfo.score = score
-		
-		if(gameInfo.home == userTeam) then
-			local opponent = league:findTeam(gameInfo.away)
-
-			if(score.home > score.away) then
-				titleStr = "You won " .. score.home .. " - " .. score.away
-				team.wins = team.wins + 1
-				opponent.losses = opponent.losses + 1
-			else
-				titleStr = "You lost " .. score.home .. " - " .. score.away
-				team.losses = team.losses + 1
-				opponent.wins = opponent.wins + 1
-			end
-		else
-			local opponent = league:findTeam(gameInfo.home)
-
-			if(score.home > score.away) then
-				titleStr = "You lost " .. score.home .. " - " .. score.away
-				team.losses = team.losses + 1
-				opponent.wins = opponent.wins + 1
-			else
-				titleStr = "You won " .. score.home .. " - " .. score.away
-				team.wins = team.wins + 1
-				opponent.losses = opponent.losses + 1
-			end
-		end
-	end
-
-	local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
-    title:setFillColor(.922, .910, .329)
-	
-	local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
+    local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
+    background:addEventListener("tap", nextWeek)
 
-    local playButton = display.newText(sceneGroup, "Next Week", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
+    league:nextWeek()
+    local allGames = league.schedule[league.weekNum - 1]
 
-	local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
-	buttonBorder:setStrokeColor(0, 0, 0)
-	buttonBorder.strokeWidth = 2
-	buttonBorder:setFillColor(0, 0, 0, 0)
-	buttonBorder:addEventListener("tap", nextScene)
+    for i = 1, #allGames do
+        showGameScore(allGames[i], (i - 1) % 3, math.floor((i - 1) / 3))
+    end
 end
 
 

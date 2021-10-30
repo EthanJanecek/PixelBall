@@ -26,17 +26,17 @@ local sequenceData = {
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-function nextScene()
+local function nextScene()
 	composer.removeScene("Scenes.play_creation")
     composer.gotoScene("Scenes.pregame")
 end
 
-function clearScreen()
+local function clearScreen()
     composer.removeScene("Scenes.play_creation")
     composer.gotoScene("Scenes.play_creation")
 end
 
-function saveRoute()
+local function saveRoute()
     local play = PlayLib:createPlay(routes, "BI6")
     table.insert(team.playbook.plays, play)
     clearScreen()

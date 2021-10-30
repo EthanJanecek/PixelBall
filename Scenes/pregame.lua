@@ -7,23 +7,23 @@ local scene = composer.newScene()
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-function toGame()
+local function toGame()
     gameInProgress = true
     composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.game")
 end
 
-function nextWeek()
+local function nextWeek()
     composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.postgame")
 end
 
-function changeLineup()
+local function changeLineup()
     composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.lineup")
 end
 
-function createPlays()
+local function createPlays()
     composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.play_creation")
 end
@@ -34,11 +34,13 @@ end
 
 -- create()
 function scene:create( event )
-    lineupSwitch = {-1, -1}
 	local sceneGroup = self.view
-	composer.removeScene("Scenes.postgame")
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
+    lineupSwitch = {-1, -1}
+    score = {away=0, home=0}
+    gameDetails = {qtr=1, min=minutesInQtr, sec=0, shotClock=24}
+    
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
@@ -61,7 +63,7 @@ function scene:create( event )
         buttonBorder:setStrokeColor(0, 0, 0)
         buttonBorder.strokeWidth = 2
         buttonBorder:setFillColor(0, 0, 0, 0)
-        buttonBorder:addEventListener("tap", nextScene)
+        buttonBorder:addEventListener("tap", nextWeek)
     else
         local titleStr = gameInfo.away .. " vs. " .. gameInfo.home
 
@@ -76,7 +78,7 @@ function scene:create( event )
         buttonBorder:setStrokeColor(0, 0, 0)
         buttonBorder.strokeWidth = 2
         buttonBorder:setFillColor(0, 0, 0, 0)
-        buttonBorder:addEventListener("tap", nextScene)
+        buttonBorder:addEventListener("tap", toGame)
 
         local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
         lineupButton:setFillColor(0, 0, 0)

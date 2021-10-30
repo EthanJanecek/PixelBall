@@ -1,15 +1,19 @@
 local TeamLib = require("Objects.team")
+require("Constants.start_positions")
 local league = {}
-local StartPositions = require("Constants.start_positions")
 
 local leagueAvgFinishing = 68
 local leagueAvgClose = 43
 local leagueAvgMidRange = 40
 local leageAvg3 = 37
+
 local skillScaling = 3
 local playerPercentages = {40, 70, 85, 95, 100}
 local heightDiffMin = 5
 local heightDiffMax = 15
+
+local numDays = 200
+local maxLoops = 200
 
 function league:createLeague()
     self.__index = self
@@ -71,15 +75,6 @@ function createTeams()
     return teams
 end
 
-function league:shuffleGames()
-    for j = 1, 200 do
-        -- Shuffle weekly games 50 times
-        local old = math.random(1, 72)
-        local new = math.random(1, 72)
-        self.schedule[old], self.schedule[new] = self.schedule[new], self.schedule[old]
-    end
-end
-
 function checkIfTeamPlays(weeklySchedule, team)
     if(weeklySchedule) then
         for i = 1, #weeklySchedule do
@@ -105,14 +100,15 @@ function league:findGameInfo(weeklySchedule, team)
 end
 
 function league:createSchedule()
-    for i = 1, 100 do
+    self.schedule = {}
+
+    for i = 1, numDays do
         local weeklySchedule = {}
         table.insert(self.schedule, weeklySchedule)
     end
 
     for i = 1, 30 do
         local team1 = self.teams[i]
-        local weekNum = 1
 
         for j = i + 1, 30 do
             local team2 = self.teams[j]
@@ -123,30 +119,28 @@ function league:createSchedule()
             end
 
             for k = 1, numGames do
-                if(weekNum > #self.schedule) then
-                    weekNum = 1
-                end
+                local weekNum = math.random(numDays)
+                local loops = 0
 
                 while(checkIfTeamPlays(self.schedule[weekNum], team1.name) or checkIfTeamPlays(self.schedule[weekNum], team2.name)) do
-                    weekNum = weekNum + 1
+                    weekNum = math.random(numDays)
+                    loops = loops + 1
 
-                    if(weekNum > #self.schedule) then
-                        weekNum = 1
+                    if(loops > maxLoops) then
+                        -- Don't want to get stuck in infinite loop
+                        self.createSchedule()
+                        break
                     end
                 end
                 
                 if(k % 2 == 0) then
-                    table.insert(self.schedule[weekNum], {away=team1.name, home=team2.name})
+                    table.insert(self.schedule[weekNum], {away=team1.name, home=team2.name, score={}})
                 else
-                    table.insert(self.schedule[weekNum], {away=team2.name, home=team1.name})
+                    table.insert(self.schedule[weekNum], {away=team2.name, home=team1.name, score={}})
                 end
-                
-                weekNum = weekNum + 1
             end
         end
     end
-
-    self:shuffleGames()
 end
 
 function league:findTeam(name)
@@ -167,11 +161,11 @@ function league:nextWeek()
     for i = 1, #allGames do
         local game = allGames[i]
         if(game.away ~= userTeam and game.home ~= userTeam) then
-            simulateGame(self:findTeam(game.away), self:findTeam(game.home))
+            local score = simulateGame(self:findTeam(game.away), self:findTeam(game.home))
+            game.score = score
         end
     end
 
-    print()
     self.weekNum = self.weekNum + 1
 end
 
@@ -211,7 +205,15 @@ function simulateGame(away, home)
     end
     
     -- TODO: Store results somewhere
-    print(away.abbrev .. ": " .. score.away .. " - " .. home.abbrev .. ": " .. score.home)
+    if(score.home > score.away) then
+        home.wins = home.wins + 1
+        away.losses = away.losses + 1
+    else
+        away.wins = away.wins + 1
+        home.losses = home.losses + 1
+    end
+
+    return score
 end
 
 function simulatePossession(offense, defense)

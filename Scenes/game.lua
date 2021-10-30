@@ -127,7 +127,7 @@ local function copyPlay(play)
     return PlayLib:createPlay(newRoutes, play.name)
 end
 
-local function gameClockSubtract(time, offense)
+local function gameClockSubtract(time)
     if(time > gameDetails.sec) then
         gameDetails.sec = gameDetails.sec - time + 60
         gameDetails.min = gameDetails.min - 1
@@ -138,6 +138,7 @@ local function gameClockSubtract(time, offense)
     if(gameDetails.min < 0) then
         gameDetails.min = minutesInQtr
         gameDetails.sec = 0
+        gameDetails.qtr = gameDetails.qtr + 1
         result = "qtr end"
         
         if(gameDetails.qtr == 5) then
@@ -145,12 +146,8 @@ local function gameClockSubtract(time, offense)
             result = "game end"
         end
 
-        if(offense) then
-            playing = false
-            endPossession()
-        end
-
-        gameDetails.qtr = gameDetails.qtr + 1
+        playing = false
+        endPossession()
     end
 end
 
@@ -183,12 +180,12 @@ end
 
 local function reset()
     Runtime:removeEventListener("enterFrame", movePlayers)
-    Runtime:removeEventListener("tap", reset)
     composer.removeScene("Scenes.game")
 
     if(gameInProgress) then
-        composer.gotoScene("Scenes.game")
+        composer.gotoScene("Scenes.simulate_defense")
     else
+        print("Post game")
         composer.gotoScene("Scenes.postgame")
     end
 end
@@ -199,6 +196,18 @@ local function getQuarterString()
     elseif(gameDetails.qtr == 2) then
         return "2nd"
     elseif(gameDetails.qtr == 3) then
+        return "3rd"
+    else
+        return "4th"
+    end
+end
+
+local function getQuarterStringFromQtr(qtr)
+    if(qtr == 1) then
+        return "1st"
+    elseif(qtr == 2) then
+        return "2nd"
+    elseif(qtr == 3) then
         return "3rd"
     else
         return "4th"
@@ -321,52 +330,6 @@ local function clearScoreboard()
     clearRect.strokeWidth = 4
 end
 
-function changeLineup()
-    Runtime:removeEventListener("enterFrame", movePlayers)
-    Runtime:removeEventListener("tap", reset)
-    composer.removeScene("Scenes.game")
-    composer.gotoScene("Scenes.lineup")
-    return true
-end
-
-local function simulateDefense()    
-    if(gameInProgress) then
-        local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-        background:setFillColor(.286, .835, .961)
-        background.x = display.contentCenterX
-        background.y = display.contentCenterY
-
-        local playResult = simulatePossession(opponent, team)
-        local points = playResult.points
-        gameClockSubtract(playResult.time, false)
-
-        if(userIsHome) then
-            score.away = score.away + points
-        else
-            score.home = score.home + points
-        end
-
-        local message = opponent.abbrev .. " scored " .. points .. " points"
-        local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-        displayMessage:setFillColor(.922, .910, .329)
-        displayScoreboard()
-
-        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
-        lineupButton:setFillColor(0, 0, 0)
-        lineupButton:addEventListener("tap", changeLineup)
-
-        local lineupButtonBorder = display.newRect(sceneGroup, lineupButton.x, lineupButton.y, lineupButton.width, lineupButton.height)
-        lineupButtonBorder:setStrokeColor(0, 0, 0)
-        lineupButtonBorder.strokeWidth = 2
-        lineupButtonBorder:setFillColor(0, 0, 0, 0)
-        lineupButtonBorder:addEventListener("tap", changeLineup)
-
-        Runtime:addEventListener("tap", reset)
-    else
-        reset()
-    end
-end
-
 function getDist(a, b)
     return math.sqrt(math.pow(a.x - b.x, 2) + math.pow(a.y - b.y, 2))
 end
@@ -384,11 +347,6 @@ local function calculateShotPoints()
     else
         return "3"
     end
-end
-
-local function nextMenu()
-    Runtime:removeEventListener("tap", nextMenu)
-    timer.performWithDelay(250, simulateDefense)
 end
 
 function endPossession()
@@ -423,7 +381,7 @@ function endPossession()
     elseif(result == "shot clock") then
         message = "The shot clock has expired"
     elseif(result == "qtr end") then
-        message = "The " .. getQuarterString() .. " quarter has ended"
+        message = "The " .. getQuarterStringFromQtr(gameDetails.qtr - 1) .. " quarter has ended"
     elseif(result == "game end") then
         message = "The game has ended"
         gameInProgress = false
@@ -433,7 +391,7 @@ function endPossession()
     displayMessage:setFillColor(.922, .910, .329)
     displayScoreboard()
 
-    Runtime:addEventListener("tap", nextMenu)
+    background:addEventListener("tap", reset)
 end
 
 local function shootTime()
@@ -1018,7 +976,7 @@ local function createDefense()
 end
 
 local function controlClock()
-    gameClockSubtract(1, true)
+    gameClockSubtract(1)
 
     if(gameDetails.shotClock > 0 and playing) then
         gameDetails.shotClock = gameDetails.shotClock - 1
@@ -1045,7 +1003,6 @@ local function startGame()
     endedPossession = false
     result = ""
     gameDetails.shotClock = 18
-    gameClockSubtract(6)
 
     displayScoreboard()
     displayShotBar()
@@ -1084,7 +1041,14 @@ local function gameLoop()
         opponent = league:findTeam(gameInfo.home)
     end
     
-    startGame()
+    if(gameDetails.min == 0 and gameDetails.sec < 6) then
+        gameClockSubtract(6)
+    elseif(gameDetails.qtr > 4) then
+        endPossession()
+    else
+        gameClockSubtract(6)
+        startGame()
+    end
 end
 
 local function setBackdrop()
@@ -1106,6 +1070,7 @@ end
 function scene:create( event )
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     sceneGroup = self.view
+
     setBackdrop()
     gameLoop()
 end
