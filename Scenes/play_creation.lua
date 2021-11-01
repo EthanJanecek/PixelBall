@@ -40,6 +40,7 @@ local function saveRoute()
     local play = PlayLib:createPlay(routes, "BI6")
     table.insert(team.playbook.plays, play)
     clearScreen()
+    return true
 end
 
 local function chooseColor(circle, i)

@@ -76,7 +76,7 @@ local function showPlayerCard(player, initialX, initialY, i)
                         "\nCTE: " .. player.contestingExterior .. "  CTI: " .. player.contestingInterior .. 
                         "\nBLK: " .. player.blocking .. "  PSS: " .. player.passing .. 
                         "\nSPD: " .. player.speed .. "  HGT: " .. player.height .. 
-                        "\nSTAMINA: " .. string.format("%.1f", player.stamina)
+                        "\nSTMNA: " .. string.format("%.1f", player.stamina) .. "/" .. player.maxStamina
 
     local params = display.newText(sceneGroup, paramStr, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 16 + 8 * 2, native.systemFont, 8)
     params:setFillColor(.922, .910, .329)

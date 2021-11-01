@@ -56,7 +56,9 @@ local shootingScale = 1.4
 
 local defenseScale = 1
 local zoneSize = 3 * feetToPixels
-collisionRadius = .5 * feetToPixels
+
+collisionAngleStep = 5
+collisionRadius = .75 * feetToPixels
 
 local contestRadius = 3 * feetToPixels -- 3 feet away
 local finishingRadius = 4 * feetToPixels * conversionFactor
@@ -152,7 +154,7 @@ local function gameClockSubtract(time)
     end
 end
 
-local function inBounds(x, y)
+function inBounds(x, y)
     return (x <= bounds.maxX and x >= bounds.minX) and (y <= bounds.maxY and y >= bounds.minY)
 end
 
@@ -198,19 +200,34 @@ function detectCollision(x, y, sprite, radius)
     return false
 end
 
-function move(Obj, maxSpeed, pointTowards, angle, percent)
+function move(player, angle, percent, pointTowards, collisionSize)
+    collisionSize = collisionSize or collisionRadius
+    local Obj = player.sprite
+    local maxSpeed = minSpeed + (player.speed * speedScaling) * staminaPercent(player)
     local newX = Obj.x + math.cos(math.rad(angle-90)) * (maxSpeed * percent)
     local newY = Obj.y + math.sin(math.rad(angle-90)) * (maxSpeed * percent)
 
+    local collisionObject = getCollisionObject(newX, newY, Obj, collisionSize)
+    local angleToCollision = 0
+    if(collisionObject) then
+        angleToCollision = getRotation(Obj, collisionObject.sprite)
+    end
+    local initialAngle = (angle - angleToCollision) % 360
+
     local loops = 0
-    while((not inBounds or detectCollision(newX, newY, Obj, collisionRadius))) do
-        angle = angle + 10
+    while((detectCollision(newX, newY, Obj, collisionSize))) do
+        if((initialAngle >= 0 and initialAngle <= 180) or (not player.hasBall)) then
+            angle = angle + collisionAngleStep
+        else
+            angle = angle - collisionAngleStep
+        end
+
         newX = Obj.x + math.cos(math.rad(angle-90)) * (maxSpeed * percent)
         newY = Obj.y + math.sin(math.rad(angle-90)) * (maxSpeed * percent)
 
         loops = loops + 1
 
-        if(loops > 36) then
+        if(loops > (360 / collisionAngleStep)) then
             -- Did a full 360 degree check
             newX = Obj.x
             newY = Obj.y
@@ -225,7 +242,7 @@ function move(Obj, maxSpeed, pointTowards, angle, percent)
         end
 
         Obj.rotation = getRotation(Obj, pointTowards)
-    elseif(newX >= bounds.minX and newX <= bounds.maxX and newY >= bounds.minY and newY <= bounds.maxY) then
+    elseif(inBounds(newX, newY)) then
         if(not Obj.isPlaying or Obj.sequence == "standing") then
             Obj:setSequence("moving")
             Obj:play()
@@ -239,6 +256,12 @@ function move(Obj, maxSpeed, pointTowards, angle, percent)
     Obj.name.x = Obj.x
     Obj.name.y = Obj.y
     Obj.name.rotation = Obj.rotation
+
+    if(player.hasBall) then
+        local ballLoc = calculateBballLoc(Obj.rotation)
+        basketball.x = ballLoc.x
+        basketball.y = ballLoc.y
+    end
 end
 
 local function reset()
@@ -700,7 +723,7 @@ local function calculateEndPointMovement(player, route)
         percent = 1
     end
     
-    move(player.sprite, minSpeed + (player.speed * speedScaling) * staminaPercent(player), hoopCenter, newAngle, percent)
+    move(player, newAngle, percent, hoopCenter)
     changeStamina(player, staminaRunningUsage * percent)
 end
 
@@ -722,7 +745,7 @@ local function calculateEndPointMovementZone(player, route, pointTowards)
         percent = 1
     end
     
-    move(player.sprite, minSpeed + (player.speed * speedScaling) * staminaPercent(player), pointTowards.sprite, newAngle, percent)
+    move(player, newAngle, percent, pointTowards.sprite)
     changeStamina(player, staminaRunningUsage * percent)
 end
 
@@ -740,12 +763,12 @@ local function moveOffense()
                     calculateEndPointMovement(player, route)
                 else
                     moving = false
-                    move(player.sprite, minSpeed + (player.speed * speedScaling), hoopCenter, 0, 0)
+                    move(player, 0, 0, hoopCenter)
                     changeStamina(player, staminaStandingRegen)
                 end
             else
                 local player = team.players[userPlayer]
-                MyStick:move(player.sprite, minSpeed + (player.speed * speedScaling * staminaPercent(player)), player.hasBall, hoopCenter)
+                MyStick:move(player, hoopCenter)
                 activePlay.routes[i].points = {nil}
 
                 if(MyStick.percent == 0) then
@@ -773,8 +796,8 @@ local function defenderCloseOut(defender, shooter, distAway)
     local newAngle = getRotation(defender.sprite, newPos)
     local percent = getDist(defender.sprite, newPos) / (minSpeed + (defender.speed * speedScaling))
 
-    if(getDist(defender.sprite, newPos) < .1 * feetToPixels or (detectCollision(newPos.x, newPos.y, defender.sprite, collisionRadius) and 
-                    getDist(newPos, defender.sprite) < collisionRadius) and shooter.sprite.sequence == "standing") then
+    if((getDist(defender.sprite, newPos) < .1 * feetToPixels or (detectCollision(newPos.x, newPos.y, defender.sprite, collisionRadius) and 
+                    getDist(newPos, defender.sprite) < collisionRadius)) and shooter.sprite.sequence == "standing") then
         percent = 0
     elseif(getDist(defender.sprite, newPos) < .1 * feetToPixels or (detectCollision(newPos.x, newPos.y, defender.sprite, collisionRadius) and 
                     getDist(newPos, defender.sprite) < collisionRadius)) then
@@ -783,7 +806,7 @@ local function defenderCloseOut(defender, shooter, distAway)
         percent = 1
     end
 
-    move(defender.sprite, minSpeed + (defender.speed * speedScaling), shooter.sprite, newAngle, percent)
+    move(defender, newAngle, percent, shooter.sprite)
 
     if(percent == 0) then
         changeStamina(defender, staminaStandingRegen)

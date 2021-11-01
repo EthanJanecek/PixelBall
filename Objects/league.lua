@@ -5,7 +5,7 @@ local league = {}
 local leagueAvgFinishing = 68
 local leagueAvgClose = 43
 local leagueAvgMidRange = 40
-local leageAvg3 = 37
+local leagueAvg3 = 37
 
 local skillScaling = 3
 local playerPercentages = {40, 70, 85, 95, 100}
@@ -241,7 +241,6 @@ function simulatePossession(offense, defense)
 
     local max = player.finishing + player.closeShot + player.midRange + player.three
     local shotType = math.random(max)
-    local shotPercent = math.random(100)
     local time = math.random(6, 24)
     local points = 0
 
@@ -253,36 +252,29 @@ function simulatePossession(offense, defense)
     end
 
     if(shotType <= player.finishing) then
-        -- 2
-        local percentageMade = leagueAvgFinishing + (player.finishing - defender.contestingInterior) * skillScaling * (heightDiff / 10)
-
-        if(shotPercent <= percentageMade) then
-            points = 2
-        end
+        points = calculatePoints(player.finishing, defender.contestingInterior, heightDiff, leagueAvgFinishing, 2)
     elseif(shotType <= (player.finishing + player.closeShot)) then
-        -- 2
-        local percentageMade = leagueAvgClose + (player.closeShot - defender.contestingInterior) * skillScaling * (heightDiff / 10)
-
-        if(shotPercent <= percentageMade) then
-            points = 2
-        end
+        points = calculatePoints(player.closeShot, defender.contestingInterior, heightDiff, leagueAvgClose, 2)
     elseif(shotType <= (player.finishing + player.closeShot + player.midRange)) then
-        -- 2
-        local percentageMade = leagueAvgMidRange + (player.midRange - defender.contestingExterior) * skillScaling * (heightDiff / 10)
-
-        if(shotPercent <= percentageMade) then
-            points = 2
-        end
+        points = calculatePoints(player.midRange, defender.contestingExterior, heightDiff, leagueAvgMidRange, 2)
     else
-        -- 3
-        local percentageMade = leageAvg3 + (player.three - defender.contestingExterior) * skillScaling * (heightDiff / 10)
-
-        if(shotPercent <= percentageMade) then
-            points = 3
-        end
+        points = calculatePoints(player.three, defender.contestingExterior, heightDiff, leagueAvg3, 3)
     end
 
     return {points=points, time=time}
+end
+
+function calculatePoints(shooterSkill, defenderSkill, heightDiff, leagueAvg, maxPoints)
+    local shotPercent = math.random(100)
+    local heightFactor = (shooterSkill - defenderSkill >= 0) and (heightDiff / 10) or (10 / heightDiff)
+    local scaling = (shooterSkill - defenderSkill) * skillScaling * heightFactor
+    local percentageMade = leagueAvg + scaling
+
+    if(shotPercent <= percentageMade) then
+        return maxPoints
+    else
+        return 0
+    end
 end
 
 return league
