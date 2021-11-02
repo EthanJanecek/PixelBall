@@ -49,9 +49,9 @@ local nameFontSize = 8
 local minSpeed = 1.25
 local speedScaling = .1
 
-local deadzoneBase = 5 -- default
+local deadzoneBase = 8 -- default
 local deadzoneFactor = 3
-local deadzoneMin = 2
+local deadzoneMin = 4
 local shootingScale = 1.4
 
 local defenseScale = 1
@@ -997,28 +997,28 @@ local function setDefenseMatchups()
         if(num == 1) then
             mapByFunction(
                 function (a, b) 
-                    return a.speed < b.speed 
+                    return a.speed > b.speed 
                 end,
                 function (a, b)
-                    return a.speed < b.speed
+                    return a.speed > b.speed
                 end
             )
         elseif(num == 2) then
             mapByFunction(
                 function (a, b) 
-                    return a.height < b.height 
+                    return a.height > b.height 
                 end,
                 function (a, b)
-                    return a.height < b.height
+                    return a.height > b.height
                 end
             )
         elseif(num == 3) then
             mapByFunction(
                 function (a, b) 
-                    return (a.closeShot + a.midRange + a.three + a.finishing) < (b.closeShot + b.midRange + b.three + b.finishing)
+                    return (a.closeShot + a.midRange + a.three + a.finishing) > (b.closeShot + b.midRange + b.three + b.finishing)
                 end,
                 function (a, b)
-                    return (a.contestingInterior + a.contestingExterior) < (b.contestingInterior + b.contestingExterior)
+                    return (a.contestingInterior + a.contestingExterior) > (b.contestingInterior + b.contestingExterior)
                 end
             )
         end

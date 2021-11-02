@@ -23,11 +23,13 @@ function player:createRandom()
         number = math.random(0, 99),
         hasBall = false,
         sprite = nil,
-        moving = false
+        moving = false,
+        starter = false
     }, self)
 end
 
-function player:createPlayer(name, dribbling, closeShot, midRange, three, finishing, stealing, blocking, contestingInt, contestingExt, speed, stamina, passing, height, number)
+function player:createPlayer(name, dribbling, closeShot, midRange, three, finishing, stealing, blocking, contestingInt, contestingExt, speed, stamina, passing, 
+                height, number, starter)
     self.__index = self
 
     return setmetatable({
@@ -50,7 +52,8 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
         number = "" .. number,
         hasBall = false,
         sprite = nil,
-        moving = false
+        moving = false,
+        starter = starter,
     }, self)
 end
 

@@ -8,13 +8,13 @@ local sceneGroup = nil
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-function nextScene()
+local function nextScene()
     local prevScene = composer.getSceneName( "previous" )
 	composer.removeScene("Scenes.lineup")
     composer.gotoScene(prevScene)
 end
 
-function redraw()
+local function redraw()
     composer.removeScene("Scenes.lineup")
     composer.gotoScene("Scenes.lineup")
 end

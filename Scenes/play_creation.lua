@@ -27,8 +27,9 @@ local sequenceData = {
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
+    local prevScene = composer.getSceneName( "previous" )
 	composer.removeScene("Scenes.play_creation")
-    composer.gotoScene("Scenes.pregame")
+    composer.gotoScene(prevScene)
 end
 
 local function clearScreen()

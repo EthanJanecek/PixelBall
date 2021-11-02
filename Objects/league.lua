@@ -15,6 +15,11 @@ local heightDiffMax = 15
 local numDays = 200
 local maxLoops = 200
 
+local staminaRunningUsage = -.1
+local shotStaminaUsage = -.2
+local staminaStandingRegen = -staminaRunningUsage / 2
+local staminaBenchRegen = -staminaRunningUsage * 3
+
 function league:createLeague()
     self.__index = self
 
@@ -169,6 +174,68 @@ function league:nextWeek()
     self.weekNum = self.weekNum + 1
 end
 
+local function changeStamina(player, diff)
+    player.stamina = player.stamina + diff
+
+    if(player.stamina > player.maxStamina) then
+        player.stamina = player.maxStamina
+    elseif(player.stamina < 1) then
+        player.stamina = 1
+    end
+end
+
+local function sumProps(player)
+    return player.closeShot + player.midRange + player.three + player.finishing + player.contestingInterior + player.contestingExterior + player.height + player.dribbling
+                + player.blocking + player.stealing + player.speed
+end
+
+local function indexOf(table, value)
+    for i = 1, #table do
+        if(table[i] == value) then
+            return i
+        end
+    end
+
+    return -1
+end
+
+local function staminaPercent(player)
+    return player.stamina / player.maxStamina
+end
+
+local function findBestAvailableBenchPlayer(team)
+    local len = #team.players
+
+    for i = 6, len do
+        if(team.players[i].starter == true and staminaPercent(team.players[i]) > .8) then
+            return i
+        end
+    end
+
+    local teamBench = {unpack(team.players, 6, len)}
+    table.sort(teamBench, function (a, b) 
+        return sumProps(a) > sumProps(b)
+    end)
+
+    for i = 1, #teamBench do
+        if(staminaPercent(teamBench[i]) > .8) then
+            return indexOf(team.players, teamBench[i])
+        end
+    end
+
+    return 
+end
+
+local function subPlayers(team)
+    for i = 1, 5 do
+        if(staminaPercent(team.players[i]) < .5) then
+            local j = findBestAvailableBenchPlayer(team)
+            local tmp = team.players[i]
+            team.players[i] = team.players[j]
+            team.players[j] = tmp
+        end
+    end
+end
 
 function simulateGame(away, home)
     local index = math.random(1, 2)
@@ -204,7 +271,6 @@ function simulateGame(away, home)
         end
     end
     
-    -- TODO: Store results somewhere
     if(score.home > score.away) then
         home.wins = home.wins + 1
         away.losses = away.losses + 1
@@ -216,15 +282,41 @@ function simulateGame(away, home)
     return score
 end
 
+local function changeTeamStamina(offense, defense, player, defender)
+    changeStamina(player, shotStaminaUsage + staminaRunningUsage)
+    changeStamina(defender, staminaRunningUsage)
+    
+    for i = 1, #offense.players do
+        if(offense.players[i] ~= player) then
+            if(i > 5) then
+                changeStamina(offense.players[i], staminaBenchRegen)
+            else
+                changeStamina(offense.players[i], staminaStandingRegen)
+            end
+        end
+    end
+
+    for i = 1, #defense.players do
+        if(defense.players[i] ~= defender) then
+            if(i > 5) then
+                changeStamina(defense.players[i], staminaBenchRegen)
+            else
+                changeStamina(defense.players[i], staminaStandingRegen)
+            end
+        end
+    end
+end
+
 function simulatePossession(offense, defense)
+    subPlayers(offense)
     local teamStarters = {unpack(offense.players, 1, 5)}
     table.sort(teamStarters, function (a, b) 
-        return (a.closeShot + a.midRange + a.three + a.finishing) < (b.closeShot + b.midRange + b.three + b.finishing)
+        return (a.closeShot + a.midRange + a.three + a.finishing) > (b.closeShot + b.midRange + b.three + b.finishing)
     end)
 
     local opponentStarters = {unpack(defense.players, 1, 5)}
     table.sort(opponentStarters, function (a, b)
-        return (a.contestingInterior + a.contestingExterior) < (b.contestingInterior + b.contestingExterior)
+        return (a.contestingInterior + a.contestingExterior) > (b.contestingInterior + b.contestingExterior)
     end)
 
     local playerNum = math.random(1, 100)
@@ -252,15 +344,17 @@ function simulatePossession(offense, defense)
     end
 
     if(shotType <= player.finishing) then
-        points = calculatePoints(player.finishing, defender.contestingInterior, heightDiff, leagueAvgFinishing, 2)
+        points = calculatePoints(player.finishing * staminaPercent(player), defender.contestingInterior * staminaPercent(defender), heightDiff, leagueAvgFinishing, 2)
     elseif(shotType <= (player.finishing + player.closeShot)) then
-        points = calculatePoints(player.closeShot, defender.contestingInterior, heightDiff, leagueAvgClose, 2)
+        points = calculatePoints(player.closeShot * staminaPercent(player), defender.contestingInterior * staminaPercent(defender), heightDiff, leagueAvgClose, 2)
     elseif(shotType <= (player.finishing + player.closeShot + player.midRange)) then
-        points = calculatePoints(player.midRange, defender.contestingExterior, heightDiff, leagueAvgMidRange, 2)
+        points = calculatePoints(player.midRange * staminaPercent(player), defender.contestingExterior * staminaPercent(defender), heightDiff, leagueAvgMidRange, 2)
     else
-        points = calculatePoints(player.three, defender.contestingExterior, heightDiff, leagueAvg3, 3)
+        points = calculatePoints(player.three * staminaPercent(player), defender.contestingExterior * staminaPercent(defender), heightDiff, leagueAvg3, 3)
     end
 
+    changeTeamStamina(offense, defense, player, defender)
+    
     return {points=points, time=time}
 end
 

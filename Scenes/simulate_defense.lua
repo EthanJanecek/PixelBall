@@ -19,6 +19,12 @@ local function changeLineup()
     return true
 end
 
+local function createPlays()
+    composer.removeScene("Scenes.simulate_defense")
+    composer.gotoScene("Scenes.play_creation")
+    return true
+end
+
 local function getQuarterString()
     if(gameDetails.qtr == 1) then
         return "1st"
@@ -143,6 +149,16 @@ local function simulateDefense()
     lineupButtonBorder.strokeWidth = 2
     lineupButtonBorder:setFillColor(0, 0, 0, 0)
     lineupButtonBorder:addEventListener("tap", changeLineup)
+
+    local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX, display.contentCenterY * 1.6, native.systemFont, 32)
+    playCreationButton:setFillColor(0, 0, 0)
+    playCreationButton:addEventListener("tap", createPlays)
+
+    local playCreationButtonBorder = display.newRect(sceneGroup, playCreationButton.x, playCreationButton.y, playCreationButton.width, playCreationButton.height)
+    playCreationButtonBorder:setStrokeColor(0, 0, 0)
+    playCreationButtonBorder.strokeWidth = 2
+    playCreationButtonBorder:setFillColor(0, 0, 0, 0)
+    playCreationButtonBorder:addEventListener("tap", createPlays)
 
     background:addEventListener("tap", offense)
 end
