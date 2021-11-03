@@ -668,6 +668,57 @@ local function displayShotBar()
     shotBar.strokeWidth = 2
 end
 
+local function getNameStr(player)
+    local nameStr = player.number .. " - "
+
+    local i = 1
+    for str in string.gmatch(player.name, "([^ ]+)") do
+        if(i == 1) then
+            nameStr = nameStr .. str:sub(1, 1) .. ". "
+        else
+            nameStr = nameStr .. str
+        end
+        
+        i = i + 1
+    end
+
+    return nameStr
+end
+
+local function displayNames()
+    local teamName = display.newText(sceneGroup, team.name, bounds.maxX + 100, 20, native.systemFont, 8)
+    teamName:setFillColor(0, 0, 0)
+
+    for i = 1, 5 do
+        local player = team.players[i]
+        local playerName = display.newText(sceneGroup, getNameStr(player), bounds.maxX + 100, 20 + 10 * i, native.systemFont, 8)
+
+        if(staminaPercent(player) >= .75) then
+            playerName:setFillColor(0, 1, 0)
+        elseif(staminaPercent(player) >= .5) then
+            playerName:setFillColor(1, 1, 0)
+        else
+            playerName:setFillColor(1, 0, 0)
+        end
+    end
+
+    local opponentName = display.newText(sceneGroup, opponent.name, bounds.maxX + 100, display.contentCenterY * 2/3, native.systemFont, 8)
+    opponentName:setFillColor(0, 0, 0)
+
+    for i = 1, 5 do
+        local player = opponent.players[i]
+        local playerName = display.newText(sceneGroup, getNameStr(player), bounds.maxX + 100, display.contentCenterY * 2/3 + 10 * i, native.systemFont, 8)
+
+        if(staminaPercent(player) >= .75) then
+            playerName:setFillColor(0, 1, 0)
+        elseif(staminaPercent(player) >= .5) then
+            playerName:setFillColor(1, 1, 0)
+        else
+            playerName:setFillColor(1, 0, 0)
+        end
+    end
+end
+
 function calculateBballLoc(angle)
     local x = team.players[userPlayer].sprite.x + 15*math.cos(math.rad(90 - angle))
     local y = team.players[userPlayer].sprite.y - 15*math.sin(math.rad(90 - angle))
@@ -1098,6 +1149,7 @@ local function startGame()
     displayScoreboard()
     displayShotBar()
     displayPlays()
+    displayNames()
     createJoystick()
     createOffense()
     createDefense()

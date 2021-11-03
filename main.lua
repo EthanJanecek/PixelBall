@@ -19,6 +19,7 @@ feetToPixels = 20
 
 hoopCenter = {x = centerX, y = conversionFactor * 5.5 * feetToPixels, radius = conversionFactor * 1.5 * feetToPixels}
 
+require("Constants.start_positions")
 LeagueLib = require("Objects.league")
 league = LeagueLib:createLeague()
 league:createSchedule()

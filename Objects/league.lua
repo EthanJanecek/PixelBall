@@ -1,5 +1,4 @@
 local TeamLib = require("Objects.team")
-require("Constants.start_positions")
 local league = {}
 
 local leagueAvgFinishing = 68
@@ -171,6 +170,7 @@ function league:nextWeek()
         end
     end
 
+    self:resetTeams()
     self.weekNum = self.weekNum + 1
 end
 
@@ -223,12 +223,46 @@ local function findBestAvailableBenchPlayer(team)
         end
     end
 
-    return 
+    return 6
+end
+
+local function isStarterAvailable(team)
+    for i = 6, #team.players do
+        if(team.players[i].starter == true and staminaPercent(team.players[i]) > .8) then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function setStarters(team)
+    for i = 1, 5 do
+        if(not team.players[i].starter) then
+            local j = findBestAvailableBenchPlayer(team)
+            local tmp = team.players[i]
+            team.players[i] = team.players[j]
+            team.players[j] = tmp
+        end
+    end
+end
+
+local function resetStamina(team)
+    for i = 1, #team.players do
+        team.players[i].stamina = team.players[i].maxStamina
+    end
+end
+
+function league:resetTeams()
+    for i = 1, 30 do
+        resetStamina(self.teams[i])
+        setStarters(self.teams[i])
+    end
 end
 
 local function subPlayers(team)
     for i = 1, 5 do
-        if(staminaPercent(team.players[i]) < .5) then
+        if(staminaPercent(team.players[i]) < .5 or (not team.players[i].starter and isStarterAvailable(team))) then
             local j = findBestAvailableBenchPlayer(team)
             local tmp = team.players[i]
             team.players[i] = team.players[j]
