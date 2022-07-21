@@ -8,6 +8,8 @@
 system.activate( "multitouch" )
 local composer = require("composer")
 
+math.randomseed(os.time())
+
 conversionFactor = display.contentHeight / 940
 offsetX = 240 - (330 / 2)
 centerX = display.contentCenterX
@@ -21,8 +23,7 @@ hoopCenter = {x = centerX, y = conversionFactor * 5.5 * feetToPixels, radius = c
 
 require("Constants.start_positions")
 LeagueLib = require("Objects.league")
-league = LeagueLib:createLeague()
-league:createSchedule()
+league = nil
 userTeam = ""
 
 -- Game Details

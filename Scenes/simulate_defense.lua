@@ -3,6 +3,7 @@ local scene = composer.newScene()
 local sceneGroup = nil
 
 local scoreboard = {away=nil, home=nil, qtr=nil, time=nil, shotClock=nil}
+local reSim = false
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -33,7 +34,7 @@ local function getQuarterString()
     elseif(gameDetails.qtr == 3) then
         return "3rd"
     else
-        return "4th"
+        return gameDetails.qtr .. "th"
     end
 end
 
@@ -49,9 +50,16 @@ local function gameClockSubtract(time)
         gameDetails.min = minutesInQtr
         gameDetails.sec = 0
         gameDetails.qtr = gameDetails.qtr + 1
+        
 
-        if(gameDetails.qtr == 5) then
-            gameInProgress = false
+        if(gameDetails.qtr >= 5) then
+            if(score.home ~= score.away) then
+                gameInProgress = false
+            else
+                if(minutesInQtr >= 5) then
+                    gameDetails.min = 5
+                end
+            end
         end
     end
 end
@@ -119,26 +127,28 @@ local function displayScoreboard()
     displayTime()
 end
 
-local function simulateDefense()    
+local function simulateDefense()
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local playResult = simulatePossession(opponent, team)
-    local points = playResult.points
-    gameClockSubtract(playResult.time)
+    if(reSim) then
+        local playResult = simulatePossession(opponent, team)
+        local points = playResult.points
+        gameClockSubtract(playResult.time)
 
-    if(userIsHome) then
-        score.away = score.away + points
-    else
-        score.home = score.home + points
-    end
+        if(userIsHome) then
+            score.away = score.away + points
+        else
+            score.home = score.home + points
+        end
 
-    local message = opponent.abbrev .. " scored " .. points .. " points"
-    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-    displayMessage:setFillColor(.922, .910, .329)
-    displayScoreboard()
+        local message = opponent.abbrev .. " scored " .. points .. " points"
+        local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+        displayMessage:setFillColor(.922, .910, .329)
+        displayScoreboard()
+    end  
 
     local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
     lineupButton:setFillColor(0, 0, 0)
@@ -175,6 +185,10 @@ function scene:create( event )
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
+
+    if(event.params and event.params.reSim) then
+        reSim = true
+    end
 
     simulateDefense()
 end

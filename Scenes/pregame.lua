@@ -1,5 +1,5 @@
-
 local composer = require( "composer" )
+local json = require( "json" )
 
 local scene = composer.newScene()
 
@@ -26,6 +26,18 @@ end
 local function createPlays()
     composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.play_creation")
+end
+
+local function saveGame()
+    local path = system.pathForFile( "save.json", system.DocumentsDirectory )
+    local file, errorString = io.open(path, "w")
+    
+    if file then
+        file:write(json.encode(league))
+        io.close(file)
+    else
+        print(errorString)
+    end
 end
 
 -- -----------------------------------------------------------------------------------
@@ -100,6 +112,16 @@ function scene:create( event )
         playCreationButtonBorder:setFillColor(0, 0, 0, 0)
         playCreationButtonBorder:addEventListener("tap", createPlays)
     end
+
+    local saveButton = display.newText(sceneGroup, "Save Game", 0, 20, native.systemFont, 32)
+    saveButton:setFillColor(0, 0, 0)
+    saveButton:addEventListener("tap", saveGame)
+
+    local saveButtonBorder = display.newRect(sceneGroup, saveButton.x, saveButton.y, saveButton.width, saveButton.height)
+    saveButtonBorder:setStrokeColor(0, 0, 0)
+    saveButtonBorder.strokeWidth = 2
+    saveButtonBorder:setFillColor(0, 0, 0, 0)
+    saveButtonBorder:addEventListener("tap", saveGame)
 end
 
 

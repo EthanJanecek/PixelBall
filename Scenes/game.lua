@@ -37,7 +37,7 @@ MyStick = nil
 
 local holdingShoot = false
 local start = 0
-local maxTime = 1250
+local maxTime = 1000
 
 local playing = true -- Keeps track if a play is in progress or not. Don't allow user input after a play is over
 local endedPossession = false -- Keeps track of if the possession is still active. Is basically playing but with the time to shoot
@@ -49,7 +49,7 @@ local nameFontSize = 8
 local minSpeed = 1.25
 local speedScaling = .1
 
-local deadzoneBase = 8 -- default
+local deadzoneBase = 6 -- default
 local deadzoneFactor = 3
 local deadzoneMin = 4
 local shootingScale = 1.4
@@ -65,16 +65,21 @@ local finishingRadius = 4 * feetToPixels * conversionFactor
 local closeShotRadius = 10 * feetToPixels * conversionFactor
 local maxBlockedProb = 25
 
-local staminaRunningUsage = -.0002
-local shotStaminaUsage = -.2
-local staminaStandingRegen = -staminaRunningUsage / 2
-local staminaBenchRegen = -staminaRunningUsage * 3
+local staminaRunningUsage = -.0005
+local shotStaminaUsage = -.4
+local staminaStandingRegen = -staminaRunningUsage / 4
+local staminaBenchRegen = -staminaRunningUsage
 
-local maxShotPower = .8
+local maxShotPowerModifier = .8
 local powerScalingStamina = 5
 
 local heightDiffMin = 5
 local heightDiffMax = 15
+
+local reactionTimeDefault = 100
+local reactionTimeModifier = 25
+local lookBackSteps = 20
+local directionChangeThreshold = 2
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -144,9 +149,15 @@ local function gameClockSubtract(time)
         gameDetails.qtr = gameDetails.qtr + 1
         result = "qtr end"
         
-        if(gameDetails.qtr == 5) then
-            gameInProgress = false
-            result = "game end"
+        if(gameDetails.qtr >= 5) then
+            if(score.home ~= score.away) then
+                gameInProgress = false
+                result = "game end"
+            else
+                if(minutesInQtr >= 5) then
+                    gameDetails.min = 5
+                end
+            end
         end
 
         playing = false
@@ -262,6 +273,16 @@ function move(player, angle, percent, pointTowards, collisionSize)
         basketball.x = ballLoc.x
         basketball.y = ballLoc.y
     end
+
+    table.insert(player.movement, {
+        x = Obj.x,
+        y = Obj.y,
+        angle = Obj.rotation,
+        percent = percent,
+        time = socket.gettime() * 1000,
+        changeX = math.cos(math.rad(angle-90)) * (maxSpeed * percent),
+        changeY = math.sin(math.rad(angle-90)) * (maxSpeed * percent)
+    })
 end
 
 local function reset()
@@ -269,9 +290,13 @@ local function reset()
     composer.removeScene("Scenes.game")
 
     if(gameInProgress) then
-        composer.gotoScene("Scenes.simulate_defense")
+        local options = {
+            params = {
+                reSim = true,
+            }
+        }
+        composer.gotoScene("Scenes.simulate_defense", options)
     else
-        print("Post game")
         composer.gotoScene("Scenes.postgame")
     end
 end
@@ -284,7 +309,7 @@ local function getQuarterString()
     elseif(gameDetails.qtr == 3) then
         return "3rd"
     else
-        return "4th"
+        return gameDetails.qtr .. "th"
     end
 end
 
@@ -296,7 +321,7 @@ local function getQuarterStringFromQtr(qtr)
     elseif(qtr == 3) then
         return "3rd"
     else
-        return "4th"
+        return gameDetails.qtr .. "th"
     end
 end
 
@@ -452,6 +477,9 @@ function endPossession()
         end
 
         message = "The 2 is good!"
+        team.players[userPlayer].gameStats.points = team.players[userPlayer].gameStats.points + 2
+        team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1
+        team.players[userPlayer].gameStats.twoPM = team.players[userPlayer].gameStats.twoPM + 1
     elseif(result == "3") then
         if(userIsHome) then
             score.home = score.home + 3
@@ -460,6 +488,9 @@ function endPossession()
         end
 
         message = "The 3 is good!"
+        team.players[userPlayer].gameStats.points = team.players[userPlayer].gameStats.points + 3
+        team.players[userPlayer].gameStats.threePA = team.players[userPlayer].gameStats.threePA + 1
+        team.players[userPlayer].gameStats.threePM = team.players[userPlayer].gameStats.threePM + 1
     elseif(result == "Miss") then
         message = "The shot is no good!"
     elseif(result == "Blocked") then
@@ -564,6 +595,7 @@ local function isBlocked(shooter)
             end
 
             if(num < probability) then
+                defender.gameStats.blocks = defender.gameStats.blocks + 1
                 return true
             end
         end
@@ -606,6 +638,7 @@ local function finishShot()
         power = 1
     end
 
+    local maxShotPower = maxShotPowerModifier -- * (team.players[userPlayer].maxStamina / 10.0)
     local dist = (bounds.maxY * power * maxShotPower) - (powerScalingStamina / staminaPercent(team.players[userPlayer]))
     local rotation = 90 - getRotationToBasket(team.players[userPlayer].sprite)
 
@@ -633,6 +666,13 @@ local function finishShot()
             result = calculateShotPoints()
         else
             result = "Miss"
+            pts = calculateShotPoints()
+
+            if pts == "2" then
+                team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1
+            elseif pts == "3" then
+                team.players[userPlayer].gameStats.threePA = team.players[userPlayer].gameStats.threePA + 1
+            end
         end
 
         local endPos = calculateShotEndPosition(rotation, dist)
@@ -834,17 +874,64 @@ local function moveOffense()
     end
 end
 
+local function getMovementPoint(shooter, defender)
+    local reactionTime = reactionTimeDefault + (shooter.speed - defender.speed) * reactionTimeModifier
+    if(reactionTime < 0) then
+        reactionTime = 0
+    end
+
+    local lastTime = (socket.gettime() * 1000) - reactionTime
+
+    for i = 1, #shooter.movement do
+        if(shooter.movement[i].time >= lastTime) then
+            return shooter.movement[i]
+        end
+    end
+
+    return nil
+end
+
+local function directionChange(player)
+    if(#player.movement <= lookBackSteps) then
+        return false
+    end
+
+    local movementNow = player.movement[#player.movement]
+
+    local movementOld = player.movement[#player.movement - lookBackSteps]
+
+    local dist = math.sqrt(math.pow(movementNow.changeX - movementOld.changeX, 2) + 
+                    math.pow(movementNow.changeY - movementOld.changeY, 2))
+
+    if(dist > directionChangeThreshold) then
+        return true
+    end
+
+    return false
+end
+
 local function defenderCloseOut(defender, shooter, distAway)
     local rotationToBasket = getRotationToBasket(shooter.sprite)
     local distToBasket = getDist(shooter.sprite, hoopCenter)
+    local newPos = {x = shooter.sprite.x + (math.cos(math.rad(rotationToBasket - 90)) * distAway),
+                    y = shooter.sprite.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
+    
+    if(directionChange(shooter)) then
+        local movementPoint = getMovementPoint(shooter, defender)
+
+        if(movementPoint) then
+            rotationToBasket = getRotationToBasket(movementPoint)
+            distToBasket = getDist(movementPoint, hoopCenter)
+            newPos = {x = movementPoint.x + (math.cos(math.rad(rotationToBasket - 90)) * distAway),
+                        y = movementPoint.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
+        end
+    end
 
     if(distAway > distToBasket) then
         distAway = distToBasket / 2
     end
 
-    local newPos = {x = shooter.sprite.x + (math.cos(math.rad(rotationToBasket - 90)) * distAway),
-                    y = shooter.sprite.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
-    local newAngle = getRotation(defender.sprite, newPos)
+    local newAngle = getRotation(defender.sprite, newPos) 
     local percent = getDist(defender.sprite, newPos) / (minSpeed + (defender.speed * speedScaling))
 
     if((getDist(defender.sprite, newPos) < .1 * feetToPixels or (detectCollision(newPos.x, newPos.y, defender.sprite, collisionRadius) and 
@@ -1006,6 +1093,7 @@ local function createOffense()
     for i = 1, 5 do
         local positions = activePlay.routes[i].points[1]
         local player = team.players[i]
+        player.movement = {}
         player.sprite = createPlayer(player, positions, standingSheet, sequenceData, hoopCenter)
 
         local function changePlayer()
@@ -1113,6 +1201,7 @@ local function createDefense()
     for i = 1, 5 do
         local positions = activeDefense.routes[i].points[1]
         local player = opponent.players[i]
+        player.movement = {}
         player.sprite = createPlayer(player, positions, standingSheetBlue, sequenceDataBlue, team.players[i].sprite)
     end
 end
@@ -1184,13 +1273,16 @@ local function gameLoop()
         opponent = league:findTeam(gameInfo.home)
     end
     
-    if(gameDetails.min == 0 and gameDetails.sec < 6) then
-        gameClockSubtract(6)
-    elseif(gameDetails.qtr > 4) then
-        endPossession()
+    if(gameInProgress) then
+        if(gameDetails.min == 0 and gameDetails.sec < 6) then
+            gameClockSubtract(6)
+        else
+            gameClockSubtract(6)
+            startGame()
+        end
     else
-        gameClockSubtract(6)
-        startGame()
+        result = "game end"
+        endPossession()
     end
 end
 

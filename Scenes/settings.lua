@@ -1,74 +1,33 @@
 local composer = require( "composer" )
-
 local scene = composer.newScene()
+local sceneGroup = nil
+
+local imageSize = 30
+local offsetY = 40
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	league = LeagueLib:createLeague()
-	league:createSchedule()
-
-	composer.removeScene("Scenes.menu")
-    composer.gotoScene("Scenes.team_selection")
-end
-
-local function doesSaveFileExist()
-	local path = system.pathForFile( "save.json", system.DocumentsDirectory )
-	local f = io.open(path, "r")
-
-	if(f) then
-		return true
-	else
-		return false
-	end
-end
-
-local function loadGame()
-	league = LeagueLib:createFromSave()
-
-	composer.removeScene("Scenes.menu")
+    composer.removeScene("Scenes.score_recap")
     composer.gotoScene("Scenes.pregame")
 end
+
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
 
 -- create()
 function scene:create( event )
-	local sceneGroup = self.view
+	sceneGroup = self.view
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
-
-	local title = display.newText(sceneGroup, "Pixel-Ball", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)
-    title:setFillColor(.922, .910, .329)
-
-    local playButton = display.newText(sceneGroup, "New", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-	local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
-	buttonBorder:setStrokeColor(0, 0, 0)
-	buttonBorder.strokeWidth = 2
-	buttonBorder:setFillColor(0, 0, 0, 0)
-	buttonBorder:addEventListener("tap", nextScene)
-
-	if(doesSaveFileExist()) then
-		local continueButton = display.newText(sceneGroup, "Continue", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
-		continueButton:setFillColor(0, 0, 0)
-		continueButton:addEventListener("tap", loadGame)
-
-		local continueButtonBorder = display.newRect(sceneGroup, continueButton.x, continueButton.y, continueButton.width, continueButton.height)
-		continueButtonBorder:setStrokeColor(0, 0, 0)
-		continueButtonBorder.strokeWidth = 2
-		continueButtonBorder:setFillColor(0, 0, 0, 0)
-		continueButtonBorder:addEventListener("tap", loadGame)
-	end
+    background:addEventListener("tap", nextScene)
 end
 
 

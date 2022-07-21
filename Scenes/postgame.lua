@@ -8,11 +8,47 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
+	local allGames = league.schedule[league.weekNum]
+    local gameInfo = league:findGameInfo(allGames, userTeam)
+	local team = league:findTeam(userTeam)
+	local titleStr = ""
+
+	if(gameInfo) then
+		gameInfo.score = score
+		
+		if(gameInfo.home == userTeam) then
+			local opponent = league:findTeam(gameInfo.away)
+
+			if(score.home > score.away) then
+				team.wins = team.wins + 1
+				opponent.losses = opponent.losses + 1
+			else
+				team.losses = team.losses + 1
+				opponent.wins = opponent.wins + 1
+			end
+		else
+			local opponent = league:findTeam(gameInfo.home)
+
+			if(score.home > score.away) then
+				titleStr = "You lost " .. score.home .. " - " .. score.away
+				team.losses = team.losses + 1
+				opponent.wins = opponent.wins + 1
+			else
+				titleStr = "You won " .. score.home .. " - " .. score.away
+				team.wins = team.wins + 1
+				opponent.losses = opponent.losses + 1
+			end
+		end
+	end
+
 	composer.removeScene("Scenes.postgame")
     composer.gotoScene("Scenes.score_recap")
 end
 
-
+local function boxScoreScene()
+	composer.removeScene("Scenes.postgame")
+    composer.gotoScene("Scenes.boxscore")
+end
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -36,24 +72,16 @@ function scene:create( event )
 
 			if(score.home > score.away) then
 				titleStr = "You won " .. score.home .. " - " .. score.away
-				team.wins = team.wins + 1
-				opponent.losses = opponent.losses + 1
 			else
 				titleStr = "You lost " .. score.home .. " - " .. score.away
-				team.losses = team.losses + 1
-				opponent.wins = opponent.wins + 1
 			end
 		else
 			local opponent = league:findTeam(gameInfo.home)
 
 			if(score.home > score.away) then
 				titleStr = "You lost " .. score.home .. " - " .. score.away
-				team.losses = team.losses + 1
-				opponent.wins = opponent.wins + 1
 			else
 				titleStr = "You won " .. score.home .. " - " .. score.away
-				team.wins = team.wins + 1
-				opponent.losses = opponent.losses + 1
 			end
 		end
 	end
@@ -75,6 +103,16 @@ function scene:create( event )
 	buttonBorder.strokeWidth = 2
 	buttonBorder:setFillColor(0, 0, 0, 0)
 	buttonBorder:addEventListener("tap", nextScene)
+
+	local boxScoreButton = display.newText(sceneGroup, "Box Score", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
+    boxScoreButton:setFillColor(0, 0, 0)
+    boxScoreButton:addEventListener("tap", boxScoreScene)
+
+	local boxScoreButtonBorder = display.newRect(sceneGroup, boxScoreButton.x, boxScoreButton.y, boxScoreButton.width, boxScoreButton.height)
+	boxScoreButtonBorder:setStrokeColor(0, 0, 0)
+	boxScoreButtonBorder.strokeWidth = 2
+	boxScoreButtonBorder:setFillColor(0, 0, 0, 0)
+	boxScoreButtonBorder:addEventListener("tap", boxScoreScene)
 end
 
 

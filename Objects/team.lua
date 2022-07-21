@@ -40,8 +40,8 @@ end
 function createRoster(file)
     local players = {}
     local i = 1
-
-    for line in io.lines("C:/Users/Ethan Janecek/Documents/Coding Projects/Corona Projects/PixelBall/" .. file) do
+    local path = system.pathForFile( file, system.ResourceDirectory )
+    for line in io.lines(path) do
         local params = {}
         
         for param in string.gmatch(line, "([^,]+)") do

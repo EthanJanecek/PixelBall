@@ -1,3 +1,5 @@
+StatsLib = require("Objects.stats")
+
 local player = {}
 
 function player:createRandom()
@@ -24,7 +26,11 @@ function player:createRandom()
         hasBall = false,
         sprite = nil,
         moving = false,
-        starter = false
+        starter = false,
+        gameStats = StatsLib:createStats(),
+        yearStats = StatsLib:createStats(),
+        careerStats = StatsLib:createStats(),
+        movement = {}
     }, self)
 end
 
@@ -54,6 +60,10 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
         sprite = nil,
         moving = false,
         starter = starter,
+        gameStats = StatsLib:createStats(),
+        yearStats = StatsLib:createStats(),
+        careerStats = StatsLib:createStats(),
+        movement = {}
     }, self)
 end
 

@@ -41,6 +41,7 @@ function scene:create( event )
 
         function chooseTeam()
             userTeam = teams[i].name
+            league.userTeam = userTeam
             nextScene()
         end
 

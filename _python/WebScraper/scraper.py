@@ -15,7 +15,7 @@ stats = ["Ball Handle", "Close Shot", "Mid-Range Shot", "Three-Point Shot", "Lay
             "Stamina", "Pass Accuracy"]
 
 for team in teams:
-    with open('_python/WebScraper/data/' + team + '.csv', 'w', newline='') as csvfile:
+    with open('data/' + team + '.csv', 'w', newline='') as csvfile:
         print()
         print(team)
         spamwriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
