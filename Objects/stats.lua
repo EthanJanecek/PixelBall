@@ -16,15 +16,15 @@ function stats:createStats()
 end
 
 
-function stats:addStats(otherStats)
-    self.points = self.points + otherStats.points
-    self.twoPA = self.twoPA + otherStats.twoPA
-    self.twoPM = self.twoPM + otherStats.twoPM
-    self.threePA = self.threePA + otherStats.threePA
-    self.threePM = self.threePM + otherStats.threePM
-    self.blocks = self.blocks + otherStats.blocks
-    self.steals = self.steals + otherStats.steals
-    self.turnovers = self.turnovers + otherStats.turnovers
+function addStats(stats1, stats2)
+    stats1.points = stats1.points + stats2.points
+    stats1.twoPA = stats1.twoPA + stats2.twoPA
+    stats1.twoPM = stats1.twoPM + stats2.twoPM
+    stats1.threePA = stats1.threePA + stats2.threePA
+    stats1.threePM = stats1.threePM + stats2.threePM
+    stats1.blocks = stats1.blocks + stats2.blocks
+    stats1.steals = stats1.steals + stats2.steals
+    stats1.turnovers = stats1.turnovers + stats2.turnovers
 end
 
 return stats

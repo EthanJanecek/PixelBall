@@ -49,21 +49,21 @@ local nameFontSize = 8
 local minSpeed = 1.25
 local speedScaling = .1
 
-local deadzoneBase = 6 -- default
-local deadzoneFactor = 3
-local deadzoneMin = 4
+local deadzoneBase = 4 -- default
+local deadzoneFactor = 2
+local deadzoneMin = 2
 local shootingScale = 1.4
 
-local defenseScale = 1
+local defenseScale = 5
 local zoneSize = 3 * feetToPixels
 
 collisionAngleStep = 5
 collisionRadius = .75 * feetToPixels
 
-local contestRadius = 3 * feetToPixels -- 3 feet away
+local contestRadius = 5 * feetToPixels * conversionFactor -- 5 feet away
 local finishingRadius = 4 * feetToPixels * conversionFactor
 local closeShotRadius = 10 * feetToPixels * conversionFactor
-local maxBlockedProb = 25
+local maxBlockedProb = 15
 
 local staminaRunningUsage = -.0005
 local shotStaminaUsage = -.4
@@ -76,10 +76,12 @@ local powerScalingStamina = 5
 local heightDiffMin = 5
 local heightDiffMax = 15
 
-local reactionTimeDefault = 100
-local reactionTimeModifier = 25
-local lookBackSteps = 20
+local reactionTimeDefault = 150
+local reactionTimeModifier = 40
+local lookBackSteps = 30
 local directionChangeThreshold = 2
+
+local ballSpeed = 2.5
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -214,7 +216,15 @@ end
 function move(player, angle, percent, pointTowards, collisionSize)
     collisionSize = collisionSize or collisionRadius
     local Obj = player.sprite
-    local maxSpeed = minSpeed + (player.speed * speedScaling) * staminaPercent(player)
+
+    local maxSpeed = 0
+
+    if(player.hasBall) then
+        maxSpeed = minSpeed + (player.ballSpeed * speedScaling) * staminaPercent(player)
+    else
+        maxSpeed = minSpeed + (player.speed * speedScaling) * staminaPercent(player)
+    end
+    
     local newX = Obj.x + math.cos(math.rad(angle-90)) * (maxSpeed * percent)
     local newY = Obj.y + math.sin(math.rad(angle-90)) * (maxSpeed * percent)
 
@@ -350,6 +360,10 @@ local function displayPlays()
 
         local function choosePlay()
             activePlay = copyPlay(play)
+
+            for i = 1, 5 do
+                team.players[i].manualMoving = false
+            end
         end
 
         local backgroundImage = display.newImageRect(sceneGroup, "images/NbaCourt.png", 1000 * conversionFactor / 6.5, 940 * conversionFactor / 6.5)
@@ -533,13 +547,18 @@ local function calculateDeadzone(shooter, skill)
     -- Scale up based on how good of a shooter they are
     deadzone = deadzone + (math.pow(shootingScale, skill) * staminaPercent(shooter))
 
+    local distToHoop = getDist(shooter.sprite, hoopCenter)
+    local dist3 = (18 * feetToPixels * conversionFactor)
+    local deadzoneScalingFactor = ((dist3 - distToHoop) / dist3) * .5
+    deadzone = deadzone + deadzone * deadzoneScalingFactor
+
     -- Scale down for each defender in the area and how good they are at contesting
     for i = 1, 5 do
         local defender = opponent.players[i]
         local distance = getDist(shooter.sprite, defender.sprite)
 
-        if(distance <= feetToPixels / 1.5) then
-            distance = feetToPixels / 1.5
+        if(distance <= feetToPixels / 2) then
+            distance = feetToPixels / 2
         end
 
         if(distance < contestRadius) then
@@ -608,7 +627,7 @@ local function calculateShotEndPosition(rotation, dist)
     local endPos = nil
 
     if(result == "Miss") then
-        endPos = {x = basketball.x + (dist * math.cos(math.rad(rotation))), y = basketball.y - (dist * math.sin(math.rad(rotation)))}
+        endPos = {x = team.players[userPlayer].sprite.x + (dist * math.cos(math.rad(rotation))), y = team.players[userPlayer].sprite.y - (dist * math.sin(math.rad(rotation)))}
 
         if(endPos.y < 0) then
             endPos.y = 0
@@ -647,6 +666,14 @@ local function finishShot()
 
     if(blocked) then
         result = "Blocked"
+
+        pts = calculateShotPoints()
+        if pts == "2" then
+            team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1
+        elseif pts == "3" then
+            team.players[userPlayer].gameStats.threePA = team.players[userPlayer].gameStats.threePA + 1
+        end
+
         transition.moveTo(basketball, {x=team.players[userPlayer].sprite.x , y=team.players[userPlayer].sprite.y, time = 1, onComplete=endPossession})
     else
         local deadzone = 0
@@ -676,7 +703,7 @@ local function finishShot()
         end
 
         local endPos = calculateShotEndPosition(rotation, dist)
-        transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * 3, onComplete=endPossession})
+        transition.moveTo(basketball, {x=endPos.x , y=endPos.y, time = dist * ballSpeed, onComplete=endPossession})
     end
 
     changeStamina(team.players[userPlayer], shotStaminaUsage)
@@ -858,16 +885,29 @@ local function moveOffense()
                     changeStamina(player, staminaStandingRegen)
                 end
             else
-                local player = team.players[userPlayer]
                 MyStick:move(player, hoopCenter)
-                activePlay.routes[i].points = {nil}
 
-                if(MyStick.percent == 0) then
-                    player.moving = false
-                    changeStamina(player, staminaStandingRegen)
+                if(not player.manualMoving) then
+                    -- Follow defined route
+                    local nextPoint = route.points[1]
+
+                    if(nextPoint) then
+                        calculateEndPointMovement(player, route)
+                    else
+                        moving = false
+                        move(player, 0, 0, hoopCenter)
+                        changeStamina(player, staminaStandingRegen)
+                    end
                 else
-                    player.moving = true
-                    changeStamina(player, staminaRunningUsage * MyStick.percent)
+                    activePlay.routes[i].points = {nil}
+
+                    if(MyStick.percent == 0) then
+                        player.moving = false
+                        changeStamina(player, staminaStandingRegen)
+                    else
+                        player.moving = true
+                        changeStamina(player, staminaRunningUsage * MyStick.percent)
+                    end
                 end
             end
         end
@@ -875,7 +915,7 @@ local function moveOffense()
 end
 
 local function getMovementPoint(shooter, defender)
-    local reactionTime = reactionTimeDefault + (shooter.speed - defender.speed) * reactionTimeModifier
+    local reactionTime = reactionTimeDefault + (shooter.dribbling - defender.quickness) * reactionTimeModifier
     if(reactionTime < 0) then
         reactionTime = 0
     end
@@ -913,6 +953,11 @@ end
 local function defenderCloseOut(defender, shooter, distAway)
     local rotationToBasket = getRotationToBasket(shooter.sprite)
     local distToBasket = getDist(shooter.sprite, hoopCenter)
+
+    if(distAway > distToBasket) then
+        distAway = distToBasket / 2
+    end
+
     local newPos = {x = shooter.sprite.x + (math.cos(math.rad(rotationToBasket - 90)) * distAway),
                     y = shooter.sprite.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
     
@@ -925,10 +970,6 @@ local function defenderCloseOut(defender, shooter, distAway)
             newPos = {x = movementPoint.x + (math.cos(math.rad(rotationToBasket - 90)) * distAway),
                         y = movementPoint.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
         end
-    end
-
-    if(distAway > distToBasket) then
-        distAway = distToBasket / 2
     end
 
     local newAngle = getRotation(defender.sprite, newPos) 
@@ -1106,7 +1147,7 @@ local function createOffense()
                 
                 team.players[userPlayer].hasBall = true
                 local ballLoc = calculateBballLoc(team.players[userPlayer].sprite.rotation)
-                transition.moveTo(basketball, {x=ballLoc.x, y=ballLoc.y, time=getDist(team.players[oldPlayer].sprite, team.players[userPlayer].sprite) * 3})
+                transition.moveTo(basketball, {x=ballLoc.x, y=ballLoc.y, time=getDist(team.players[oldPlayer].sprite, team.players[userPlayer].sprite) * ballSpeed})
             end
         end
 

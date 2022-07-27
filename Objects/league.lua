@@ -269,8 +269,8 @@ local function resetStaminaAndStats(team)
         team.players[i].stamina = team.players[i].maxStamina
 
         local stats = team.players[i].gameStats
-        team.players[i].yearStats:addStats(stats)
-        team.players[i].careerStats:addStats(stats)
+        addStats(team.players[i].yearStats, stats)
+        addStats(team.players[i].careerStats, stats)
         team.players[i].gameStats = StatsLib:createStats()
     end
 end

@@ -13,6 +13,11 @@ local function toGame()
     composer.gotoScene("Scenes.game")
 end
 
+local function seeStandings()
+    composer.removeScene("Scenes.pregame")
+    composer.gotoScene("Scenes.standings")
+end
+
 local function nextWeek()
     composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.postgame")
@@ -122,6 +127,16 @@ function scene:create( event )
     saveButtonBorder.strokeWidth = 2
     saveButtonBorder:setFillColor(0, 0, 0, 0)
     saveButtonBorder:addEventListener("tap", saveGame)
+
+    local standingsButton = display.newText(sceneGroup, "Standings", display.contentWidth, 20, native.systemFont, 32)
+    standingsButton:setFillColor(0, 0, 0)
+    standingsButton:addEventListener("tap", seeStandings)
+
+    local standingsButtonBorder = display.newRect(sceneGroup, standingsButton.x, standingsButton.y, standingsButton.width, standingsButton.height)
+    standingsButtonBorder:setStrokeColor(0, 0, 0)
+    standingsButtonBorder.strokeWidth = 2
+    standingsButtonBorder:setFillColor(0, 0, 0, 0)
+    standingsButtonBorder:addEventListener("tap", seeStandings)
 end
 
 

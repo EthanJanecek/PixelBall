@@ -11,8 +11,9 @@ teams = ["philadelphia-76ers", "milwaukee-bucks", "chicago-bulls", "charlotte-ho
             "utah-jazz", "memphis-grizzlies", "denver-nuggets", "minnesota-timberwolves", "dallas-mavericks", "los-angeles-clippers", "sacramento-kings", "phoenix-suns",
             "houston-rockets", "san-antonio-spurs", "portland-trail-blazers", "los-angeles-lakers", "new-orleans-pelicans", "oklahoma-city-thunder"]
 
-stats = ["Ball Handle", "Close Shot", "Mid-Range Shot", "Three-Point Shot", "Layup", "Steal", "Block", "Interior Defense", "Perimeter Defense", "Speed", 
-            "Stamina", "Pass Accuracy"]
+stats = ["Ball Handle", "Close Shot", "Mid-Range Shot", "Three-Point Shot", "Layup", "Steal", "Block", "Interior Defense", 
+            "Perimeter Defense", "Speed", "Stamina", "Pass Accuracy", "Speed with Ball", "Lateral Quickness", "Pass Perception",
+            "Strength"]
 
 for team in teams:
     with open('data/' + team + '.csv', 'w', newline='') as csvfile:

@@ -108,7 +108,13 @@ function NewStick( Props )
         -- METHOD: MOVE AN OBJECT
         ---------------------------------------------
         function Group:move(player, pointTowards)
-            move(player, self.angle, self.percent, pointTowards, collisionRadius)
+            if(Group.beingMoved) then
+                player.manualMoving = true
+            end
+
+            if(player.manualMoving) then
+                move(player, self.angle, self.percent, pointTowards, collisionRadius)
+            end
         end
 		
 		---------------------------------------------
@@ -148,7 +154,6 @@ function NewStick( Props )
         -- HANDLER: ON DRAG
         ---------------------------------------------
         Group.onDrag = function ( event )
- 
                 local T     = event.target -- THUMB
                 local S     = T.parent     -- STICK
                 local phase = event.phase
