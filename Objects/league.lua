@@ -10,17 +10,23 @@ local leagueAvgMidRange = 40
 local leagueAvg3 = 37
 
 local skillScaling = 3
-local playerPercentages = {40, 70, 85, 95, 100}
+local playerPercentages = {35, 60, 80, 92, 100}
 local heightDiffMin = 5
 local heightDiffMax = 15
 
 local numDays = 200
 local maxLoops = 200
 
-local staminaRunningUsage = -.1
-local shotStaminaUsage = -.2
-local staminaStandingRegen = -staminaRunningUsage / 2
-local staminaBenchRegen = -staminaRunningUsage * 3
+local staminaRunningUsage = -.2
+local shotStaminaUsage = -.4
+local staminaStandingRegen = -staminaRunningUsage / 4
+local staminaBenchRegen = -staminaRunningUsage
+
+local numDefensiveStrategies = 5
+
+local turnoverAverage = 13
+local blockedAverage = 5
+local maxBlockedProb = 20
 
 function league:createLeague()
     self.__index = self
@@ -34,7 +40,7 @@ function league:createLeague()
 end
 
 function league:createFromSave()
-    local path = system.pathForFile( "save.json", system.DocumentsDirectory )
+    local path = getSaveDirectory()
     local file = io.open(path, "r")
     
 	local contents = file:read("*a")
@@ -187,7 +193,6 @@ function league:nextWeek()
         end
     end
 
-    self:resetTeams()
     self.weekNum = self.weekNum + 1
 end
 
@@ -301,11 +306,11 @@ function simulateGame(away, home)
 
     while time <= maxTime do
         if index % 2 == 0 then
-            local result = simulatePossession(home, away)
+            local result = simulatePossession(home, away, math.random(numDefensiveStrategies))
             score.home = score.home + result.points
             time = time + result.time
         else
-            local result = simulatePossession(away, home)
+            local result = simulatePossession(away, home, math.random(numDefensiveStrategies))
             score.away = score.away + result.points
             time = time + result.time
         end
@@ -317,11 +322,11 @@ function simulateGame(away, home)
     while(score.home == score.away) do
         -- Simulate 5 possessions each
         for i = 1, 5 do
-            local result = simulatePossession(home, away)
+            local result = simulatePossession(home, away, math.random(numDefensiveStrategies))
             score.home = score.home + result.points
             time = time + result.time
 
-            result = simulatePossession(away, home)
+            result = simulatePossession(away, home, math.random(numDefensiveStrategies))
             score.away = score.away + result.points
             time = time + result.time
         end
@@ -363,17 +368,118 @@ local function changeTeamStamina(offense, defense, player, defender)
     end
 end
 
-function simulatePossession(offense, defense)
+local function turnover(player, defender)
+    local turnoverProb = turnoverAverage + ((defender.stealing - player.dribbling) * 5)
+
+    local num = math.random(100)
+
+    if(num <= turnoverProb) then
+        return true
+    else
+        return false
+    end
+end
+
+local function blocked(player, defender)
+    local heightDiff = defender.height - player.height + 10 -- Will be from 0-20
+    if(heightDiff < heightDiffMin) then
+        heightDiff = heightDiffMin
+    elseif(heightDiff > heightDiffMax) then
+        heightDiff = heightDiffMax
+    end
+
+    heightDiff = heightDiff / 10.0
+
+    local blockedProb = blockedAverage + ((defender.blocking) * heightDiff * .75)
+    if(blockedProb > maxBlockedProb) then
+        blockedProb = maxBlockedProb
+    end
+
+    local num = math.random(100)
+
+    if(num <= blockedProb) then
+        return true
+    else
+        return false
+    end
+end
+
+function simulatePossession(offense, defense, defenseStrategy)
+    local defensiveStrategy = defenseStrategy or 1
     subPlayers(offense)
+
     local teamStarters = {unpack(offense.players, 1, 5)}
     table.sort(teamStarters, function (a, b) 
         return (a.closeShot + a.midRange + a.three + a.finishing) > (b.closeShot + b.midRange + b.three + b.finishing)
     end)
 
     local opponentStarters = {unpack(defense.players, 1, 5)}
-    table.sort(opponentStarters, function (a, b)
-        return (a.contestingInterior + a.contestingExterior) > (b.contestingInterior + b.contestingExterior)
-    end)
+
+    if(defensiveStrategy == 1) then -- Overall defending skill
+        table.sort(opponentStarters, function (a, b)
+            return (a.contestingInterior + a.contestingExterior) > (b.contestingInterior + b.contestingExterior)
+        end)
+    elseif(defensiveStrategy == 2) then -- Speed
+        local teamStarters2 = {unpack(offense.players, 1, 5)}
+        table.sort(teamStarters2, function (a, b) 
+            return a.speed > b.speed
+        end)
+
+        local opponentStarters2 = {unpack(defense.players, 1, 5)}
+        table.sort(opponentStarters2, function (a, b)
+            return a.speed > b.speed
+        end)
+
+        for i = 1, 5 do
+            local index = indexOf(teamStarters, teamStarters2[i])
+            opponentStarters[index] = opponentStarters2[i]
+        end
+    elseif(defensiveStrategy == 3) then -- Interior Defending
+        local teamStarters2 = {unpack(offense.players, 1, 5)}
+        table.sort(teamStarters2, function (a, b) 
+            return (a.finishing + a.closeShot) > (b.closeShot + b.finishing)
+        end)
+
+        local opponentStarters2 = {unpack(defense.players, 1, 5)}
+        table.sort(opponentStarters2, function (a, b)
+            return a.contestingInterior > b.contestingInterior
+        end)
+
+        for i = 1, 5 do
+            local index = indexOf(teamStarters, teamStarters2[i])
+            opponentStarters[index] = opponentStarters2[i]
+        end
+    elseif(defensiveStrategy == 4) then -- Exterior Defending
+        local teamStarters2 = {unpack(offense.players, 1, 5)}
+        table.sort(teamStarters2, function (a, b) 
+            return (a.midRange + a.three) > (b.midRange + b.three)
+        end)
+
+        local opponentStarters2 = {unpack(defense.players, 1, 5)}
+        table.sort(opponentStarters2, function (a, b)
+            return a.contestingExterior > b.contestingExterior
+        end)
+
+        for i = 1, 5 do
+            local index = indexOf(teamStarters, teamStarters2[i])
+            opponentStarters[index] = opponentStarters2[i]
+        end
+    elseif(defensiveStrategy == 5) then -- Height
+        local teamStarters2 = {unpack(offense.players, 1, 5)}
+        table.sort(teamStarters2, function (a, b) 
+            return a.height > b.height
+        end)
+
+        local opponentStarters2 = {unpack(defense.players, 1, 5)}
+        table.sort(opponentStarters2, function (a, b)
+            return a.height > b.height
+        end)
+
+        for i = 1, 5 do
+            local index = indexOf(teamStarters, teamStarters2[i])
+            opponentStarters[index] = opponentStarters2[i]
+        end
+    end
 
     local playerNum = math.random(1, 100)
     local player = teamStarters[1]
@@ -402,16 +508,33 @@ function simulatePossession(offense, defense)
 
     if(shotType <= player.finishing) then
         shotPoints = 2
-        points = calculatePoints(player.finishing * staminaPercent(player), defender.contestingInterior * staminaPercent(defender), heightDiff, leagueAvgFinishing, 2)
+        points = calculatePoints(player.finishing * staminaPercent(player), defender.contestingInterior * staminaPercent(defender), heightDiff, leagueAvgFinishing, 2, player, defender)
     elseif(shotType <= (player.finishing + player.closeShot)) then
         shotPoints = 2
-        points = calculatePoints(player.closeShot * staminaPercent(player), defender.contestingInterior * staminaPercent(defender), heightDiff, leagueAvgClose, 2)
+        points = calculatePoints(player.closeShot * staminaPercent(player), defender.contestingInterior * staminaPercent(defender), heightDiff, leagueAvgClose, 2, player, defender)
     elseif(shotType <= (player.finishing + player.closeShot + player.midRange)) then
         shotPoints = 2
-        points = calculatePoints(player.midRange * staminaPercent(player), defender.contestingExterior * staminaPercent(defender), heightDiff, leagueAvgMidRange, 2)
+        points = calculatePoints(player.midRange * staminaPercent(player), defender.contestingExterior * staminaPercent(defender), heightDiff, leagueAvgMidRange, 2, player, defender)
     else
         shotPoints = 3
-        points = calculatePoints(player.three * staminaPercent(player), defender.contestingExterior * staminaPercent(defender), heightDiff, leagueAvg3, 3)
+        points = calculatePoints(player.three * staminaPercent(player), defender.contestingExterior * staminaPercent(defender), heightDiff, leagueAvg3, 3, player, defender)
+    end
+
+    local message = "Defended"
+    if(turnover(player, defender)) then
+        points = 0
+        player.gameStats.turnovers = player.gameStats.turnovers + 1
+        defender.gameStats.steals = defender.gameStats.steals + 1
+        message = "Stolen"
+        
+        time = time / 2
+        if(time < 6) then
+            time = 6
+        end
+    elseif(blocked(player, defender)) then
+        points = 0
+        defender.gameStats.blocks = defender.gameStats.blocks + 1
+        message = "Blocked"
     end
 
     changeTeamStamina(offense, defense, player, defender)
@@ -432,13 +555,32 @@ function simulatePossession(offense, defense)
         end
     end
     
-    return {points=points, time=time}
+    return {points=points, time=time, player=player, defender=defender, message=message}
 end
 
-function calculatePoints(shooterSkill, defenderSkill, heightDiff, leagueAvg, maxPoints)
+local function wideOpenShot(player, defender)
+    local speedByProb = (player.speed - defender.speed) * 5
+    local crossUpProb = (player.dribbling - defender.quickness) * 5
+
+    local num = math.random(100)
+
+    if(num <= speedByProb or num <= crossUpProb) then
+        return true
+    else
+        return false
+    end
+end
+
+function calculatePoints(shooterSkill, defenderSkill, heightDiff, leagueAvg, maxPoints, player, defender)
     local shotPercent = math.random(100)
-    local heightFactor = (shooterSkill - defenderSkill >= 0) and (heightDiff / 10) or (10 / heightDiff)
+    local heightFactor = (shooterSkill - defenderSkill >= 0) and (heightDiff / 10) or ((heightDiff + 10) / 10)
     local scaling = (shooterSkill - defenderSkill) * skillScaling * heightFactor
+    local wideOpen = wideOpenShot(player, defender)
+
+    if(wideOpen) then
+        local scaling = shooterSkill * skillScaling
+    end
+
     local percentageMade = leagueAvg + scaling
 
     if(shotPercent <= percentageMade) then

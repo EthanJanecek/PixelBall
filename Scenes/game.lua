@@ -3,6 +3,7 @@ local StickLib   = require("Objects.virtual_joystick")
 local composer = require("composer")
 local RouteLib = require("Objects.route")
 local PlayLib = require("Objects.play")
+local json = require("json")
 
 local scene = composer.newScene()
 local sceneGroup = nil
@@ -52,9 +53,9 @@ local speedScaling = .1
 local deadzoneBase = 4 -- default
 local deadzoneFactor = 2
 local deadzoneMin = 2
-local shootingScale = 1.4
+local shootingScale = 1.3
 
-local defenseScale = 5
+local defenseScale = 3
 local zoneSize = 3 * feetToPixels
 
 collisionAngleStep = 5
@@ -63,7 +64,7 @@ collisionRadius = .75 * feetToPixels
 local contestRadius = 5 * feetToPixels * conversionFactor -- 5 feet away
 local finishingRadius = 4 * feetToPixels * conversionFactor
 local closeShotRadius = 10 * feetToPixels * conversionFactor
-local maxBlockedProb = 15
+local maxBlockedProb = 20
 
 local staminaRunningUsage = -.0005
 local shotStaminaUsage = -.4
@@ -82,6 +83,7 @@ local lookBackSteps = 30
 local directionChangeThreshold = 2
 
 local ballSpeed = 2.5
+local manMatchupNum = -1
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -137,6 +139,27 @@ local function copyPlay(play)
     return PlayLib:createPlay(newRoutes, play.name)
 end
 
+function insertQtrScore()
+    local awayScore = score.away
+    local homeScore = score.home
+
+    if(#qtrScores > 0) then
+        local prevAwayScore = 0
+        local prevHomeScore = 0
+
+        for i = 1, #qtrScores do
+            local lastQtrScore = qtrScores[i]
+            prevAwayScore = prevAwayScore + lastQtrScore[1]
+            prevHomeScore = prevHomeScore + lastQtrScore[2]
+        end
+
+        awayScore = awayScore - prevAwayScore
+        homeScore = homeScore - prevHomeScore
+    end
+
+    table.insert(qtrScores, {awayScore, homeScore})
+end
+
 local function gameClockSubtract(time)
     if(time > gameDetails.sec) then
         gameDetails.sec = gameDetails.sec - time + 60
@@ -146,6 +169,7 @@ local function gameClockSubtract(time)
     end
 
     if(gameDetails.min < 0) then
+        insertQtrScore()
         gameDetails.min = minutesInQtr
         gameDetails.sec = 0
         gameDetails.qtr = gameDetails.qtr + 1
@@ -311,7 +335,7 @@ local function reset()
     end
 end
 
-local function getQuarterString()
+function getQuarterString()
     if(gameDetails.qtr == 1) then
         return "1st"
     elseif(gameDetails.qtr == 2) then
@@ -323,15 +347,17 @@ local function getQuarterString()
     end
 end
 
-local function getQuarterStringFromQtr(qtr)
+function getQuarterStringFromQtr(qtr)
     if(qtr == 1) then
         return "1st"
     elseif(qtr == 2) then
         return "2nd"
     elseif(qtr == 3) then
         return "3rd"
+    elseif(qtr == 4) then
+        return "4th"
     else
-        return gameDetails.qtr .. "th"
+        return "OT"
     end
 end
 
@@ -474,6 +500,27 @@ local function calculateShotPoints()
     end
 end
 
+local function addDefenseStats()
+    if(manMatchupNum ~= -1) then
+        if(not defenseStats[manMatchupNum]) then
+            defenseStats[manMatchupNum] = {
+                points=0,
+                plays=0
+            }
+        end
+
+        if(result == "2") then
+            defenseStats[manMatchupNum].points = defenseStats[manMatchupNum].points + 2
+            defenseStats[manMatchupNum].plays = defenseStats[manMatchupNum].plays + 1
+        elseif(result == "3") then
+            defenseStats[manMatchupNum].points = defenseStats[manMatchupNum].points + 3
+            defenseStats[manMatchupNum].plays = defenseStats[manMatchupNum].plays + 1
+        elseif(result == "Miss" or result == "Blocked") then
+            defenseStats[manMatchupNum].plays = defenseStats[manMatchupNum].plays + 1
+        end
+    end
+end
+
 function endPossession()
     endedPossession = true
     local message = ""
@@ -511,6 +558,8 @@ function endPossession()
         message = "The shot is blocked!"
     elseif(result == "shot clock") then
         message = "The shot clock has expired"
+    elseif(result == "Stolen") then
+        message = "Turnover"
     elseif(result == "qtr end") then
         message = "The " .. getQuarterStringFromQtr(gameDetails.qtr - 1) .. " quarter has ended"
     elseif(result == "game end") then
@@ -545,7 +594,7 @@ local function calculateDeadzone(shooter, skill)
     local deadzone = deadzoneBase -- Base value
 
     -- Scale up based on how good of a shooter they are
-    deadzone = deadzone + (math.pow(shootingScale, skill) * staminaPercent(shooter))
+    deadzone = deadzone + (math.pow(shootingScale, skill * staminaPercent(shooter)))
 
     local distToHoop = getDist(shooter.sprite, hoopCenter)
     local dist3 = (18 * feetToPixels * conversionFactor)
@@ -931,6 +980,29 @@ local function getMovementPoint(shooter, defender)
     return nil
 end
 
+local function turnover(player, defender)
+    local distance = getDist(player.sprite, defender.sprite)
+
+    if(distance > contestRadius) then
+        return false
+    end
+    
+    if(distance <= feetToPixels / 2) then
+        distance = feetToPixels / 2
+    end
+
+    local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
+    local turnoverProb =  (defender.stealing - player.dribbling + 10) * distanceFactor * .5
+
+    local num = math.random(1000)
+
+    if(num <= turnoverProb) then
+        return true
+    else
+        return false
+    end
+end
+
 local function directionChange(player)
     if(#player.movement <= lookBackSteps) then
         return false
@@ -962,6 +1034,15 @@ local function defenderCloseOut(defender, shooter, distAway)
                     y = shooter.sprite.y + (math.sin(math.rad(rotationToBasket - 90)) * distAway)}
     
     if(directionChange(shooter)) then
+        if(shooter.hasBall and turnover(shooter, defender)) then
+            result = "Stolen"
+            shooter.gameStats.turnovers = shooter.gameStats.turnovers + 1
+            defender.gameStats.steals = defender.gameStats.steals + 1
+            playing = false
+            endPossession()
+            return
+        end
+
         local movementPoint = getMovementPoint(shooter, defender)
 
         if(movementPoint) then
@@ -1170,11 +1251,49 @@ local function mapByFunction(offenseFunc, defenseFunc)
     end
 end
 
+local function getPointsPerPlay(matchupNum)
+    if(defenseStats[matchupNum] and defenseStats[matchupNum].plays > 0) then
+        local ptsPerPlay = (defenseStats[matchupNum].points / defenseStats[matchupNum].plays)
+        return math.ceil(11.1 - math.ceil(ptsPerPlay * (10 / 3.0) + .1))
+    else
+        return 5
+    end
+end
+
+local function getManDefenseType()
+    local prob1 = getPointsPerPlay(1)
+    local prob2 = getPointsPerPlay(2)
+    local prob3 = getPointsPerPlay(3)
+    local prob4 = getPointsPerPlay(4)
+    local prob5 = getPointsPerPlay(5)
+    local prob6 = getPointsPerPlay(6)
+
+    local num = math.random(prob1 + prob2 + prob3 + prob4 + prob5 + prob6)
+
+    if(num <= prob1) then
+        return 1
+    elseif(num <= prob1 + prob2) then
+        return 2
+    elseif(num <= prob1 + prob2 + prob3) then
+        return 3
+    elseif(num <= prob1 + prob2 + prob3 + prob4) then
+        return 4
+    elseif(num <= prob1 + prob2 + prob3 + prob4 + prob5) then
+        return 2
+    else
+        return 6
+    end
+end
+
 local function setDefenseMatchups()
     if(activeDefense.coverage == "man") then
-        local num = math.random(1, 3)
+        if(gameDetails.qtr > 1) then
+            manMatchupNum = getManDefenseType()
+        else
+            manMatchupNum = math.random(1, 6)
+        end
 
-        if(num == 1) then
+        if(manMatchupNum == 1) then
             mapByFunction(
                 function (a, b) 
                     return a.speed > b.speed 
@@ -1183,7 +1302,7 @@ local function setDefenseMatchups()
                     return a.speed > b.speed
                 end
             )
-        elseif(num == 2) then
+        elseif(manMatchupNum == 2) then
             mapByFunction(
                 function (a, b) 
                     return a.height > b.height 
@@ -1192,13 +1311,40 @@ local function setDefenseMatchups()
                     return a.height > b.height
                 end
             )
-        elseif(num == 3) then
+        elseif(manMatchupNum == 3) then
             mapByFunction(
                 function (a, b) 
                     return (a.closeShot + a.midRange + a.three + a.finishing) > (b.closeShot + b.midRange + b.three + b.finishing)
                 end,
                 function (a, b)
                     return (a.contestingInterior + a.contestingExterior) > (b.contestingInterior + b.contestingExterior)
+                end
+            )
+        elseif(manMatchupNum == 4) then
+            mapByFunction(
+                function (a, b) 
+                    return a.dribbling > b.dribbling
+                end,
+                function (a, b)
+                    return a.quickness > b.quickness
+                end
+            )
+        elseif(manMatchupNum == 5) then
+            mapByFunction(
+                function (a, b) 
+                    return (a.closeShot + a.finishing) > (b.closeShot + b.finishing)
+                end,
+                function (a, b)
+                    return a.contestingInterior > b.contestingInterior
+                end
+            )
+        elseif(manMatchupNum == 6) then
+            mapByFunction(
+                function (a, b) 
+                    return (a.three + a.midRange) > (b.three + b.midRange)
+                end,
+                function (a, b)
+                    return a.contestingExterior > b.contestingExterior
                 end
             )
         end

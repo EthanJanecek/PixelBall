@@ -27,8 +27,13 @@ for team in teams:
         playerTable = playerLabel.parent.parent.parent
         players = playerTable.find_all("a")
 
+        numPlayers = 0
         for player in players:
+            if(numPlayers >= 15):
+                break
+
             if(player.has_attr("title") and "2k" in player["href"]):
+                numPlayers += 1
                 name = player.text
                 nameParts = name.split(" ")
                 nameToLook = nameParts[0] + " " + nameParts[1]

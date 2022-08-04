@@ -41,6 +41,7 @@ local function nextScene()
 		end
 	end
 
+	league:nextWeek()
 	composer.removeScene("Scenes.postgame")
     composer.gotoScene("Scenes.score_recap")
 end
@@ -94,25 +95,27 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local playButton = display.newText(sceneGroup, "Next Week", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+    local playButton = display.newText(sceneGroup, "Next Week", display.contentCenterX, display.contentCenterY * .9, native.systemFont, 32)
     playButton:setFillColor(0, 0, 0)
     playButton:addEventListener("tap", nextScene)
 
-	local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
+	local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
 	buttonBorder:setStrokeColor(0, 0, 0)
 	buttonBorder.strokeWidth = 2
 	buttonBorder:setFillColor(0, 0, 0, 0)
 	buttonBorder:addEventListener("tap", nextScene)
 
-	local boxScoreButton = display.newText(sceneGroup, "Box Score", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
-    boxScoreButton:setFillColor(0, 0, 0)
-    boxScoreButton:addEventListener("tap", boxScoreScene)
+	if(#qtrScores > 0) then
+		local boxScoreButton = display.newText(sceneGroup, "Box Score", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
+		boxScoreButton:setFillColor(0, 0, 0)
+		boxScoreButton:addEventListener("tap", boxScoreScene)
 
-	local boxScoreButtonBorder = display.newRect(sceneGroup, boxScoreButton.x, boxScoreButton.y, boxScoreButton.width, boxScoreButton.height)
-	boxScoreButtonBorder:setStrokeColor(0, 0, 0)
-	boxScoreButtonBorder.strokeWidth = 2
-	boxScoreButtonBorder:setFillColor(0, 0, 0, 0)
-	boxScoreButtonBorder:addEventListener("tap", boxScoreScene)
+		local boxScoreButtonBorder = display.newRect(sceneGroup, boxScoreButton.x, boxScoreButton.y, boxScoreButton.width, boxScoreButton.height)
+		boxScoreButtonBorder:setStrokeColor(0, 0, 0)
+		boxScoreButtonBorder.strokeWidth = 2
+		boxScoreButtonBorder:setFillColor(0, 0, 0, 0)
+		boxScoreButtonBorder:addEventListener("tap", boxScoreScene)
+	end
 end
 
 

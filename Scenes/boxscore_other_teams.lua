@@ -23,101 +23,62 @@ local paddingY = 70
 local qtrWidth = 30
 local qtrOffsetPercent = .5
 
+local game = nil
+local awayTeam = true
+
+local imageSize = 30
+local offsetY = 40
+
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	composer.removeScene("Scenes.boxscore")
-    composer.gotoScene("Scenes.postgame")
+	composer.removeScene("Scenes.boxscore_other_teams")
+    composer.gotoScene("Scenes.score_recap")
 end
 
 local function switchTeam()
-    showingUserTeamStats = not showingUserTeamStats
-	composer.removeScene("Scenes.boxscore")
-    composer.gotoScene("Scenes.boxscore")
+    local options = {
+        params = {
+            game = game,
+            away = not awayTeam
+        }
+    }
+
+	composer.removeScene("Scenes.boxscore_other_teams")
+    composer.gotoScene("Scenes.boxscore_other_teams", options)
 end
 
-local function displayQtrBreakdownHeader()
-    local dividerHorizontal = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent, 4, qtrWidth, 2)
-    dividerHorizontal:setStrokeColor(.922, .910, .329)
-    dividerHorizontal:setFillColor(.922, .910, .329)
+local function showGameScore(game)
+    local awayTeam = league:findTeam(game.away)
+    local homeTeam = league:findTeam(game.home)
+    local x = display.contentWidth / 2
+    local y = imageSize / 2
 
-    local dividerHorizontal2 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent, 25 + 4, qtrWidth, 2)
-    dividerHorizontal2:setStrokeColor(.922, .910, .329)
-    dividerHorizontal2:setFillColor(.922, .910, .329)
+    local boxscoreBox = display.newRect(sceneGroup, x + 50, y + 6, 100 + imageSize, 12 + imageSize)
+    boxscoreBox:setFillColor(.286, .835, .961)
 
-    local dividerHorizontal3 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent, 50 + 4, qtrWidth, 2)
-    dividerHorizontal3:setStrokeColor(.922, .910, .329)
-    dividerHorizontal3:setFillColor(.922, .910, .329)
+    local awayLogo = display.newImageRect(sceneGroup, awayTeam.logo, imageSize, imageSize)
+    awayLogo.x = x
+    awayLogo.y = y
 
-    if(userIsHome) then
-        local awayName = display.newText(sceneGroup, opponent.abbrev, display.contentCenterX * qtrOffsetPercent, 6 + fontSize / 2, native.systemFont, fontSize)
-        awayName:setFillColor(.922, .910, .329)
+    local homeLogo = display.newImageRect(sceneGroup, homeTeam.logo, imageSize, imageSize)
+    homeLogo.x = x + 100
+    homeLogo.y = y
 
-        local homeName = display.newText(sceneGroup, team.abbrev, display.contentCenterX * qtrOffsetPercent, 31 + fontSize / 2, native.systemFont, fontSize)
-        homeName:setFillColor(.922, .910, .329)
-    else
-        local homeName = display.newText(sceneGroup, team.abbrev, display.contentCenterX * qtrOffsetPercent, 6 + fontSize / 2, native.systemFont, fontSize)
-        homeName:setFillColor(.922, .910, .329)
+    local scoreStr = game.score.away .. " - " .. game.score.home
+    local score = display.newText(sceneGroup, scoreStr, 0, y, native.systemFont, 16)
+    score.x = x + imageSize + ((110 - score.width) / 2)
+    score:setFillColor(.922, .910, .329)
 
-        local awayName = display.newText(sceneGroup, opponent.abbrev, display.contentCenterX * qtrOffsetPercent, 31 + fontSize / 2, native.systemFont, fontSize)
-        awayName:setFillColor(.922, .910, .329)
-    end
+    local awayRecordStr = "(" .. awayTeam.wins .. "-" .. awayTeam.losses .. ")"
+    local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
+    awayRecord:setFillColor(.922, .910, .329)
 
-    local awayScore = display.newText(sceneGroup, score.away, display.contentCenterX * qtrOffsetPercent + qtrWidth, 6 + fontSize / 2, native.systemFont, fontSize)
-    awayScore:setFillColor(.922, .910, .329)
-
-    local homeScore = display.newText(sceneGroup, score.home, display.contentCenterX * qtrOffsetPercent + qtrWidth, 31 + fontSize / 2, native.systemFont, fontSize)
-    homeScore:setFillColor(.922, .910, .329)
-
-    local dividerVertical = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent - (qtrWidth / 2), (50 + 6) / 2, 2, 50)
-    dividerVertical:setStrokeColor(.922, .910, .329)
-    dividerVertical:setFillColor(.922, .910, .329)
-
-    local dividerVertical2 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth - (qtrWidth / 2), (50 + 6) / 2, 2, 50)
-    dividerVertical2:setStrokeColor(.922, .910, .329)
-    dividerVertical2:setFillColor(.922, .910, .329)
-
-    local dividerVertical3 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * 2 - (qtrWidth / 2), (50 + 6) / 2, 4, 50)
-    dividerVertical3:setStrokeColor(.922, .910, .329)
-    dividerVertical3:setFillColor(.922, .910, .329)
-
-    local dividerHorizontal4 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth, 4, qtrWidth, 2)
-    dividerHorizontal4:setStrokeColor(.922, .910, .329)
-    dividerHorizontal4:setFillColor(.922, .910, .329)
-
-    local dividerHorizontal5 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth, 25 + 4, qtrWidth, 2)
-    dividerHorizontal5:setStrokeColor(.922, .910, .329)
-    dividerHorizontal5:setFillColor(.922, .910, .329)
-
-    local dividerHorizontal6 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth, 50 + 4, qtrWidth, 2)
-    dividerHorizontal6:setStrokeColor(.922, .910, .329)
-    dividerHorizontal6:setFillColor(.922, .910, .329)
-end
-
-local function displayQtrBreakdown(scores, i)
-    local dividerHorizontal = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 4, qtrWidth, 2)
-    dividerHorizontal:setStrokeColor(.922, .910, .329)
-    dividerHorizontal:setFillColor(.922, .910, .329)
-
-    local dividerHorizontal2 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 25 + 4, qtrWidth, 2)
-    dividerHorizontal2:setStrokeColor(.922, .910, .329)
-    dividerHorizontal2:setFillColor(.922, .910, .329)
-
-    local dividerHorizontal3 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 50 + 4, qtrWidth, 2)
-    dividerHorizontal3:setStrokeColor(.922, .910, .329)
-    dividerHorizontal3:setFillColor(.922, .910, .329)
-
-    local awayScore = display.newText(sceneGroup, scores[1], display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 6 + fontSize / 2, native.systemFont, fontSize)
-    awayScore:setFillColor(.922, .910, .329)
-
-    local homeScore = display.newText(sceneGroup, scores[2], display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 31 + fontSize / 2, native.systemFont, fontSize)
-    homeScore:setFillColor(.922, .910, .329)
-
-    local dividerVertical = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 2) - (qtrWidth / 2), (50 + 6) / 2, 2, 50)
-    dividerVertical:setStrokeColor(.922, .910, .329)
-    dividerVertical:setFillColor(.922, .910, .329)
+    local homeRecordStr = "(" .. homeTeam.wins .. "-" .. homeTeam.losses .. ")"
+    local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
+    homeRecord:setFillColor(.922, .910, .329)
 end
 
 local function displayHeader()
@@ -212,6 +173,9 @@ function scene:create( event )
 	sceneGroup = self.view
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
+    game = event.params.game
+    awayTeam = event.params.away
+
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
@@ -237,20 +201,19 @@ function scene:create( event )
     switchTeamButtonBorder:setFillColor(0, 0, 0, 0)
     switchTeamButtonBorder:addEventListener("tap", switchTeam)
 
+    showGameScore(game)
     displayHeader()
-    displayQtrBreakdownHeader()
 
-    for i = 1, #qtrScores do
-        displayQtrBreakdown(qtrScores[i], i)
-    end
+    local home = league:findTeam(game.home)
+    local away = league:findTeam(game.away)
     
-    if(showingUserTeamStats) then
-        for i = 1, #team.players do
-            showPlayerStats(team.players[i], i)
+    if(awayTeam) then
+        for i = 1, #away.players do
+            showPlayerStats(away.players[i], i)
         end
     else
-        for i = 1, #opponent.players do
-            showPlayerStats(opponent.players[i], i)
+        for i = 1, #home.players do
+            showPlayerStats(home.players[i], i)
         end
     end
 end

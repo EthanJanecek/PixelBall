@@ -1,43 +1,67 @@
 local composer = require( "composer" )
-
 local scene = composer.newScene()
+
+local sceneGroup = nil
+local strategyNames = {"Overall", "Speed", "Interior\nDefending", "Exterior\nDefending", "Height"}
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	league = LeagueLib:createLeague()
-	league:createSchedule()
-
-	composer.removeScene("Scenes.menu")
-    composer.gotoScene("Scenes.team_selection")
+    local prevScene = composer.getSceneName( "previous" )
+	composer.removeScene("Scenes.set_defense")
+    composer.gotoScene(prevScene)
 end
 
-local function doesSaveFileExist()
-	local path = getSaveDirectory()
-	local f = io.open(path, "r")
-
-	if(f) then
-		return true
-	else
-		return false
-	end
+local function redraw()
+    composer.removeScene("Scenes.set_defense")
+    composer.gotoScene("Scenes.set_defense")
 end
 
-local function loadGame()
-	league = LeagueLib:createFromSave()
+local function showPlayerCard(name, initialX, initialY, i)
+    local function selectPlayer()
+        defensiveStrategy = i
+        redraw()
+    end
 
-	composer.removeScene("Scenes.menu")
-    composer.gotoScene("Scenes.pregame")
+    local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 8, display.contentHeight / 8)
+    playerBorder:setFillColor(0, 0, 0, 0)
+    playerBorder:addEventListener("tap", selectPlayer)
+
+    if(defensiveStrategy == i) then
+        playerBorder:setStrokeColor(0, 0, 1)
+        playerBorder.strokeWidth = 4
+    else
+        playerBorder:setStrokeColor(.922, .910, .329)
+        playerBorder.strokeWidth = 2
+    end
+
+    local playerName = display.newText(sceneGroup, name, playerBorder.x, playerBorder.y, native.systemFont, 12)
+    playerName:setFillColor(.922, .910, .329)
+    playerName:addEventListener("tap", selectPlayer)
 end
+
+local function showPlayer(team, i)
+    local player = team.players[i]
+    local remainder = #team.players - 5
+
+    if(i <= 5) then
+        showPlayerCard(player, display.contentWidth * i / 6, display.contentHeight / 5, i)
+    elseif(i <= 5 + (remainder / 2)) then
+       showPlayerCard(player, display.contentWidth * (i - 5) / ((remainder / 2) + 1), display.contentHeight * 3 / 5, i)
+    else
+        showPlayerCard(player, display.contentWidth * (i - (5 + (remainder / 2))) / ((remainder / 2) + 1), display.contentHeight * 4 / 5 + 20, i)
+    end
+end
+
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
 
 -- create()
 function scene:create( event )
-	local sceneGroup = self.view
+	sceneGroup = self.view
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
@@ -45,30 +69,19 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-	local title = display.newText(sceneGroup, "Pixel-Ball", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)
-    title:setFillColor(.922, .910, .329)
-
-    local playButton = display.newText(sceneGroup, "New", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+    local playButton = display.newText(sceneGroup, "<- Back", 8, 8, native.systemFont, 16)
     playButton:setFillColor(0, 0, 0)
     playButton:addEventListener("tap", nextScene)
 
-	local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
-	buttonBorder:setStrokeColor(0, 0, 0)
-	buttonBorder.strokeWidth = 2
-	buttonBorder:setFillColor(0, 0, 0, 0)
-	buttonBorder:addEventListener("tap", nextScene)
+    local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
+    buttonBorder:setStrokeColor(0, 0, 0)
+    buttonBorder.strokeWidth = 2
+    buttonBorder:setFillColor(0, 0, 0, 0)
+    buttonBorder:addEventListener("tap", nextScene)
 
-	if(doesSaveFileExist()) then
-		local continueButton = display.newText(sceneGroup, "Continue", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
-		continueButton:setFillColor(0, 0, 0)
-		continueButton:addEventListener("tap", loadGame)
-
-		local continueButtonBorder = display.newRect(sceneGroup, continueButton.x, continueButton.y, continueButton.width, continueButton.height)
-		continueButtonBorder:setStrokeColor(0, 0, 0)
-		continueButtonBorder.strokeWidth = 2
-		continueButtonBorder:setFillColor(0, 0, 0, 0)
-		continueButtonBorder:addEventListener("tap", loadGame)
-	end
+    for i = 1, 5 do
+        showPlayerCard(strategyNames[i], display.contentWidth * i / 6, display.contentHeight / 5, i)
+    end
 end
 
 

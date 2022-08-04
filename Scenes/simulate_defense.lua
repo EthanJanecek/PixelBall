@@ -26,16 +26,10 @@ local function createPlays()
     return true
 end
 
-local function getQuarterString()
-    if(gameDetails.qtr == 1) then
-        return "1st"
-    elseif(gameDetails.qtr == 2) then
-        return "2nd"
-    elseif(gameDetails.qtr == 3) then
-        return "3rd"
-    else
-        return gameDetails.qtr .. "th"
-    end
+local function setDefense()
+    composer.removeScene("Scenes.simulate_defense")
+    composer.gotoScene("Scenes.set_defense")
+    return true
 end
 
 local function gameClockSubtract(time)
@@ -47,6 +41,7 @@ local function gameClockSubtract(time)
     end
 
     if(gameDetails.min < 0) then
+        insertQtrScore()
         gameDetails.min = minutesInQtr
         gameDetails.sec = 0
         gameDetails.qtr = gameDetails.qtr + 1
@@ -61,7 +56,11 @@ local function gameClockSubtract(time)
                 end
             end
         end
+
+        return true
     end
+
+    return false
 end
 
 local function displayScore()
@@ -134,23 +133,38 @@ local function simulateDefense()
     background.y = display.contentCenterY
 
     if(reSim) then
-        local playResult = simulatePossession(opponent, team)
-        local points = playResult.points
-        gameClockSubtract(playResult.time)
+        local ranOutOfTime = gameClockSubtract(6)
 
-        if(userIsHome) then
-            score.away = score.away + points
+        if(ranOutOfTime) then
+            local message = opponent.abbrev .. " didn't get the shot off in time"
+            local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 20)
+            displayMessage:setFillColor(.922, .910, .329)
+
+            displayScoreboard()
         else
-            score.home = score.home + points
-        end
+            local playResult = simulatePossession(opponent, team, defensiveStrategy)
+            local points = playResult.points
 
-        local message = opponent.abbrev .. " scored " .. points .. " points"
-        local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-        displayMessage:setFillColor(.922, .910, .329)
-        displayScoreboard()
+            if(userIsHome) then
+                score.away = score.away + points
+            else
+                score.home = score.home + points
+            end
+
+            local message = playResult.player.name .. " (" .. opponent.abbrev .. ") scored " .. points .. " points"
+            local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 20)
+            displayMessage:setFillColor(.922, .910, .329)
+
+            local message2 = playResult.message .. " by " .. playResult.defender.name
+            local displayMessage2 = display.newText(sceneGroup, message2, display.contentCenterX, display.contentCenterY * .95, native.systemFont, 20)
+            displayMessage2:setFillColor(.922, .910, .329)
+
+            gameClockSubtract(playResult.time - 6)
+            displayScoreboard()
+        end
     end  
 
-    local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
+    local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
     lineupButton:setFillColor(0, 0, 0)
     lineupButton:addEventListener("tap", changeLineup)
 
@@ -160,7 +174,7 @@ local function simulateDefense()
     lineupButtonBorder:setFillColor(0, 0, 0, 0)
     lineupButtonBorder:addEventListener("tap", changeLineup)
 
-    local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX, display.contentCenterY * 1.6, native.systemFont, 32)
+    local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX, display.contentCenterY * 1.5, native.systemFont, 32)
     playCreationButton:setFillColor(0, 0, 0)
     playCreationButton:addEventListener("tap", createPlays)
 
@@ -169,6 +183,16 @@ local function simulateDefense()
     playCreationButtonBorder.strokeWidth = 2
     playCreationButtonBorder:setFillColor(0, 0, 0, 0)
     playCreationButtonBorder:addEventListener("tap", createPlays)
+
+    local defenseButton = display.newText(sceneGroup, "Set Defensive Strategy", display.contentCenterX, display.contentCenterY * 1.8, native.systemFont, 32)
+    defenseButton:setFillColor(0, 0, 0)
+    defenseButton:addEventListener("tap", setDefense)
+
+    local defenseButton = display.newRect(sceneGroup, defenseButton.x, defenseButton.y, defenseButton.width, defenseButton.height)
+    defenseButton:setStrokeColor(0, 0, 0)
+    defenseButton.strokeWidth = 2
+    defenseButton:setFillColor(0, 0, 0, 0)
+    defenseButton:addEventListener("tap", setDefense)
 
     background:addEventListener("tap", offense)
 end

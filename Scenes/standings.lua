@@ -15,18 +15,28 @@ local function nextScene()
 end
 
 local function findMax(teams, startIndex)
+    local maxPercent = -1
     local maxWins = -1
-    local maxLosses = 10000
     local maxIndex = -1
 
+
     for i = startIndex, 15 do
-        if(teams[i].wins > maxWins) then
+        local totalGames = teams[i].wins + teams[i].losses
+        local percent = 0
+
+        if(totalGames ~= 0) then
+            percent = teams[i].wins * 1.0 / (teams[i].wins + teams[i].losses)
+        end
+
+        if(percent > maxPercent) then
+            print("New max")
+            maxPercent = percent
             maxWins = teams[i].wins
-            maxLosses = teams[i].losses
             maxIndex = i
-        elseif(teams[i].wins == maxWins and teams[i].losses < maxLosses) then
+        elseif(percent == maxPercent and teams[i].wins > maxWins) then
+            print("New max")
+            maxPercent = percent
             maxWins = teams[i].wins
-            maxLosses = teams[i].losses
             maxIndex = i
         end
     end

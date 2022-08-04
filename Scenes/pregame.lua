@@ -7,6 +7,11 @@ local scene = composer.newScene()
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+local function setDefense()
+    composer.removeScene("Scenes.simulate_defense")
+    composer.gotoScene("Scenes.set_defense")
+end
+
 local function toGame()
     gameInProgress = true
     composer.removeScene("Scenes.pregame")
@@ -34,7 +39,7 @@ local function createPlays()
 end
 
 local function saveGame()
-    local path = system.pathForFile( "save.json", system.DocumentsDirectory )
+    local path = getSaveDirectory()
     local file, errorString = io.open(path, "w")
     
     if file then
@@ -54,9 +59,14 @@ function scene:create( event )
 	local sceneGroup = self.view
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
+    league:resetTeams()
+
     lineupSwitch = {-1, -1}
     score = {away=0, home=0}
     gameDetails = {qtr=1, min=minutesInQtr, sec=0, shotClock=24}
+    qtrScores = {}
+    showingUserTeamStats = true
+    defenseStats = {}
     
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
@@ -72,11 +82,11 @@ function scene:create( event )
         local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
         title:setFillColor(.922, .910, .329)
 
-        local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+        local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY * .9, native.systemFont, 32)
         playButton:setFillColor(0, 0, 0)
         playButton:addEventListener("tap", nextWeek)
 
-        local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
+        local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
         buttonBorder:setStrokeColor(0, 0, 0)
         buttonBorder.strokeWidth = 2
         buttonBorder:setFillColor(0, 0, 0, 0)
@@ -87,17 +97,17 @@ function scene:create( event )
         local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
         title:setFillColor(.922, .910, .329)
 
-        local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+        local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY * .9, native.systemFont, 32)
         playButton:setFillColor(0, 0, 0)
         playButton:addEventListener("tap", toGame)
 
-        local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
+        local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
         buttonBorder:setStrokeColor(0, 0, 0)
         buttonBorder.strokeWidth = 2
         buttonBorder:setFillColor(0, 0, 0, 0)
         buttonBorder:addEventListener("tap", toGame)
 
-        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
+        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
         lineupButton:setFillColor(0, 0, 0)
         lineupButton:addEventListener("tap", changeLineup)
 
@@ -107,7 +117,7 @@ function scene:create( event )
         lineupButtonBorder:setFillColor(0, 0, 0, 0)
         lineupButtonBorder:addEventListener("tap", changeLineup)
 
-        local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX, display.contentCenterY * 1.6, native.systemFont, 32)
+        local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX, display.contentCenterY * 1.5, native.systemFont, 32)
         playCreationButton:setFillColor(0, 0, 0)
         playCreationButton:addEventListener("tap", createPlays)
 
@@ -116,6 +126,16 @@ function scene:create( event )
         playCreationButtonBorder.strokeWidth = 2
         playCreationButtonBorder:setFillColor(0, 0, 0, 0)
         playCreationButtonBorder:addEventListener("tap", createPlays)
+
+        local defenseButton = display.newText(sceneGroup, "Set Defensive Strategy", display.contentCenterX, display.contentCenterY * 1.8, native.systemFont, 32)
+        defenseButton:setFillColor(0, 0, 0)
+        defenseButton:addEventListener("tap", setDefense)
+
+        local defenseButton = display.newRect(sceneGroup, defenseButton.x, defenseButton.y, defenseButton.width, defenseButton.height)
+        defenseButton:setStrokeColor(0, 0, 0)
+        defenseButton.strokeWidth = 2
+        defenseButton:setFillColor(0, 0, 0, 0)
+        defenseButton:addEventListener("tap", setDefense)
     end
 
     local saveButton = display.newText(sceneGroup, "Save Game", 0, 20, native.systemFont, 32)

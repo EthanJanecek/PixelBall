@@ -15,10 +15,27 @@ local function nextWeek()
 end
 
 local function showGameScore(game, xIndex, yIndex)
+    local function seeBoxscore()
+        local options = {
+            params = {
+                game = game,
+                away = true
+            }
+        }
+    
+        composer.removeScene("Scenes.score_recap")
+        composer.gotoScene("Scenes.boxscore_other_teams", options)
+        return true
+    end
+
     local awayTeam = league:findTeam(game.away)
     local homeTeam = league:findTeam(game.home)
     local x = xIndex * (display.contentWidth / 3)
     local y = yIndex * (display.contentHeight / 5) + offsetY
+
+    local boxscoreBox = display.newRect(sceneGroup, x + 50, y + 6, 100 + imageSize, 12 + imageSize)
+    boxscoreBox:setFillColor(.286, .835, .961)
+    boxscoreBox:addEventListener("tap", seeBoxscore)
 
     local awayLogo = display.newImageRect(sceneGroup, awayTeam.logo, imageSize, imageSize)
     awayLogo.x = x
@@ -56,7 +73,6 @@ function scene:create( event )
     background.y = display.contentCenterY
     background:addEventListener("tap", nextWeek)
 
-    league:nextWeek()
     local allGames = league.schedule[league.weekNum - 1]
 
     for i = 1, #allGames do
