@@ -261,11 +261,11 @@ local function startPlayoffs()
 
     for i = 1, 6 do
         table.insert(league.playoffTeams.east, {
-            team = eastTeams[i].name
+            team = eastTeams[i].name,
             wins = 0
         })
         table.insert(league.playoffTeams.west, {
-            team = westTeams[i].name
+            team = westTeams[i].name,
             wins = 0
         })
     end
@@ -311,11 +311,11 @@ local function playinRoundTwo()
     end
 
     table.insert(league.playoffTeams.east, {
-        team = winnerEast1
+        team = winnerEast1,
         wins = 0
     })
     table.insert(league.playoffTeams.west, {
-        team = winnerWest1
+        team = winnerWest1,
         wins = 0
     })
 
@@ -373,11 +373,11 @@ local function firstRound()
     end
 
     table.insert(league.playoffTeams.east, {
-        team = winnerEast
+        team = winnerEast,
         wins = 0
     })
     table.insert(league.playoffTeams.west, {
-        team = winnerWest
+        team = winnerWest,
         wins = 0
     })
 
@@ -399,9 +399,9 @@ function league:nextWeek()
 
     if(self.weekNum == numDays + 1) then
         startPlayoffs()
-    elseif(not regularSeason and self.weekNum = 2)
+    elseif(not regularSeason and self.weekNum == 2) then
         playinRoundTwo()
-    elseif(not regularSeason and self.weekNum = 2)
+    elseif(not regularSeason and self.weekNum == 3) then
         firstRound()
     end
 end
