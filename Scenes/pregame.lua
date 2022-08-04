@@ -76,6 +76,12 @@ function scene:create( event )
     local allGames = league.schedule[league.weekNum]
     local gameInfo = league:findGameInfo(allGames, userTeam)
 
+    if(regularSeason) then
+        local dayStr = "Day: " .. league.weekNum .. "/" .. numDays
+        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, 32, native.systemFont, 32)
+        day:setFillColor(.922, .910, .329)
+    end
+
     if(gameInfo == nil) then
         local title = "Off Day"
 

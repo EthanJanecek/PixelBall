@@ -95,7 +95,7 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local playButton = display.newText(sceneGroup, "Next Week", display.contentCenterX, display.contentCenterY * .9, native.systemFont, 32)
+    local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY * .9, native.systemFont, 32)
     playButton:setFillColor(0, 0, 0)
     playButton:addEventListener("tap", nextScene)
 

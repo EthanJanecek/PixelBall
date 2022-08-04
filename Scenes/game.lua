@@ -186,6 +186,8 @@ local function gameClockSubtract(time)
             end
         end
 
+        team.players[userPlayer].hasBall = false
+        holdingShoot = false
         playing = false
         endPossession()
     end
@@ -257,11 +259,12 @@ function move(player, angle, percent, pointTowards, collisionSize)
     if(collisionObject) then
         angleToCollision = getRotation(Obj, collisionObject.sprite)
     end
-    local initialAngle = (angle - angleToCollision) % 360
 
+    local initialAngle = (angle - angleToCollision) % 360
     local loops = 0
+
     while((detectCollision(newX, newY, Obj, collisionSize))) do
-        if((initialAngle >= 0 and initialAngle <= 180) or (not player.hasBall)) then
+        if(initialAngle >= 0 and initialAngle <= 180) then
             angle = angle + collisionAngleStep
         else
             angle = angle - collisionAngleStep
@@ -992,7 +995,7 @@ local function turnover(player, defender)
     end
 
     local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
-    local turnoverProb =  (defender.stealing - player.dribbling + 10) * distanceFactor * .5
+    local turnoverProb =  (defender.stealing - player.dribbling + 10) * distanceFactor * .7
 
     local num = math.random(1000)
 
@@ -1038,6 +1041,9 @@ local function defenderCloseOut(defender, shooter, distAway)
             result = "Stolen"
             shooter.gameStats.turnovers = shooter.gameStats.turnovers + 1
             defender.gameStats.steals = defender.gameStats.steals + 1
+
+            team.players[userPlayer].hasBall = false
+            holdingShoot = false
             playing = false
             endPossession()
             return
@@ -1100,6 +1106,30 @@ local function findBallCarrier(players)
     return -1
 end
 
+local function findCenter(players)
+    local xSum = 0
+    local ySum = 0
+    local num = 0
+
+    if(#players == 0) then
+        return {
+            x = 0,
+            y = 0
+        }
+    else
+        for i = 1, #players do
+            xSum = xSum + players[i].sprite.x
+            ySum = ySum + players[i].sprite.y
+            num = num + 1
+        end
+
+        return {
+            x = xSum / num,
+            y = ySum / num
+        }
+    end
+end
+
 local function moveZone(defender, zoneCenter, noCoverOnBallHandler, closestDefender)
     local offensePlayers = {unpack(team.players, 1, 5)}
     table.sort(offensePlayers, function (a, b)
@@ -1115,10 +1145,13 @@ local function moveZone(defender, zoneCenter, noCoverOnBallHandler, closestDefen
     elseif(ballCarrier ~= -1) then
         -- Ball carrier is in zone
         defenderCloseOut(defender, offensePlayers[ballCarrier], feetToPixels)
-    elseif(#playersInZone ~= 0) then
-        -- Choose random other player in zone
-        local num = math.random(1, #playersInZone)
-        defenderCloseOut(defender, offensePlayers[num], feetToPixels)
+    elseif(#playersInZone == 1) then
+        -- Cover only other player in zone
+        defenderCloseOut(defender, offensePlayers[1], feetToPixels)
+    elseif(#playersInZone >= 2) then
+        -- Cover the center location of all players in the zone
+        local center = findCenter(playersInZone)
+        calculateEndPointMovementZone(defender, {points = {center}}, offensePlayers[1])
     else
         -- Move to edge of zone in direction of nearest player
         local angle = getRotation(zoneCenter, offensePlayers[1].sprite)
@@ -1135,6 +1168,10 @@ local function moveDefense()
             zone = zone122
         elseif(activeDefense.name == "2-3") then
             zone = zone23
+        elseif(activeDefense.name == "3-2") then
+            zone = zone32
+        elseif(activeDefense.name == "2-1-2") then
+            zone = zone212
         end
 
         local defensePlayers = {unpack(opponent.players, 1, 5)}
@@ -1150,12 +1187,12 @@ local function moveDefense()
         end
     elseif(activeDefense.coverage == "man") then
         -- Move players
-        local distAway = math.abs(activeDefense.aggresiveness - 6) * feetToPixels -- Distance away that defender should stand
+        local distAway = math.abs(activeDefense.aggresiveness - 6) * feetToPixels * .5 -- Distance away that defender should stand
 
         for i = 1, 5 do
             if(activeDefense.aggresiveness == -1) then
                 -- Scale based on how good of a shooter they are
-                distAway = math.abs(team.players[i].three - 11) * (feetToPixels / 2.5)
+                distAway = math.abs(team.players[i].midRange - 10) * (feetToPixels / 2.5)
             end
 
             defenderCloseOut(opponent.players[i], team.players[i], distAway)
@@ -1368,7 +1405,7 @@ local function setDefenseMatchups()
             local tmp = opponentStarters[1]
             opponentStarters[1] = opponentStarters[max.index]
             opponentStarters[max.index] = tmp
-        elseif(activeDefense.name == "2-3") then
+        else
             table.sort(opponentStarters, function (a, b)
                 return a.height < b.height
             end)
@@ -1403,6 +1440,8 @@ local function controlClock()
     if(gameDetails.shotClock == 0) then
         if(playing ~= false) then
             -- They didn't get the shot off in time
+            team.players[userPlayer].hasBall = false
+            holdingShoot = false
             playing = false
             result = "shot clock"
             endPossession()
@@ -1469,6 +1508,8 @@ local function gameLoop()
         end
     else
         result = "game end"
+        team.players[userPlayer].hasBall = false
+        holdingShoot = false
         endPossession()
     end
 end

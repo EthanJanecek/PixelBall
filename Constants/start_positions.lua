@@ -18,14 +18,30 @@ zone122 = {
     {x = centerX, y = 170},
     {x = offsetX + courtW * .3, y = 120},
     {x = offsetX + courtW * .7, y = 120},
-    {x = offsetX + courtW * .3, y = hoopCenter.y + hoopCenter.radius},
-    {x = offsetX + courtW * .7, y = hoopCenter.y + hoopCenter.radius}
+    {x = offsetX + courtW * .3, y = hoopCenter.y + hoopCenter.radius + 20},
+    {x = offsetX + courtW * .7, y = hoopCenter.y + hoopCenter.radius + 20}
 }
 
 zone23 = {
     {x = offsetX + courtW * .3, y = 170},
     {x = offsetX + courtW * .7, y = 170},
-    {x = offsetX + courtW * .2, y = hoopCenter.y + hoopCenter.radius},
-    {x = offsetX + courtW * .8, y = hoopCenter.y + hoopCenter.radius},
-    {x = centerX, y = hoopCenter.y + hoopCenter.radius}
+    {x = offsetX + courtW * .2, y = hoopCenter.y + hoopCenter.radius + 20},
+    {x = offsetX + courtW * .8, y = hoopCenter.y + hoopCenter.radius + 20},
+    {x = centerX, y = hoopCenter.y + hoopCenter.radius + 20}
+}
+
+zone32 = {
+    {x = centerX, y = 170},
+    {x = offsetX + courtW * .2, y = 170},
+    {x = offsetX + courtW * .8, y = 170},
+    {x = offsetX + courtW * .3, y = hoopCenter.y + hoopCenter.radius + 20},
+    {x = offsetX + courtW * .7, y = hoopCenter.y + hoopCenter.radius + 20}
+}
+
+zone212 = {
+    {x = centerX, y = 150},
+    {x = offsetX + courtW * .3, y = 170},
+    {x = offsetX + courtW * .7, y = 170},
+    {x = offsetX + courtW * .3, y = hoopCenter.y + hoopCenter.radius + 20},
+    {x = offsetX + courtW * .7, y = hoopCenter.y + hoopCenter.radius + 20}
 }

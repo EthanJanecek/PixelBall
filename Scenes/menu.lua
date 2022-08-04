@@ -7,11 +7,8 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	league = LeagueLib:createLeague()
-	league:createSchedule()
-
 	composer.removeScene("Scenes.menu")
-    composer.gotoScene("Scenes.team_selection")
+    composer.gotoScene("Scenes.settings")
 end
 
 local function doesSaveFileExist()

@@ -38,7 +38,6 @@ league = nil
 userTeam = ""
 
 -- Game Details
-minutesInQtr = 12
 score = {away=0, home=0}
 gameDetails = {qtr=1, min=minutesInQtr, sec=0, shotClock=24}
 gameInProgress = true
@@ -46,6 +45,17 @@ lineupSwitch = {-1, -1}
 showingUserTeamStats = true
 defensiveStrategy = 1
 defenseStats = {}
+
+regularSeason = true
+playoffs = false
+games = 72
+numDays = 200
+difficulty = 1
+minutesInQtr = 12
+
+numGamesSetting = 3
+difficultySetting = 1
+minutesInQtrSetting = 3
 
 qtrScores = {}
 

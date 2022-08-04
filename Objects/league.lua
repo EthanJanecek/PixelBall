@@ -14,7 +14,6 @@ local playerPercentages = {35, 60, 80, 92, 100}
 local heightDiffMin = 5
 local heightDiffMax = 15
 
-local numDays = 200
 local maxLoops = 200
 
 local staminaRunningUsage = -.2
@@ -35,7 +34,13 @@ function league:createLeague()
         teams=createTeams(),
         userTeam="",
         weekNum=1,
-        schedule={}
+        numGames=games,
+        numDays=numDays,
+        difficulty=difficulty,
+        minutesInQtr=minutesInQtr,
+        schedule={},
+        playoffs={},
+        playoffTeams={}
     }, self)
 end
 
@@ -45,7 +50,12 @@ function league:createFromSave()
     
 	local contents = file:read("*a")
 	local t = json.decode(contents)
+
 	userTeam = t.userTeam
+    games = t.numGames
+    numDays = t.numDays
+    difficulty = t.difficulty
+    minutesInQtr = t.minutesInQtr
 
     self.__index = self
 
@@ -139,10 +149,17 @@ function league:createSchedule()
 
         for j = i + 1, 30 do
             local team2 = self.teams[j]
+            local numGames = 0
 
-            local numGames = 2
-            if(team1.conf == team2.conf) then
-                numGames = 3
+            if(games == 29) then
+                numGames = 1
+            elseif(games == 58) then
+                numGames = 2
+            else
+                numGames = 2
+                if(team1.conf == team2.conf) then
+                    numGames = 3
+                end
             end
 
             for k = 1, numGames do
@@ -182,6 +199,191 @@ function league:findTeam(name)
     return {}
 end
 
+local function getEastTeams()
+    local eastTeams = {}
+    local num = 1
+
+    for i = 1, #league.teams do
+        local team = league.teams[i]
+        if(team.conf == "East") then
+            eastTeams[num] = team
+            num = num + 1
+        end
+    end
+
+    for i = 1, 15 do
+        local max = findMax(eastTeams, i)
+        local temp = eastTeams[max]
+        eastTeams[max] = eastTeams[i]
+        eastTeams[i] = temp
+    end
+
+    return eastTeams
+end
+
+local function getWestTeams()
+    local westTeams = {}
+    local num = 1
+
+    for i = 1, #league.teams do
+        local team = league.teams[i]
+        if(team.conf == "West") then
+            westTeams[num] = team
+            num = num + 1
+        end
+    end
+    
+    for i = 1, 15 do
+        local max = findMax(westTeams, i)
+        local temp = westTeams[max]
+        westTeams[max] = westTeams[i]
+        westTeams[i] = temp
+    end
+
+    return westTeams
+end
+
+local function startPlayoffs()
+    regularSeason = false
+    self.weekNum = 1
+
+    for i = 1, 30 do
+        local weeklySchedule = {}
+        table.insert(league.playoffs, weeklySchedule)
+    end
+
+    local eastTeams = getEastTeams()
+    local westTeams = getWestTeams()
+    league.playoffTeams = {
+        east = {},
+        west = {}
+    }
+
+    for i = 1, 6 do
+        table.insert(league.playoffTeams.east, {
+            team = eastTeams[i].name
+            wins = 0
+        })
+        table.insert(league.playoffTeams.west, {
+            team = westTeams[i].name
+            wins = 0
+        })
+    end
+
+    table.insert(league.playoffs[1], {away=eastTeams[8].name, home=eastTeams[7].name, score={}})
+    table.insert(league.playoffs[1], {away=eastTeams[10].name, home=eastTeams[9].name, score={}})
+
+    table.insert(league.playoffs[1], {away=westTeams[8].name, home=westTeams[7].name, score={}})
+    table.insert(league.playoffs[1], {away=westTeams[10].name, home=westTeams[9].name, score={}})
+end
+
+local function playinRoundTwo()
+    local east1Game = league.playoffs[1][1]
+    local winnerEast1 = east1Game.home
+    local loserEast1 = east1Game.away
+
+    if(east1Game.score.away > east1Game.score.home) then
+        winnerEast1 = east1Game.away
+        loserEast1 = east1Game.home
+    end
+
+    local east2Game = league.playoffs[1][2]
+    local winnerEast2 = east2Game.home
+
+    if(east2Game.score.away > east2Game.score.home) then
+        winnerEast2 = east2Game.away
+    end
+
+    local west1Game = league.playoffs[1][3]
+    local winnerWest1 = west1Game.home
+    local loserWest1 = west1Game.away
+
+    if(west1Game.score.away > west1Game.score.home) then
+        winnerWest1 = west1Game.away
+        loserWest1 = west1Game.home
+    end
+
+    local west2Game = league.playoffs[1][4]
+    local winnerWest2 = west2Game.home
+
+    if(west2Game.score.away > west2Game.score.home) then
+        winnerWest2 = west2Game.away
+    end
+
+    table.insert(league.playoffTeams.east, {
+        team = winnerEast1
+        wins = 0
+    })
+    table.insert(league.playoffTeams.west, {
+        team = winnerWest1
+        wins = 0
+    })
+
+    table.insert(league.playoffs[2], {away=winnerEast2, home=loserEast1, score={}})
+    table.insert(league.playoffs[2], {away=winnerWest2, home=loserWest1, score={}})
+end
+
+local function firstRoundSchedule()
+    for i = 1, 4 do
+        local team1 = league.playoffTeams.east[i]
+        local team2 = league.playoffTeams.east[9 - i]
+
+        table.insert(league.playoffs[3], {away=team2, home=team1, score={}})
+        table.insert(league.playoffs[4], {away=team2, home=team1, score={}})
+
+        table.insert(league.playoffs[5], {away=team1, home=team2, score={}})
+        table.insert(league.playoffs[6], {away=team1, home=team2, score={}})
+
+        table.insert(league.playoffs[7], {away=team2, home=team1, score={}})
+        table.insert(league.playoffs[8], {away=team1, home=team2, score={}})
+        table.insert(league.playoffs[9], {away=team2, home=team1, score={}})
+    end
+
+    for i = 1, 4 do
+        local team1 = league.playoffTeams.west[i]
+        local team2 = league.playoffTeams.west[9 - i]
+
+        table.insert(league.playoffs[3], {away=team2, home=team1, score={}})
+        table.insert(league.playoffs[4], {away=team2, home=team1, score={}})
+
+        table.insert(league.playoffs[5], {away=team1, home=team2, score={}})
+        table.insert(league.playoffs[6], {away=team1, home=team2, score={}})
+
+        table.insert(league.playoffs[7], {away=team2, home=team1, score={}})
+        table.insert(league.playoffs[8], {away=team1, home=team2, score={}})
+        table.insert(league.playoffs[9], {away=team2, home=team1, score={}})
+    end
+end
+
+local function firstRound()
+    playoffs = true
+    
+    local eastGame = league.playoffs[2][1]
+    local winnerEast = eastGame.home
+
+    if(eastGame.score.away > eastGame.score.home) then
+        winnerEast = eastGame.away
+    end
+
+    local westGame = league.playoffs[2][2]
+    local winnerWest = westGame.home
+
+    if(westGame.score.away > westGame.score.home) then
+        winnerWest = westGame.away
+    end
+
+    table.insert(league.playoffTeams.east, {
+        team = winnerEast
+        wins = 0
+    })
+    table.insert(league.playoffTeams.west, {
+        team = winnerWest
+        wins = 0
+    })
+
+    firstRoundSchedule()
+end
+
 function league:nextWeek()
     local allGames = self.schedule[self.weekNum]
 
@@ -194,6 +396,14 @@ function league:nextWeek()
     end
 
     self.weekNum = self.weekNum + 1
+
+    if(self.weekNum == numDays + 1) then
+        startPlayoffs()
+    elseif(not regularSeason and self.weekNum = 2)
+        playinRoundTwo()
+    elseif(not regularSeason and self.weekNum = 2)
+        firstRound()
+    end
 end
 
 local function changeStamina(player, diff)
@@ -369,7 +579,7 @@ local function changeTeamStamina(offense, defense, player, defender)
 end
 
 local function turnover(player, defender)
-    local turnoverProb = turnoverAverage + ((defender.stealing - player.dribbling) * 5)
+    local turnoverProb = turnoverAverage + ((defender.stealing - player.dribbling) * 6)
 
     local num = math.random(100)
 
@@ -390,7 +600,7 @@ local function blocked(player, defender)
 
     heightDiff = heightDiff / 10.0
 
-    local blockedProb = blockedAverage + ((defender.blocking) * heightDiff * .75)
+    local blockedProb = blockedAverage + ((defender.blocking) * heightDiff * .85)
     if(blockedProb > maxBlockedProb) then
         blockedProb = maxBlockedProb
     end
@@ -526,7 +736,7 @@ function simulatePossession(offense, defense, defenseStrategy)
         player.gameStats.turnovers = player.gameStats.turnovers + 1
         defender.gameStats.steals = defender.gameStats.steals + 1
         message = "Stolen"
-        
+
         time = time / 2
         if(time < 6) then
             time = 6

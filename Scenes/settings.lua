@@ -2,16 +2,173 @@ local composer = require( "composer" )
 local scene = composer.newScene()
 local sceneGroup = nil
 
-local imageSize = 30
-local offsetY = 40
+local fontSize = 24
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-    composer.removeScene("Scenes.score_recap")
-    composer.gotoScene("Scenes.pregame")
+	if(numGamesSetting == 1) then
+		games = 29
+		numDays = 100
+	elseif(numGamesSetting == 2) then
+		games = 58
+		numDays = 150
+	else
+		games = 72
+		numDays = 200
+	end
+
+	if(difficultySetting == 1) then
+		difficulty = 1
+	elseif(difficultySetting == 2) then
+		difficulty = 2
+	else
+		difficulty = 3
+	end
+
+	if(minutesInQtrSetting == 1) then
+		minutesInQtr = 4
+	elseif(minutesInQtrSetting == 2) then
+		minutesInQtr = 8
+	else
+		minutesInQtr = 12
+	end
+
+	league = LeagueLib:createLeague()
+	league:createSchedule()
+
+    composer.removeScene("Scenes.settings")
+    composer.gotoScene("Scenes.team_selection")
+end
+
+local function redraw()
+    composer.removeScene("Scenes.settings")
+    composer.gotoScene("Scenes.settings")
+end
+
+local function displayNumGamesSetting(i)
+	local function selectNumGames()
+		numGamesSetting = i
+		redraw()
+	end
+
+	local str = ""
+	if(i == 1) then
+		str = "29"
+	elseif(i == 2) then
+		str = "58"
+	else
+		str = "72"
+	end
+
+	local option = display.newText(sceneGroup, str, display.contentWidth * (i * 2) / 6, display.contentHeight / 5, native.systemFont, fontSize)
+    option:setFillColor(.922, .910, .329)
+    option:addEventListener("tap", selectNumGames)
+
+	local optionBorder = display.newRect(sceneGroup, option.x, option.y, option.width, option.height)
+    optionBorder:setFillColor(0, 0, 0, 0)
+    optionBorder:addEventListener("tap", selectNumGames)
+
+	if(numGamesSetting == i) then
+        optionBorder:setStrokeColor(0, 0, 1)
+        optionBorder.strokeWidth = 4
+    else
+        optionBorder:setStrokeColor(.922, .910, .329)
+        optionBorder.strokeWidth = 2
+    end
+end
+
+local function numGames()
+	local str = display.newText(sceneGroup, "Number of Games: ", 0, display.contentHeight / 5, native.systemFont, fontSize)
+    str:setFillColor(.922, .910, .329)
+
+	for i = 1, 3 do
+		displayNumGamesSetting(i)
+	end
+end
+
+local function displayDifficultySetting(i)
+	local function selectDifficulty()
+		difficultySetting = i
+		redraw()
+	end
+
+	local str = ""
+	if(i == 1) then
+		str = "Normal"
+	elseif(i == 2) then
+		str = "Hard"
+	else
+		str = "Extreme"
+	end
+
+	local option = display.newText(sceneGroup, str, display.contentWidth * (i * 2) / 6, display.contentHeight * 2 / 5, native.systemFont, fontSize)
+    option:setFillColor(.922, .910, .329)
+    option:addEventListener("tap", selectDifficulty)
+
+	local optionBorder = display.newRect(sceneGroup, option.x, option.y, option.width, option.height)
+    optionBorder:setFillColor(0, 0, 0, 0)
+    optionBorder:addEventListener("tap", selectDifficulty)
+
+	if(difficultySetting == i) then
+        optionBorder:setStrokeColor(0, 0, 1)
+        optionBorder.strokeWidth = 4
+    else
+        optionBorder:setStrokeColor(.922, .910, .329)
+        optionBorder.strokeWidth = 2
+    end
+end
+
+local function difficulty()
+	local str = display.newText(sceneGroup, "Difficulty: ", 0, display.contentHeight * 2 / 5, native.systemFont, fontSize)
+    str:setFillColor(.922, .910, .329)
+
+	for i = 1, 3 do
+		displayDifficultySetting(i)
+	end
+end
+
+local function displayMinutesInQuarterSetting(i)
+	local function selectMinutes()
+		minutesInQtrSetting = i
+		redraw()
+	end
+
+	local str = ""
+	if(i == 1) then
+		str = "4"
+	elseif(i == 2) then
+		str = "8"
+	else
+		str = "12"
+	end
+
+	local option = display.newText(sceneGroup, str, display.contentWidth * (i * 2) / 6, display.contentHeight * 3 / 5, native.systemFont, fontSize)
+    option:setFillColor(.922, .910, .329)
+    option:addEventListener("tap", selectMinutes)
+
+	local optionBorder = display.newRect(sceneGroup, option.x, option.y, option.width, option.height)
+    optionBorder:setFillColor(0, 0, 0, 0)
+    optionBorder:addEventListener("tap", selectMinutes)
+
+	if(minutesInQtrSetting == i) then
+        optionBorder:setStrokeColor(0, 0, 1)
+        optionBorder.strokeWidth = 4
+    else
+        optionBorder:setStrokeColor(.922, .910, .329)
+        optionBorder.strokeWidth = 2
+    end
+end
+
+local function minutesInQuarter()
+	local str = display.newText(sceneGroup, "Minutes per Quarter: ", 0, display.contentHeight * 3 / 5, native.systemFont, fontSize)
+    str:setFillColor(.922, .910, .329)
+
+	for i = 1, 3 do
+		displayMinutesInQuarterSetting(i)
+	end
 end
 
 -- -----------------------------------------------------------------------------------
@@ -27,7 +184,20 @@ function scene:create( event )
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
-    background:addEventListener("tap", nextScene)
+
+	numGames()
+	difficulty()
+	minutesInQuarter()
+
+	local playButton = display.newText(sceneGroup, "Choose Team", display.contentCenterX, display.contentHeight * .8, native.systemFont, fontSize)
+    playButton:setFillColor(0, 0, 0)
+    playButton:addEventListener("tap", nextScene)
+
+    local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
+    buttonBorder:setStrokeColor(0, 0, 0)
+    buttonBorder.strokeWidth = 2
+    buttonBorder:setFillColor(0, 0, 0, 0)
+    buttonBorder:addEventListener("tap", nextScene)
 end
 
 
