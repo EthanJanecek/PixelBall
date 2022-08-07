@@ -12,7 +12,6 @@ function team:create(name, abbrev, logo, conference, division, color, rosterData
         players=createRoster(rosterData),
         wins=0,
         losses=0,
-        starters={},
         logo=logo,
         conf=conference,
         division=division,

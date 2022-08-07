@@ -29,12 +29,10 @@ local function findMax(teams, startIndex)
         end
 
         if(percent > maxPercent) then
-            print("New max")
             maxPercent = percent
             maxWins = teams[i].wins
             maxIndex = i
         elseif(percent == maxPercent and teams[i].wins > maxWins) then
-            print("New max")
             maxPercent = percent
             maxWins = teams[i].wins
             maxIndex = i

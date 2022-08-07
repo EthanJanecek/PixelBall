@@ -8,16 +8,31 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	local allGames = league.schedule[league.weekNum]
+	local allGames = nil
+    if(regularSeason) then
+        allGames = league.schedule[league.weekNum]
+    else
+        allGames = league.playoffs[league.weekNum]
+    end
+
     local gameInfo = league:findGameInfo(allGames, userTeam)
 	local team = league:findTeam(userTeam)
+
+	if(not regularSeason) then
+		team = league:findPlayoffTeam(userTeam)
+	end
+
 	local titleStr = ""
 
-	if(gameInfo) then
+	if(gameInfo and score.away) then
 		gameInfo.score = score
 		
 		if(gameInfo.home == userTeam) then
 			local opponent = league:findTeam(gameInfo.away)
+
+			if(not regularSeason) then
+				opponent = league:findPlayoffTeam(gameInfo.away)
+			end
 
 			if(score.home > score.away) then
 				team.wins = team.wins + 1
@@ -28,6 +43,10 @@ local function nextScene()
 			end
 		else
 			local opponent = league:findTeam(gameInfo.home)
+
+			if(not regularSeason) then
+				opponent = league:findPlayoffTeam(gameInfo.home)
+			end
 
 			if(score.home > score.away) then
 				titleStr = "You lost " .. score.home .. " - " .. score.away
@@ -60,12 +79,18 @@ function scene:create( event )
 	local sceneGroup = self.view
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
-	local allGames = league.schedule[league.weekNum]
+	local allGames = nil
+    if(regularSeason) then
+        allGames = league.schedule[league.weekNum]
+    else
+        allGames = league.playoffs[league.weekNum]
+    end
+
     local gameInfo = league:findGameInfo(allGames, userTeam)
 	local team = league:findTeam(userTeam)
 	local titleStr = ""
 
-	if(gameInfo) then
+	if(gameInfo and score.away) then
 		gameInfo.score = score
 		
 		if(gameInfo.home == userTeam) then

@@ -264,7 +264,7 @@ function move(player, angle, percent, pointTowards, collisionSize)
     local loops = 0
 
     while((detectCollision(newX, newY, Obj, collisionSize))) do
-        if(initialAngle >= 0 and initialAngle <= 180) then
+        if((initialAngle >= 0 and initialAngle <= 180) or (not player.hasBall)) then
             angle = angle + collisionAngleStep
         else
             angle = angle - collisionAngleStep
@@ -995,7 +995,7 @@ local function turnover(player, defender)
     end
 
     local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
-    local turnoverProb =  (defender.stealing - player.dribbling + 10) * distanceFactor * .7
+    local turnoverProb =  (defender.stealing - player.dribbling + 10) * distanceFactor * .5
 
     local num = math.random(1000)
 
@@ -1145,13 +1145,13 @@ local function moveZone(defender, zoneCenter, noCoverOnBallHandler, closestDefen
     elseif(ballCarrier ~= -1) then
         -- Ball carrier is in zone
         defenderCloseOut(defender, offensePlayers[ballCarrier], feetToPixels)
-    elseif(#playersInZone == 1) then
+    elseif(#playersInZone ~= 0) then
         -- Cover only other player in zone
         defenderCloseOut(defender, offensePlayers[1], feetToPixels)
-    elseif(#playersInZone >= 2) then
-        -- Cover the center location of all players in the zone
-        local center = findCenter(playersInZone)
-        calculateEndPointMovementZone(defender, {points = {center}}, offensePlayers[1])
+    -- elseif(#playersInZone >= 2) then
+    --     -- Cover the center location of all players in the zone
+    --     local center = findCenter(playersInZone)
+    --     calculateEndPointMovementZone(defender, {points = {center}}, offensePlayers[1])
     else
         -- Move to edge of zone in direction of nearest player
         local angle = getRotation(zoneCenter, offensePlayers[1].sprite)
@@ -1477,18 +1477,14 @@ local function startGame()
     Runtime:addEventListener("enterFrame", movePlayers)
 end
 
-function indexOf(table, value)
-    for i = 1, #table do
-        if(table[i] == value) then
-            return i
-        end
-    end
-
-    return -1
-end
-
 local function gameLoop()
-    local allGames = league.schedule[league.weekNum]
+    local allGames = nil
+    if(regularSeason) then
+        allGames = league.schedule[league.weekNum]
+    else
+        allGames = league.playoffs[league.weekNum]
+    end
+    
     local gameInfo = league:findGameInfo(allGames, userTeam)
     team = league:findTeam(userTeam)
     

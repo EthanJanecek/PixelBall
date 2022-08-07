@@ -21,6 +21,16 @@ function getSaveDirectory()
     end
 end
 
+function indexOf(table, value)
+    for i = 1, #table do
+        if(table[i] == value) then
+            return i
+        end
+    end
+
+    return -1
+end
+
 conversionFactor = display.contentHeight / 940
 offsetX = 240 - (330 / 2)
 centerX = display.contentCenterX
@@ -40,7 +50,7 @@ userTeam = ""
 -- Game Details
 score = {away=0, home=0}
 gameDetails = {qtr=1, min=minutesInQtr, sec=0, shotClock=24}
-gameInProgress = true
+gameInProgress = false
 lineupSwitch = {-1, -1}
 showingUserTeamStats = true
 defensiveStrategy = 1

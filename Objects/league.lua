@@ -40,7 +40,9 @@ function league:createLeague()
         minutesInQtr=minutesInQtr,
         schedule={},
         playoffs={},
-        playoffTeams={}
+        playoffTeams={},
+        regularSeason=true,
+        playoffsActive=false
     }, self)
 end
 
@@ -56,6 +58,8 @@ function league:createFromSave()
     numDays = t.numDays
     difficulty = t.difficulty
     minutesInQtr = t.minutesInQtr
+    regularSeason = t.regularSeason
+    playoffs = t.playoffsActive
 
     self.__index = self
 
@@ -199,12 +203,60 @@ function league:findTeam(name)
     return {}
 end
 
-local function getEastTeams()
+function league:findPlayoffTeam(name)
+    for i = 1, #self.playoffTeams.east do
+        local team = self.playoffTeams.east[i]
+
+        if(team.team == name) then
+            return team
+        end
+    end
+
+    for i = 1, #self.playoffTeams.west do
+        local team = self.playoffTeams.west[i]
+
+        if(team.team == name) then
+            return team
+        end
+    end
+
+    return {}
+end
+
+local function findMax(teams, startIndex)
+    local maxPercent = -1
+    local maxWins = -1
+    local maxIndex = -1
+
+
+    for i = startIndex, 15 do
+        local totalGames = teams[i].wins + teams[i].losses
+        local percent = 0
+
+        if(totalGames ~= 0) then
+            percent = teams[i].wins * 1.0 / (teams[i].wins + teams[i].losses)
+        end
+
+        if(percent > maxPercent) then
+            maxPercent = percent
+            maxWins = teams[i].wins
+            maxIndex = i
+        elseif(percent == maxPercent and teams[i].wins > maxWins) then
+            maxPercent = percent
+            maxWins = teams[i].wins
+            maxIndex = i
+        end
+    end
+
+    return maxIndex
+end
+
+function league:getEastTeams()
     local eastTeams = {}
     local num = 1
 
-    for i = 1, #league.teams do
-        local team = league.teams[i]
+    for i = 1, #self.teams do
+        local team = self.teams[i]
         if(team.conf == "East") then
             eastTeams[num] = team
             num = num + 1
@@ -221,12 +273,12 @@ local function getEastTeams()
     return eastTeams
 end
 
-local function getWestTeams()
+function league:getWestTeams()
     local westTeams = {}
     local num = 1
 
-    for i = 1, #league.teams do
-        local team = league.teams[i]
+    for i = 1, #self.teams do
+        local team = self.teams[i]
         if(team.conf == "West") then
             westTeams[num] = team
             num = num + 1
@@ -243,44 +295,59 @@ local function getWestTeams()
     return westTeams
 end
 
-local function startPlayoffs()
+function league:resetPlayoffWins()
+    for i = 1, #self.playoffTeams.east do
+        self.playoffTeams.east[i].wins = 0
+        self.playoffTeams.east[i].losses = 0
+    end
+
+    for i = 1, #self.playoffTeams.west do
+        self.playoffTeams.west[i].wins = 0
+        self.playoffTeams.west[i].losses = 0
+    end
+end
+
+function league:startPlayoffs()
+    self.regularSeason = false
     regularSeason = false
     self.weekNum = 1
 
     for i = 1, 30 do
         local weeklySchedule = {}
-        table.insert(league.playoffs, weeklySchedule)
+        table.insert(self.playoffs, weeklySchedule)
     end
 
-    local eastTeams = getEastTeams()
-    local westTeams = getWestTeams()
-    league.playoffTeams = {
+    local eastTeams = self:getEastTeams()
+    local westTeams = self:getWestTeams()
+    self.playoffTeams = {
         east = {},
         west = {}
     }
 
     for i = 1, 6 do
-        table.insert(league.playoffTeams.east, {
+        table.insert(self.playoffTeams.east, {
             team = eastTeams[i].name,
             wins = 0,
+            losses = 0,
             seed = i
         })
-        table.insert(league.playoffTeams.west, {
+        table.insert(self.playoffTeams.west, {
             team = westTeams[i].name,
             wins = 0,
+            losses = 0,
             seed = i
         })
     end
 
-    table.insert(league.playoffs[1], {away=eastTeams[8].name, home=eastTeams[7].name, score={}})
-    table.insert(league.playoffs[1], {away=eastTeams[10].name, home=eastTeams[9].name, score={}})
+    table.insert(self.playoffs[1], {away=eastTeams[8].name, home=eastTeams[7].name, score={}})
+    table.insert(self.playoffs[1], {away=eastTeams[10].name, home=eastTeams[9].name, score={}})
 
-    table.insert(league.playoffs[1], {away=westTeams[8].name, home=westTeams[7].name, score={}})
-    table.insert(league.playoffs[1], {away=westTeams[10].name, home=westTeams[9].name, score={}})
+    table.insert(self.playoffs[1], {away=westTeams[8].name, home=westTeams[7].name, score={}})
+    table.insert(self.playoffs[1], {away=westTeams[10].name, home=westTeams[9].name, score={}})
 end
 
-local function playinRoundTwo()
-    local east1Game = league.playoffs[1][1]
+function league:playinRoundTwo()
+    local east1Game = self.playoffs[1][1]
     local winnerEast1 = east1Game.home
     local loserEast1 = east1Game.away
 
@@ -289,14 +356,14 @@ local function playinRoundTwo()
         loserEast1 = east1Game.home
     end
 
-    local east2Game = league.playoffs[1][2]
+    local east2Game = self.playoffs[1][2]
     local winnerEast2 = east2Game.home
 
     if(east2Game.score.away > east2Game.score.home) then
         winnerEast2 = east2Game.away
     end
 
-    local west1Game = league.playoffs[1][3]
+    local west1Game = self.playoffs[1][3]
     local winnerWest1 = west1Game.home
     local loserWest1 = west1Game.away
 
@@ -305,244 +372,263 @@ local function playinRoundTwo()
         loserWest1 = west1Game.home
     end
 
-    local west2Game = league.playoffs[1][4]
+    local west2Game = self.playoffs[1][4]
     local winnerWest2 = west2Game.home
 
     if(west2Game.score.away > west2Game.score.home) then
         winnerWest2 = west2Game.away
     end
 
-    table.insert(league.playoffTeams.east, {
+    table.insert(self.playoffTeams.east, {
         team = winnerEast1,
         wins = 0,
+        losses = 0,
         seed = 7
     })
-    table.insert(league.playoffTeams.west, {
+    table.insert(self.playoffTeams.west, {
         team = winnerWest1,
         wins = 0,
+        losses = 0,
         seed = 7
     })
 
-    table.insert(league.playoffs[2], {away=winnerEast2, home=loserEast1, score={}})
-    table.insert(league.playoffs[2], {away=winnerWest2, home=loserWest1, score={}})
+    table.insert(self.playoffs[2], {away=winnerEast2, home=loserEast1, score={}})
+    table.insert(self.playoffs[2], {away=winnerWest2, home=loserWest1, score={}})
 end
 
-local function firstRoundSchedule()
+function league:firstRoundSchedule()
     for i = 1, 4 do
-        local team1 = league.playoffTeams.east[i]
-        local team2 = league.playoffTeams.east[9 - i]
+        local team1 = self.playoffTeams.east[i].team
+        local team2 = self.playoffTeams.east[9 - i].team
 
-        table.insert(league.playoffs[3], {away=team2, home=team1, score={}})
-        table.insert(league.playoffs[4], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[3], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[4], {away=team2, home=team1, score={}})
 
-        table.insert(league.playoffs[5], {away=team1, home=team2, score={}})
-        table.insert(league.playoffs[6], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[5], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[6], {away=team1, home=team2, score={}})
 
-        table.insert(league.playoffs[7], {away=team2, home=team1, score={}})
-        table.insert(league.playoffs[8], {away=team1, home=team2, score={}})
-        table.insert(league.playoffs[9], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[7], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[8], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[9], {away=team2, home=team1, score={}})
     end
 
     for i = 1, 4 do
-        local team1 = league.playoffTeams.west[i]
-        local team2 = league.playoffTeams.west[9 - i]
+        local team1 = self.playoffTeams.west[i].team
+        local team2 = self.playoffTeams.west[9 - i].team
 
-        table.insert(league.playoffs[3], {away=team2, home=team1, score={}})
-        table.insert(league.playoffs[4], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[3], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[4], {away=team2, home=team1, score={}})
 
-        table.insert(league.playoffs[5], {away=team1, home=team2, score={}})
-        table.insert(league.playoffs[6], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[5], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[6], {away=team1, home=team2, score={}})
 
-        table.insert(league.playoffs[7], {away=team2, home=team1, score={}})
-        table.insert(league.playoffs[8], {away=team1, home=team2, score={}})
-        table.insert(league.playoffs[9], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[7], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[8], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[9], {away=team2, home=team1, score={}})
     end
 end
 
-local function firstRound()
+function league:firstRound()
+    self.playoffsActive = true
     playoffs = true
     
-    local eastGame = league.playoffs[2][1]
+    local eastGame = self.playoffs[2][1]
     local winnerEast = eastGame.home
 
     if(eastGame.score.away > eastGame.score.home) then
         winnerEast = eastGame.away
     end
 
-    local westGame = league.playoffs[2][2]
+    local westGame = self.playoffs[2][2]
     local winnerWest = westGame.home
 
     if(westGame.score.away > westGame.score.home) then
         winnerWest = westGame.away
     end
 
-    table.insert(league.playoffTeams.east, {
+    table.insert(self.playoffTeams.east, {
         team = winnerEast,
         wins = 0,
+        losses = 0,
         seed = 8
     })
-    table.insert(league.playoffTeams.west, {
+    table.insert(self.playoffTeams.west, {
         team = winnerWest,
         wins = 0,
+        losses = 0,
         seed = 8
     })
 
-    firstRoundSchedule()
+    self:resetPlayoffWins()
+    self:firstRoundSchedule()
 end
 
-local function filterOutLosers()
+function league:filterOutLosers()
     local teamsToRemoveEast = {}
-    for i = 1, #league.playoffTeams.east do
-        if league.playoffTeams.east[i].wins < 4 then
-            table.insert(teamsToRemoveEast, league.playoffTeams.east[i])
+    for i = 1, #self.playoffTeams.east do
+        if self.playoffTeams.east[i].wins < 4 then
+            table.insert(teamsToRemoveEast, self.playoffTeams.east[i])
         end
     end
 
     local teamsToRemoveWest = {}
-    for i = 1, #league.playoffTeams.west do
-        if league.playoffTeams.west[i].wins < 4 then
-            table.insert(teamsToRemoveWest, league.playoffTeams.west[i])
+    for i = 1, #self.playoffTeams.west do
+        if self.playoffTeams.west[i].wins < 4 then
+            table.insert(teamsToRemoveWest, self.playoffTeams.west[i])
         end
     end
 
     for i = 1, #teamsToRemoveEast do
-        local index = indexOf(league.playoffTeams.east, teamsToRemoveEast[i])
-        table.remove(league.playoffTeams.east, index)
+        local index = indexOf(self.playoffTeams.east, teamsToRemoveEast[i])
+        table.remove(self.playoffTeams.east, index)
     end
 
     for i = 1, #teamsToRemoveWest do
-        local index = indexOf(league.playoffTeams.west, teamsToRemoveWest[i])
-        table.remove(league.playoffTeams.west, index)
+        local index = indexOf(self.playoffTeams.west, teamsToRemoveWest[i])
+        table.remove(self.playoffTeams.west, index)
     end
 end
 
-local function secondRoundSchedule()
+function league:secondRoundSchedule()
     local startGameIndex = 10
 
     for i = 1, 2 do
-        local team1 = league.playoffTeams.east[i]
-        local team2 = league.playoffTeams.east[5 - i]
+        local team1 = self.playoffTeams.east[i].team
+        local team2 = self.playoffTeams.east[5 - i].team
 
-        table.insert(league.playoffs[startGameIndex], {away=team2, home=team1, score={}})
-        table.insert(league.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[startGameIndex], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
 
-        table.insert(league.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
-        table.insert(league.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
 
-        table.insert(league.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
-        table.insert(league.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
-        table.insert(league.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
     end
 
     for i = 1, 2 do
-        local team1 = league.playoffTeams.west[i]
-        local team2 = league.playoffTeams.west[5 - i]
+        local team1 = self.playoffTeams.west[i].team
+        local team2 = self.playoffTeams.west[5 - i].team
 
-        table.insert(league.playoffs[startGameIndex], {away=team2, home=team1, score={}})
-        table.insert(league.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[startGameIndex], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
 
-        table.insert(league.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
-        table.insert(league.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
 
-        table.insert(league.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
-        table.insert(league.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
-        table.insert(league.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
+        table.insert(self.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
+        table.insert(self.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
     end
 end
 
-local function secondRound()
-    filterOutLosers()
-    secondRoundSchedule()
+function league:secondRound()
+    self:filterOutLosers()
+    self:resetPlayoffWins()
+    self:secondRoundSchedule()
 end
 
-local function conferenceChampionshipSchedule()
+function league:conferenceChampionshipSchedule()
     local startGameIndex = 17
 
-    local team1 = league.playoffTeams.east[1]
-    local team2 = league.playoffTeams.east[2]
+    local team1 = self.playoffTeams.east[1].team
+    local team2 = self.playoffTeams.east[2].team
 
-    table.insert(league.playoffs[startGameIndex], {away=team2, home=team1, score={}})
-    table.insert(league.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
 
-    table.insert(league.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
-    table.insert(league.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
 
-    table.insert(league.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
-    table.insert(league.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
-    table.insert(league.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
 
-    team1 = league.playoffTeams.west[1]
-    team2 = league.playoffTeams.west[2]
+    team1 = self.playoffTeams.west[1].team
+    team2 = self.playoffTeams.west[2].team
 
-    table.insert(league.playoffs[startGameIndex], {away=team2, home=team1, score={}})
-    table.insert(league.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
 
-    table.insert(league.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
-    table.insert(league.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
 
-    table.insert(league.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
-    table.insert(league.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
-    table.insert(league.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
 end
 
-local function conferenceChampionship()
-    filterOutLosers()
-    conferenceChampionshipSchedule()
+function league:conferenceChampionship()
+    self:filterOutLosers()
+    self:resetPlayoffWins()
+    self:conferenceChampionshipSchedule()
 end
 
-local function finalsSchedule()
+function league:finalsSchedule()
     local startGameIndex = 24
 
-    local team1 = league.playoffTeams.east[1]
-    local team2 = league.playoffTeams.west[1]
+    local team1 = self.playoffTeams.east[1].team
+    local team2 = self.playoffTeams.west[1].team
 
-    if(league:findTeam(team1.team).wins < league:findTeam(team2.team)) then
-        team1 = league.playoffTeams.west[1]
-        team2 = league.playoffTeams.east[1]
+    if(self:findPlayoffTeam(team1).wins < self:findPlayoffTeam(team2).wins) then
+        team1 = self.playoffTeams.west[1].team
+        team2 = self.playoffTeams.east[1].team
     end
 
-    table.insert(league.playoffs[startGameIndex], {away=team2, home=team1, score={}})
-    table.insert(league.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
 
-    table.insert(league.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
-    table.insert(league.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 2], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 3], {away=team1, home=team2, score={}})
 
-    table.insert(league.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
-    table.insert(league.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
-    table.insert(league.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 4], {away=team2, home=team1, score={}})
+    table.insert(self.playoffs[startGameIndex + 5], {away=team1, home=team2, score={}})
+    table.insert(self.playoffs[startGameIndex + 6], {away=team2, home=team1, score={}})
 end
 
-local function finals()
-    filterOutLosers()
-    finalsSchedule()
+function league:finals()
+    self:filterOutLosers()
+    self:resetPlayoffWins()
+    self:finalsSchedule()
 end
 
 function league:nextWeek()
-    local allGames = self.schedule[self.weekNum]
+    local allGames = nil
+    if(regularSeason) then
+        allGames = self.schedule[self.weekNum]
+    else
+        allGames = self.playoffs[self.weekNum]
+    end
 
     for i = 1, #allGames do
         local game = allGames[i]
-        if(game.away ~= userTeam and game.home ~= userTeam) then
-            local score = simulateGame(self:findTeam(game.away), self:findTeam(game.home))
-            game.score = score
+
+        if(playoffs) then
+            local away = self:findPlayoffTeam(game.away)
+            local home = self:findPlayoffTeam(game.home)
+
+            if((away.wins < 4 and home.wins < 4) and (game.away ~= userTeam and game.home ~= userTeam)) then
+                print(game.away .. " vs. " .. game.home)
+
+                local score = simulateGame(self:findTeam(game.away), self:findTeam(game.home))
+                game.score = score
+
+                if(game.score.away >= game.score.home) then
+                    away.wins = away.wins + 1
+                else
+                    home.wins = home.wins + 1
+                end
+            end
+        else
+            if(game.away ~= userTeam and game.home ~= userTeam) then
+                local score = simulateGame(self:findTeam(game.away), self:findTeam(game.home))
+                game.score = score
+            end
         end
     end
 
     self.weekNum = self.weekNum + 1
-
-    if(self.weekNum == numDays + 1) then
-        startPlayoffs()
-    elseif(not regularSeason and self.weekNum == 2) then
-        playinRoundTwo()
-    elseif(not regularSeason and self.weekNum == 3) then
-        firstRound()
-    elseif(not regularSeason and self.weekNum == 10) then
-        secondRound()
-    elseif(not regularSeason and self.weekNum == 17) then
-        conferenceChampionship()
-    elseif(not regularSeason and self.weekNum == 24) then
-        finals()
-    end
 end
 
 local function changeStamina(player, diff)

@@ -35,7 +35,6 @@ local function showGameScore(game, xIndex, yIndex)
 
     local boxscoreBox = display.newRect(sceneGroup, x + 50, y + 6, 100 + imageSize, 12 + imageSize)
     boxscoreBox:setFillColor(.286, .835, .961)
-    boxscoreBox:addEventListener("tap", seeBoxscore)
 
     local awayLogo = display.newImageRect(sceneGroup, awayTeam.logo, imageSize, imageSize)
     awayLogo.x = x
@@ -45,18 +44,34 @@ local function showGameScore(game, xIndex, yIndex)
     homeLogo.x = x + 100
     homeLogo.y = y
 
-    local scoreStr = game.score.away .. " - " .. game.score.home
-    local score = display.newText(sceneGroup, scoreStr, 0, y, native.systemFont, 16)
-    score.x = x + imageSize + ((110 - score.width) / 2)
-    score:setFillColor(.922, .910, .329)
+    if(game.score.away) then
+        boxscoreBox:addEventListener("tap", seeBoxscore)
+        local scoreStr = game.score.away .. " - " .. game.score.home
+        local score = display.newText(sceneGroup, scoreStr, 0, y, native.systemFont, 16)
+        score.x = x + imageSize + ((110 - score.width) / 2)
+        score:setFillColor(.922, .910, .329)
+    end
 
-    local awayRecordStr = "(" .. awayTeam.wins .. "-" .. awayTeam.losses .. ")"
-    local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
-    awayRecord:setFillColor(.922, .910, .329)
+    if(regularSeason) then
+        local awayRecordStr = "(" .. awayTeam.wins .. "-" .. awayTeam.losses .. ")"
+        local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
+        awayRecord:setFillColor(.922, .910, .329)
 
-    local homeRecordStr = "(" .. homeTeam.wins .. "-" .. homeTeam.losses .. ")"
-    local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
-    homeRecord:setFillColor(.922, .910, .329)
+        local homeRecordStr = "(" .. homeTeam.wins .. "-" .. homeTeam.losses .. ")"
+        local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
+        homeRecord:setFillColor(.922, .910, .329)
+    elseif(playoffs) then
+        awayTeam = league:findPlayoffTeam(game.away)
+        homeTeam = league:findPlayoffTeam(game.home)
+
+        local awayRecordStr = awayTeam.wins
+        local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
+        awayRecord:setFillColor(.922, .910, .329)
+
+        local homeRecordStr = homeTeam.wins
+        local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
+        homeRecord:setFillColor(.922, .910, .329)
+    end
 end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -73,10 +88,29 @@ function scene:create( event )
     background.y = display.contentCenterY
     background:addEventListener("tap", nextWeek)
 
-    local allGames = league.schedule[league.weekNum - 1]
+    local allGames = nil
+    if(regularSeason) then
+        allGames = league.schedule[league.weekNum - 1]
+    else
+        allGames = league.playoffs[league.weekNum - 1]
+    end
 
     for i = 1, #allGames do
         showGameScore(allGames[i], (i - 1) % 3, math.floor((i - 1) / 3))
+    end
+
+    if(league.weekNum == numDays + 1) then
+        league:startPlayoffs()
+    elseif(not regularSeason and league.weekNum == 2) then
+        league:playinRoundTwo()
+    elseif(not regularSeason and league.weekNum == 3) then
+        league:firstRound()
+    elseif(not regularSeason and league.weekNum == 10) then
+        league:secondRound()
+    elseif(not regularSeason and league.weekNum == 17) then
+        league:conferenceChampionship()
+    elseif(not regularSeason and league.weekNum == 24) then
+        league:finals()
     end
 end
 

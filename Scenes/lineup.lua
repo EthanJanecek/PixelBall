@@ -25,6 +25,12 @@ local function switchPlayers()
     team.players[lineupSwitch[1]] = team.players[lineupSwitch[2]]
     team.players[lineupSwitch[2]] = tmp
 
+    if(not gameInProgress) then
+        local tmpStarter = team.players[lineupSwitch[1]].starter
+        team.players[lineupSwitch[1]].starter = team.players[lineupSwitch[2]].starter
+        team.players[lineupSwitch[2]].starter = tmpStarter
+    end
+
     lineupSwitch = {-1, -1}
 end
 

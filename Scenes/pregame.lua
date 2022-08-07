@@ -14,6 +14,7 @@ end
 
 local function toGame()
     gameInProgress = true
+    score = {away=0, home=0}
     composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.game")
 end
@@ -62,7 +63,7 @@ function scene:create( event )
     league:resetTeams()
 
     lineupSwitch = {-1, -1}
-    score = {away=0, home=0}
+    score = {}
     gameDetails = {qtr=1, min=minutesInQtr, sec=0, shotClock=24}
     qtrScores = {}
     showingUserTeamStats = true
@@ -73,11 +74,37 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local allGames = league.schedule[league.weekNum]
+    local allGames = nil
+    if(regularSeason) then
+        allGames = league.schedule[league.weekNum]
+    else
+        allGames = league.playoffs[league.weekNum]
+    end
+
     local gameInfo = league:findGameInfo(allGames, userTeam)
+    if((gameInfo) and (not regularSeason) and (league:findPlayoffTeam(gameInfo.home).wins >= 4 or league:findPlayoffTeam(gameInfo.away).wins >= 4)) then
+        gameInfo = nil
+    end
 
     if(regularSeason) then
         local dayStr = "Day: " .. league.weekNum .. "/" .. numDays
+        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, 32, native.systemFont, 32)
+        day:setFillColor(.922, .910, .329)
+    elseif(playoffs) then
+        local roundString = "Round 1"
+        if(league.weekNum >= 10 and league.weekNum < 17) then
+            roundString = "Round 2"
+        elseif(league.weekNum >= 17 and league.weekNum < 24) then
+            roundString = "Conference Championship"
+        elseif(league.weekNum >= 24) then
+            roundString = "Finals"
+        end
+
+        local dayStr = "Playoffs - " .. roundString
+        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, 32, native.systemFont, 32)
+        day:setFillColor(.922, .910, .329)
+    else
+        local dayStr = "Play-In"
         local day = display.newText(sceneGroup, dayStr, display.contentCenterX, 32, native.systemFont, 32)
         day:setFillColor(.922, .910, .329)
     end
