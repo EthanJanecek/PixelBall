@@ -39,6 +39,11 @@ local function createPlays()
     composer.gotoScene("Scenes.play_creation")
 end
 
+local function mvpTracker()
+    composer.removeScene("Scenes.pregame")
+    composer.gotoScene("Scenes.mvp_tracker")
+end
+
 local function saveGame()
     local path = getSaveDirectory()
     local file, errorString = io.open(path, "w")
@@ -88,34 +93,34 @@ function scene:create( event )
 
     if(regularSeason) then
         local dayStr = "Day: " .. league.weekNum .. "/" .. numDays
-        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, 32, native.systemFont, 32)
+        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
         day:setFillColor(.922, .910, .329)
     elseif(playoffs) then
         local roundString = "Round 1"
         if(league.weekNum >= 10 and league.weekNum < 17) then
             roundString = "Round 2"
         elseif(league.weekNum >= 17 and league.weekNum < 24) then
-            roundString = "Conference Championship"
+            roundString = "Conf. Finals"
         elseif(league.weekNum >= 24) then
             roundString = "Finals"
         end
 
         local dayStr = "Playoffs - " .. roundString
-        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, 32, native.systemFont, 32)
+        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
         day:setFillColor(.922, .910, .329)
     else
         local dayStr = "Play-In"
-        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, 32, native.systemFont, 32)
+        local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
         day:setFillColor(.922, .910, .329)
     end
 
     if(gameInfo == nil) then
         local title = "Off Day"
 
-        local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
+        local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 48)
         title:setFillColor(.922, .910, .329)
 
-        local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY * .9, native.systemFont, 32)
+        local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
         playButton:setFillColor(0, 0, 0)
         playButton:addEventListener("tap", nextWeek)
 
@@ -127,10 +132,10 @@ function scene:create( event )
     else
         local titleStr = gameInfo.away .. " vs. " .. gameInfo.home
 
-        local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY / 2, native.systemFont, 48)
+        local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 48)
         title:setFillColor(.922, .910, .329)
 
-        local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY * .9, native.systemFont, 32)
+        local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
         playButton:setFillColor(0, 0, 0)
         playButton:addEventListener("tap", toGame)
 
@@ -140,7 +145,7 @@ function scene:create( event )
         buttonBorder:setFillColor(0, 0, 0, 0)
         buttonBorder:addEventListener("tap", toGame)
 
-        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
+        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX * .5, display.contentCenterY * 1.5, native.systemFont, 32)
         lineupButton:setFillColor(0, 0, 0)
         lineupButton:addEventListener("tap", changeLineup)
 
@@ -150,7 +155,7 @@ function scene:create( event )
         lineupButtonBorder:setFillColor(0, 0, 0, 0)
         lineupButtonBorder:addEventListener("tap", changeLineup)
 
-        local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX, display.contentCenterY * 1.5, native.systemFont, 32)
+        local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX * 1.5, display.contentCenterY * 1.5, native.systemFont, 32)
         playCreationButton:setFillColor(0, 0, 0)
         playCreationButton:addEventListener("tap", createPlays)
 
@@ -181,7 +186,7 @@ function scene:create( event )
     saveButtonBorder:setFillColor(0, 0, 0, 0)
     saveButtonBorder:addEventListener("tap", saveGame)
 
-    local standingsButton = display.newText(sceneGroup, "Standings", display.contentWidth, 20, native.systemFont, 32)
+    local standingsButton = display.newText(sceneGroup, "Standings", display.contentCenterX, 20, native.systemFont, 32)
     standingsButton:setFillColor(0, 0, 0)
     standingsButton:addEventListener("tap", seeStandings)
 
@@ -190,6 +195,16 @@ function scene:create( event )
     standingsButtonBorder.strokeWidth = 2
     standingsButtonBorder:setFillColor(0, 0, 0, 0)
     standingsButtonBorder:addEventListener("tap", seeStandings)
+
+    local mvpTrackerButton = display.newText(sceneGroup, "Award Tracking", display.contentWidth, 20, native.systemFont, 32)
+    mvpTrackerButton:setFillColor(0, 0, 0)
+    mvpTrackerButton:addEventListener("tap", mvpTracker)
+
+    local mvpTrackerButtonBorder = display.newRect(sceneGroup, mvpTrackerButton.x, mvpTrackerButton.y, mvpTrackerButton.width, mvpTrackerButton.height)
+    mvpTrackerButtonBorder:setStrokeColor(0, 0, 0)
+    mvpTrackerButtonBorder.strokeWidth = 2
+    mvpTrackerButtonBorder:setFillColor(0, 0, 0, 0)
+    mvpTrackerButtonBorder:addEventListener("tap", mvpTracker)
 end
 
 

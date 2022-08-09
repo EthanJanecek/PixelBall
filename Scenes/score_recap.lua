@@ -14,6 +14,11 @@ local function nextWeek()
     composer.gotoScene("Scenes.pregame")
 end
 
+local function endSeason()
+    composer.removeScene("Scenes.score_recap")
+    composer.gotoScene("Scenes.champions")
+end
+
 local function showGameScore(game, xIndex, yIndex)
     local function seeBoxscore()
         local options = {
@@ -71,6 +76,13 @@ local function showGameScore(game, xIndex, yIndex)
         local homeRecordStr = homeTeam.wins
         local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
         homeRecord:setFillColor(.922, .910, .329)
+
+        local awaySeed = display.newText(sceneGroup, awayTeam.seed, awayLogo.x - 5 - (awayLogo.width / 2), awayLogo.y, native.systemFont, 12)
+        awaySeed:setFillColor(.922, .910, .329)
+
+        local homeSeed = display.newText(sceneGroup, homeTeam.seed, homeLogo.x + 5 + (homeLogo.width / 2), homeLogo.y, native.systemFont, 12)
+        homeSeed:setFillColor(.922, .910, .329)
+
     end
 end
 -- -----------------------------------------------------------------------------------
@@ -111,6 +123,8 @@ function scene:create( event )
         league:conferenceChampionship()
     elseif(not regularSeason and league.weekNum == 24) then
         league:finals()
+    elseif(not regularSeason and league.weekNum == 31) then
+        endSeason()
     end
 end
 

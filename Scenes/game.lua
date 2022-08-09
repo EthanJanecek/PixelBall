@@ -524,6 +524,13 @@ local function addDefenseStats()
     end
 end
 
+local function adjustPlusMinus(offense, defense, points)
+    for i = 1, 5 do
+        offense.players[i].gameStats.plusMinus = offense.players[i].gameStats.plusMinus + points
+        defense.players[i].gameStats.plusMinus = defense.players[i].gameStats.plusMinus - points
+    end
+end
+
 function endPossession()
     endedPossession = true
     local message = ""
@@ -534,6 +541,7 @@ function endPossession()
     background.y = display.contentCenterY
 
     if(result == "2") then
+        adjustPlusMinus(team, opponent, 2)
         if(userIsHome) then
             score.home = score.home + 2
         else
@@ -545,6 +553,7 @@ function endPossession()
         team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1
         team.players[userPlayer].gameStats.twoPM = team.players[userPlayer].gameStats.twoPM + 1
     elseif(result == "3") then
+        adjustPlusMinus(team, opponent, 3)
         if(userIsHome) then
             score.home = score.home + 3
         else
@@ -698,6 +707,12 @@ local function calculateShotEndPosition(rotation, dist)
 end
 
 local function finishShot()
+    local defensePlayers = {unpack(opponent.players, 1, 5)}
+    table.sort(defensePlayers, function (a, b)
+        return getDist(team.players[userPlayer].sprite, a.sprite) < getDist(team.players[userPlayer].sprite, b.sprite)
+    end)
+    local defender = defensePlayers[1]
+
     team.players[userPlayer].hasBall = false
     holdingShoot = false
     playing = false
@@ -717,6 +732,7 @@ local function finishShot()
     local blocked = isBlocked(team.players[userPlayer])
 
     if(blocked) then
+        defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
         result = "Blocked"
 
         pts = calculateShotPoints()
@@ -743,9 +759,12 @@ local function finishShot()
 
         if(math.abs(distToHoop - dist) <= deadzone) then
             result = calculateShotPoints()
+            defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
+            defender.gameStats.pointsAgainst = defender.gameStats.pointsAgainst + result
         else
             result = "Miss"
             pts = calculateShotPoints()
+            defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
 
             if pts == "2" then
                 team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1

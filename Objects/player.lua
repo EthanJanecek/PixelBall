@@ -7,6 +7,7 @@ function player:createRandom()
 
     return setmetatable({
         name = "Player " .. tostring(math.random(1, 10000)),
+        years = math.random(1, 10),
         dribbling = math.random(1, 10),
         closeShot = math.random(1, 10),
         midRange = math.random(1, 10),
@@ -40,11 +41,12 @@ function player:createRandom()
 end
 
 function player:createPlayer(name, dribbling, closeShot, midRange, three, finishing, stealing, blocking, contestingInt, contestingExt, 
-                speed, stamina, passing, ballSpeed, quickness, passDefending, strength, height, number, starter)
+                speed, stamina, passing, ballSpeed, quickness, passDefending, strength, height, number, years, starter)
     self.__index = self
 
     return setmetatable({
         name = name,
+        years = tonumber(years),
         dribbling = tonumber(dribbling),
         closeShot = tonumber(closeShot),
         midRange = tonumber(midRange),

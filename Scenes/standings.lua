@@ -4,6 +4,9 @@ local scene = composer.newScene()
 local sceneGroup = nil
 local json = require( "json" )
 
+local imageSize = 30
+local offsetY = 40
+
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
@@ -117,6 +120,56 @@ local function drawTeam(team, row)
     end
 end
 
+local function showSeries(team1, team2, xIndex, yIndex)
+    local x = display.contentCenterX * xIndex
+    local y = yIndex * (display.contentHeight / 5)
+
+    local awayLogo = display.newImageRect(sceneGroup, league:findTeam(team1.team).logo, imageSize, imageSize)
+    awayLogo.x = x
+    awayLogo.y = y
+
+    local homeLogo = display.newImageRect(sceneGroup, league:findTeam(team2.team).logo, imageSize, imageSize)
+    homeLogo.x = x + 100
+    homeLogo.y = y
+
+    local awayRecordStr = team1.wins
+    local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
+    awayRecord:setFillColor(.922, .910, .329)
+
+    local homeRecordStr = team2.wins
+    local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
+    homeRecord:setFillColor(.922, .910, .329)
+
+    local awaySeed = display.newText(sceneGroup, team1.seed, awayLogo.x - 5 - (awayLogo.width / 2), awayLogo.y, native.systemFont, 12)
+    awaySeed:setFillColor(.922, .910, .329)
+
+    local homeSeed = display.newText(sceneGroup, team2.seed, homeLogo.x + 5 + (homeLogo.width / 2), homeLogo.y, native.systemFont, 12)
+    homeSeed:setFillColor(.922, .910, .329)
+end
+
+local function drawPlayoffStandings()
+    if(league.weekNum >= 24) then
+        -- Finals
+        showSeries(league.playoffTeams.west[1], league.playoffTeams.east[1], 1, 1)
+    else
+        local numWestTeams = #league.playoffTeams.west
+        for i = 1, (numWestTeams / 2) do
+            local team1 = league.playoffTeams.west[i]
+            local team2 = league.playoffTeams.west[numWestTeams + 1 - i]
+    
+            showSeries(team1, team2, .33, i)
+        end
+
+        local numEastTeams = #league.playoffTeams.east
+        for i = 1, (numEastTeams / 2) do
+            local team1 = league.playoffTeams.east[i]
+            local team2 = league.playoffTeams.east[numEastTeams + 1 - i]
+    
+            showSeries(team1, team2, 1.33, i)
+        end
+    end
+end
+
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -142,12 +195,17 @@ function scene:create( event )
     buttonBorder:addEventListener("tap", nextScene)
 
     drawHeaders()
-    local westTeams = getWestTeams()
-    local eastTeams = getEastTeams()
 
-    for i = 1, 15 do
-        drawTeam(westTeams[i], i)
-        drawTeam(eastTeams[i], i)
+    if(playoffs) then
+        drawPlayoffStandings()
+    else
+        local westTeams = getWestTeams()
+        local eastTeams = getEastTeams()
+
+        for i = 1, 15 do
+            drawTeam(westTeams[i], i)
+            drawTeam(eastTeams[i], i)
+        end
     end
 end
 

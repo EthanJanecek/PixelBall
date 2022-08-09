@@ -839,6 +839,13 @@ local function blocked(player, defender)
     end
 end
 
+local function adjustPlusMinus(offense, defense, points)
+    for i = 1, 5 do
+        offense.players[i].gameStats.plusMinus = offense.players[i].gameStats.plusMinus + points
+        defense.players[i].gameStats.plusMinus = defense.players[i].gameStats.plusMinus - points
+    end
+end
+
 function simulatePossession(offense, defense, defenseStrategy)
     local defensiveStrategy = defenseStrategy or 1
     subPlayers(offense)
@@ -969,22 +976,29 @@ function simulatePossession(offense, defense, defenseStrategy)
     elseif(blocked(player, defender)) then
         points = 0
         defender.gameStats.blocks = defender.gameStats.blocks + 1
+        defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
         message = "Blocked"
     end
 
     changeTeamStamina(offense, defense, player, defender)
 
     if shotPoints == 2 then
+        defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
+        defender.gameStats.pointsAgainst = defender.gameStats.pointsAgainst + points
         player.gameStats.twoPA = player.gameStats.twoPA + 1
 
         if points ~= 0 then
+            adjustPlusMinus(offense, defense, 2)
             player.gameStats.points = player.gameStats.points + 2
             player.gameStats.twoPM = player.gameStats.twoPM + 1
         end
     else
+        defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
+        defender.gameStats.pointsAgainst = defender.gameStats.pointsAgainst + points
         player.gameStats.threePA = player.gameStats.threePA + 1
 
         if points ~= 0 then
+            adjustPlusMinus(offense, defense, 3)
             player.gameStats.points = player.gameStats.points + 3
             player.gameStats.threePM = player.gameStats.threePM + 1
         end

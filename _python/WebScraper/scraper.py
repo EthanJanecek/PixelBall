@@ -3,7 +3,9 @@ from bs4 import BeautifulSoup
 import csv
 import unidecode
 import re
+import cloudscraper
 
+scraper = cloudscraper.create_scraper() 
 url_base = "https://www.2kratings.com/teams/"
 
 teams = ["philadelphia-76ers", "milwaukee-bucks", "chicago-bulls", "charlotte-hornets", "new-york-knicks", "miami-heat", "washington-wizards", "atlanta-hawks", 
@@ -20,8 +22,9 @@ for team in teams:
         print()
         print(team)
         spamwriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        page = requests.get(url_base + team)
-        teamPage = BeautifulSoup(page.content, "html.parser")
+        #page = requests.get(url_base + team)
+        page = scraper.get(url_base + team).text
+        teamPage = BeautifulSoup(page, "html.parser")
 
         playerLabel = teamPage.find("th", string="Player")
         playerTable = playerLabel.parent.parent.parent
@@ -44,8 +47,9 @@ for team in teams:
                 playerAttrs = []
                 playerAttrs.append(nameToLook)
 
-                page2 = requests.get(player["href"])
-                playerPage = BeautifulSoup(page2.content, "html.parser")
+                #page2 = requests.get(player["href"])
+                page2 = scraper.get(player["href"]).text
+                playerPage = BeautifulSoup(page2, "html.parser")
                 statsDiv = playerPage.find(id="nav-attributes")
 
                 for stat in stats:
@@ -64,10 +68,16 @@ for team in teams:
                 # Get height and number
                 heightElement = playerPage.find(text=lambda t: "Height:" in t).parent
                 numberElement = playerPage.find(text=lambda t: "Jersey: #" in t)
+                yearsElement = playerPage.find(text=lambda t: "Year(s) in the NBA:" in t)
 
                 height = heightElement.find("span").text.split(" ")[0]
                 numberStr = numberElement.split("#")[1]
                 number = int(numberStr)
+
+                years = 1
+                if(yearsElement):
+                    yearsStr = yearsElement.split(": ")[1]
+                    years = int(yearsStr)
                 
                 heightParts = re.split("'|\"", height)
                 heightInInches = int(heightParts[0]) * 12 + int(heightParts[1])
@@ -79,5 +89,6 @@ for team in teams:
                 
                 playerAttrs.append(heightValue)
                 playerAttrs.append(number)
+                playerAttrs.append(years)
                 spamwriter.writerow(playerAttrs)
 
