@@ -56,7 +56,7 @@ local deadzoneMin = 2
 local shootingScale = 1.3
 
 local defenseScale = 3
-local zoneSize = 3 * feetToPixels
+local zoneSize = 2.5 * feetToPixels
 
 collisionAngleStep = 5
 collisionRadius = .75 * feetToPixels
@@ -1014,7 +1014,7 @@ local function turnover(player, defender)
     end
 
     local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
-    local turnoverProb =  (defender.stealing - player.dribbling + 10) * distanceFactor * .5
+    local turnoverProb =  ((defender.stealing * staminaPercent(defender)) - (player.dribbling * staminaPercent(player)) + 10) * distanceFactor * .5
 
     local num = math.random(1000)
 
@@ -1161,16 +1161,16 @@ local function moveZone(defender, zoneCenter, noCoverOnBallHandler, closestDefen
     if(noCoverOnBallHandler and closestDefender == defender) then
         -- If nobody is covering ball carrier and this defender is the closest defender, move him to ball carrier
         defenderCloseOut(defender, team.players[userPlayer], feetToPixels)
-    elseif(ballCarrier ~= -1) then
+    elseif(ballCarrier ~= -1 and closestDefender == defender) then
         -- Ball carrier is in zone
         defenderCloseOut(defender, offensePlayers[ballCarrier], feetToPixels)
-    elseif(#playersInZone ~= 0) then
+    elseif(#playersInZone == 1) then
         -- Cover only other player in zone
         defenderCloseOut(defender, offensePlayers[1], feetToPixels)
-    -- elseif(#playersInZone >= 2) then
-    --     -- Cover the center location of all players in the zone
-    --     local center = findCenter(playersInZone)
-    --     calculateEndPointMovementZone(defender, {points = {center}}, offensePlayers[1])
+    elseif(#playersInZone >= 2) then
+        -- Cover the center location of all players in the zone
+        local center = findCenter(playersInZone)
+        calculateEndPointMovementZone(defender, {points = {center}}, offensePlayers[1])
     else
         -- Move to edge of zone in direction of nearest player
         local angle = getRotation(zoneCenter, offensePlayers[1].sprite)
@@ -1211,7 +1211,17 @@ local function moveDefense()
         for i = 1, 5 do
             if(activeDefense.aggresiveness == -1) then
                 -- Scale based on how good of a shooter they are
-                distAway = math.abs(team.players[i].midRange - 10) * (feetToPixels / 2.5)
+                local range = findRange(team.players[i])
+
+                if(range == "three") then
+                    distAway = math.abs(team.players[i].three - 10) * (feetToPixels / 2.5)
+                elseif(range == "midRange") then
+                    distAway = math.abs(team.players[i].midRange - 10) * (feetToPixels / 2.5)
+                elseif(range == "closeShot") then
+                    distAway = math.abs(team.players[i].closeShot - 10) * (feetToPixels / 2.5)
+                else
+                    distAway = math.abs(team.players[i].finishing - 10) * (feetToPixels / 2.5)
+                end
             end
 
             defenderCloseOut(opponent.players[i], team.players[i], distAway)

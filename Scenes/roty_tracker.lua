@@ -209,14 +209,14 @@ function scene:create( event )
                     local ts = 0
                     local eFG = 0
                     if(stats.twoPA + stats.threePA ~= 0) then
-                        ts = math.round(points * 100 / (2 * (stats.twoPA + stats.threePA)))
+                        ts = math.round(stats.points * 100 / (2 * (stats.twoPA + stats.threePA)))
                         eFG = math.round((stats.twoPM + .5 * stats.threePM) * 100 / (stats.twoPA + stats.threePA))
                     end
 
                     local plusMinus = math.round(stats.plusMinus / games)
         
                     -- normalize each stat from 0-10
-                    local rating = points + plusMinus + (winPercent / 10) + (twoPtPercent / 10) + (threePtPercent / 10) + (ts / 15) + (eFG / 15)
+                    local rating = points + plusMinus + (winPercent / 50) + (twoPtPercent / 10) + (threePtPercent / 10) + (ts / 15) + (eFG / 15)
         
                     local playerStats = {
                         name = player.name,

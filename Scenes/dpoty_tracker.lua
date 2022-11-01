@@ -183,32 +183,39 @@ function scene:create( event )
             for j = 1, #team.players do
                 local player = team.players[j]
                 local stats = player.yearStats
-                local winPercent = math.round(team.wins * 100 / games)
-                local points = math.round(stats.pointsAgainst / games)
-                local shots = math.round(stats.shotsAgainst / games)
-                local blocks = math.round(stats.blocks / games)
-                local steals = math.round(stats.steals / games)
 
-                local ptsPerShot = 0
-                if(shots ~= 0) then
-                    ptsPerShot = tonumber(string.format("%.2f", (points / shots)))
+                if(stats.shotsAgainst ~= 0) then
+                    local winPercent = math.round(team.wins * 100 / games)
+                    local points = math.round(stats.pointsAgainst / games)
+                    local shots = math.round(stats.shotsAgainst / games)
+                    local blocks = math.round(stats.blocks / games)
+                    local steals = math.round(stats.steals / games)
+
+                    local ptsPerShot = 0
+                    if(shots ~= 0) then
+                        ptsPerShot = tonumber(string.format("%.2f", (points / shots)))
+                    end
+                    
+                    local ptsPerShotMin = ptsPerShot
+                    if(ptsPerShotMin < .25) then
+                        ptsPerShotMin = .25
+                    end
+                    -- normalize each stat from 0-10
+                    local rating = (winPercent / 20) + (3 / ptsPerShotMin) + (shots / 10) + (blocks * 2) + (steals * 2)
+        
+                    local playerStats = {
+                        name = player.name,
+                        winPercent = winPercent,
+                        points = points,
+                        shots = shots,
+                        ptsPerShot = ptsPerShot,
+                        blocks = blocks,
+                        steals = steals,
+                        rating = rating
+                    }
+        
+                    table.insert(players, playerStats)
                 end
-    
-                -- normalize each stat from 0-10
-                local rating = (winPercent / 10) - (ptsPerShot * 10) + (shots / 10) + (blocks * 2) + (steals * 2)
-    
-                local playerStats = {
-                    name = player.name,
-                    winPercent = winPercent,
-                    points = points,
-                    shots = shots,
-                    ptsPerShot = ptsPerShot,
-                    blocks = blocks,
-                    steals = steals,
-                    rating = rating
-                }
-    
-                table.insert(players, playerStats)
             end
         end
     end
