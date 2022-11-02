@@ -15,7 +15,7 @@ teams = ["philadelphia-76ers", "milwaukee-bucks", "chicago-bulls", "charlotte-ho
 
 stats = ["Ball Handle", "Close Shot", "Mid-Range Shot", "Three-Point Shot", "Layup", "Steal", "Block", "Interior Defense", 
             "Perimeter Defense", "Speed", "Stamina", "Pass Accuracy", "Speed with Ball", "Lateral Quickness", "Pass Perception",
-            "Strength"]
+            "Strength", "Potential"]
 
 for team in teams:
     with open('data/' + team + '.csv', 'w', newline='') as csvfile:
@@ -66,13 +66,16 @@ for team in teams:
                     playerAttrs.append(scaledValue)
         
                 # Get height and number
+                number = 0
                 heightElement = playerPage.find(text=lambda t: "Height:" in t).parent
                 numberElement = playerPage.find(text=lambda t: "Jersey: #" in t)
                 yearsElement = playerPage.find(text=lambda t: "Year(s) in the NBA:" in t)
 
                 height = heightElement.find("span").text.split(" ")[0]
-                numberStr = numberElement.split("#")[1]
-                number = int(numberStr)
+
+                if numberElement:
+                    numberStr = numberElement.split("#")[1]
+                    number = int(numberStr)
 
                 years = 1
                 if(yearsElement):

@@ -26,6 +26,7 @@ function player:createRandom()
         quickness = math.random(1, 10),
         passDefending = math.random(1, 10),
         strength = math.random(1, 10),
+        potential = math.random(1, 10),
         attitude = math.random(1, 10),
         number = math.random(0, 99),
         hasBall = false,
@@ -36,12 +37,13 @@ function player:createRandom()
         yearStats = StatsLib:createStats(),
         careerStats = StatsLib:createStats(),
         manualMoving = false,
-        movement = {}
+        movement = {},
+        exp = 0
     }, self)
 end
 
 function player:createPlayer(name, dribbling, closeShot, midRange, three, finishing, stealing, blocking, contestingInt, contestingExt, 
-                speed, stamina, passing, ballSpeed, quickness, passDefending, strength, height, number, years, starter)
+                speed, stamina, passing, ballSpeed, quickness, passDefending, strength, potential, height, number, years, starter)
     self.__index = self
 
     return setmetatable({
@@ -64,6 +66,7 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
         quickness = tonumber(quickness),
         passDefending = tonumber(passDefending),
         strength = tonumber(strength),
+        potential = tonumber(potential),
         stamina = 10,
         attitude = 10,
         number = "" .. number,
@@ -75,7 +78,8 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
         yearStats = StatsLib:createStats(),
         careerStats = StatsLib:createStats(),
         manualMoving = false,
-        movement = {}
+        movement = {},
+        exp = 0
     }, self)
 end
 

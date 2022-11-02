@@ -189,15 +189,8 @@ function scene:create( event )
 	difficulty()
 	minutesInQuarter()
 
-	local playButton = display.newText(sceneGroup, "Choose Team", display.contentCenterX, display.contentHeight * .8, native.systemFont, fontSize)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-    local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-    buttonBorder:setStrokeColor(0, 0, 0)
-    buttonBorder.strokeWidth = 2
-    buttonBorder:setFillColor(0, 0, 0, 0)
-    buttonBorder:addEventListener("tap", nextScene)
+	createButtonWithBorder(sceneGroup, "Choose Team", fontSize, display.contentCenterX, display.contentHeight * .8, 2, 
+			BLACK, BLACK, TRANSPARENT, nextScene)
 end
 
 

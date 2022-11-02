@@ -45,26 +45,11 @@ function scene:create( event )
 	local title = display.newText(sceneGroup, "Pixel-Ball", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)
     title:setFillColor(.922, .910, .329)
 
-    local playButton = display.newText(sceneGroup, "New", display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-	local buttonBorder = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, playButton.width, playButton.height)
-	buttonBorder:setStrokeColor(0, 0, 0)
-	buttonBorder.strokeWidth = 2
-	buttonBorder:setFillColor(0, 0, 0, 0)
-	buttonBorder:addEventListener("tap", nextScene)
+	createButtonWithBorder(sceneGroup, "New", 32, display.contentCenterX, display.contentCenterY, 2, BLACK, BLACK, TRANSPARENT, nextScene)
 
 	if(doesSaveFileExist()) then
-		local continueButton = display.newText(sceneGroup, "Continue", display.contentCenterX, display.contentCenterY * 1.3, native.systemFont, 32)
-		continueButton:setFillColor(0, 0, 0)
-		continueButton:addEventListener("tap", loadGame)
-
-		local continueButtonBorder = display.newRect(sceneGroup, continueButton.x, continueButton.y, continueButton.width, continueButton.height)
-		continueButtonBorder:setStrokeColor(0, 0, 0)
-		continueButtonBorder.strokeWidth = 2
-		continueButtonBorder:setFillColor(0, 0, 0, 0)
-		continueButtonBorder:addEventListener("tap", loadGame)
+		createButtonWithBorder(sceneGroup, "Continue", 32, display.contentCenterX, display.contentCenterY * 1.3, 2, 
+				BLACK, BLACK, TRANSPARENT, loadGame)
 	end
 end
 

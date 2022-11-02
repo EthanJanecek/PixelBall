@@ -131,53 +131,11 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-	local playButton = display.newText(sceneGroup, "<- Back", 8, 8, native.systemFont, 16)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-    local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-    buttonBorder:setStrokeColor(0, 0, 0)
-    buttonBorder.strokeWidth = 2
-    buttonBorder:setFillColor(0, 0, 0, 0)
-    buttonBorder:addEventListener("tap", nextScene)
-
-    local mvpButton = display.newText(sceneGroup, "MVP", display.contentWidth * .25, 8, native.systemFont, 16)
-    mvpButton:setFillColor(0, 0, 0)
-    mvpButton:addEventListener("tap", mvp)
-
-    local mvpButtonBorder = display.newRect(sceneGroup, mvpButton.x, mvpButton.y, mvpButton.width, mvpButton.height)
-    mvpButtonBorder:setStrokeColor(0, 0, 0)
-    mvpButtonBorder.strokeWidth = 2
-    mvpButtonBorder:setFillColor(0, 0, 0, 0)
-    mvpButtonBorder:addEventListener("tap", mvp)
-
-    local sixthManButton = display.newText(sceneGroup, "6MOTY", display.contentWidth * .5, 8, native.systemFont, 16)
-    sixthManButton:setFillColor(0, 0, 0)
-
-    local sixthManButtonBorder = display.newRect(sceneGroup, sixthManButton.x, sixthManButton.y, sixthManButton.width, sixthManButton.height)
-    sixthManButtonBorder:setStrokeColor(0, 0, 1)
-    sixthManButtonBorder.strokeWidth = 4
-    sixthManButtonBorder:setFillColor(0, 0, 0, 0)
-
-    local rotyButton = display.newText(sceneGroup, "ROTY", display.contentWidth * .75, 8, native.systemFont, 16)
-    rotyButton:setFillColor(0, 0, 0)
-    rotyButton:addEventListener("tap", roty)
-
-    local rotyButtonBorder = display.newRect(sceneGroup, rotyButton.x, rotyButton.y, rotyButton.width, rotyButton.height)
-    rotyButtonBorder:setStrokeColor(0, 0, 0)
-    rotyButtonBorder.strokeWidth = 2
-    rotyButtonBorder:setFillColor(0, 0, 0, 0)
-    rotyButtonBorder:addEventListener("tap", roty)
-
-    local dpotyButton = display.newText(sceneGroup, "DPOTY", display.contentWidth, 8, native.systemFont, 16)
-    dpotyButton:setFillColor(0, 0, 0)
-    dpotyButton:addEventListener("tap", dpoty)
-
-    local dpotyButtonBorder = display.newRect(sceneGroup, dpotyButton.x, dpotyButton.y, dpotyButton.width, dpotyButton.height)
-    dpotyButtonBorder:setStrokeColor(0, 0, 0)
-    dpotyButtonBorder.strokeWidth = 2
-    dpotyButtonBorder:setFillColor(0, 0, 0, 0)
-    dpotyButtonBorder:addEventListener("tap", dpoty)
+	createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
+    createButtonWithBorder(sceneGroup, "MVP", 16, display.contentWidth * .25, 8, 2, BLACK, BLACK, TRANSPARENT, mvp)
+    createButtonWithBorder(sceneGroup, "6MOTY", 16, display.contentWidth * .5, 8, 4, BLACK, DARK_BLUE, TRANSPARENT, nil)
+    createButtonWithBorder(sceneGroup, "ROTY", 16, display.contentWidth * .75, 8, 2, BLACK, BLACK, TRANSPARENT, roty)
+    createButtonWithBorder(sceneGroup, "DPOTY", 16, display.contentWidth, 8, 2, BLACK, BLACK, TRANSPARENT, dpoty)
 
     drawHeaders()
 

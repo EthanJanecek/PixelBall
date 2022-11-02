@@ -11,6 +11,7 @@ local composer = require("composer")
 math.randomseed(os.time())
 androidDirectory = '/storage/emulated/0/Documents/save.json'
 
+
 function getSaveDirectory()
     local path = system.pathForFile("save.json", system.DocumentsDirectory)
 
@@ -31,6 +32,21 @@ function indexOf(table, value)
     return -1
 end
 
+function createButtonWithBorder(sceneGroup, text, fontSize, x, y, strokeWidth, textColor, strokeColor, fillColor, onClickFunction)
+    local button = display.newText(sceneGroup, text, x, y, native.systemFont, fontSize)
+    button:setFillColor(textColor[1], textColor[2], textColor[3], textColor[4])
+
+    local buttonBorder = display.newRect(sceneGroup, button.x, button.y, button.width, button.height)
+    buttonBorder:setStrokeColor(strokeColor[1], strokeColor[2], strokeColor[3], strokeColor[4])
+    buttonBorder.strokeWidth = strokeWidth
+    buttonBorder:setFillColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4])
+
+    if(onClickFunction) then
+        button:addEventListener("tap", onClickFunction)
+        buttonBorder:addEventListener("tap", onClickFunction) 
+    end
+end
+
 conversionFactor = display.contentHeight / 940
 offsetX = 240 - (330 / 2)
 centerX = display.contentCenterX
@@ -43,6 +59,7 @@ feetToPixels = 20
 hoopCenter = {x = centerX, y = conversionFactor * 5.5 * feetToPixels, radius = conversionFactor * 1.5 * feetToPixels}
 
 require("Constants.start_positions")
+require("Constants.colors")
 LeagueLib = require("Objects.league")
 league = nil
 userTeam = ""

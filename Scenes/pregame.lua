@@ -120,91 +120,27 @@ function scene:create( event )
         local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 48)
         title:setFillColor(.922, .910, .329)
 
-        local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
-        playButton:setFillColor(0, 0, 0)
-        playButton:addEventListener("tap", nextWeek)
-
-        local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-        buttonBorder:setStrokeColor(0, 0, 0)
-        buttonBorder.strokeWidth = 2
-        buttonBorder:setFillColor(0, 0, 0, 0)
-        buttonBorder:addEventListener("tap", nextWeek)
+        createButtonWithBorder(sceneGroup, "Next Game", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
+                BLACK, BLACK, TRANSPARENT, nextWeek)
     else
         local titleStr = gameInfo.away .. " vs. " .. gameInfo.home
 
         local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 48)
         title:setFillColor(.922, .910, .329)
 
-        local playButton = display.newText(sceneGroup, "Play", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
-        playButton:setFillColor(0, 0, 0)
-        playButton:addEventListener("tap", toGame)
-
-        local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-        buttonBorder:setStrokeColor(0, 0, 0)
-        buttonBorder.strokeWidth = 2
-        buttonBorder:setFillColor(0, 0, 0, 0)
-        buttonBorder:addEventListener("tap", toGame)
-
-        local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX * .5, display.contentCenterY * 1.5, native.systemFont, 32)
-        lineupButton:setFillColor(0, 0, 0)
-        lineupButton:addEventListener("tap", changeLineup)
-
-        local lineupButtonBorder = display.newRect(sceneGroup, lineupButton.x, lineupButton.y, lineupButton.width, lineupButton.height)
-        lineupButtonBorder:setStrokeColor(0, 0, 0)
-        lineupButtonBorder.strokeWidth = 2
-        lineupButtonBorder:setFillColor(0, 0, 0, 0)
-        lineupButtonBorder:addEventListener("tap", changeLineup)
-
-        local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX * 1.5, display.contentCenterY * 1.5, native.systemFont, 32)
-        playCreationButton:setFillColor(0, 0, 0)
-        playCreationButton:addEventListener("tap", createPlays)
-
-        local playCreationButtonBorder = display.newRect(sceneGroup, playCreationButton.x, playCreationButton.y, playCreationButton.width, playCreationButton.height)
-        playCreationButtonBorder:setStrokeColor(0, 0, 0)
-        playCreationButtonBorder.strokeWidth = 2
-        playCreationButtonBorder:setFillColor(0, 0, 0, 0)
-        playCreationButtonBorder:addEventListener("tap", createPlays)
-
-        local defenseButton = display.newText(sceneGroup, "Set Defensive Strategy", display.contentCenterX, display.contentCenterY * 1.8, native.systemFont, 32)
-        defenseButton:setFillColor(0, 0, 0)
-        defenseButton:addEventListener("tap", setDefense)
-
-        local defenseButton = display.newRect(sceneGroup, defenseButton.x, defenseButton.y, defenseButton.width, defenseButton.height)
-        defenseButton:setStrokeColor(0, 0, 0)
-        defenseButton.strokeWidth = 2
-        defenseButton:setFillColor(0, 0, 0, 0)
-        defenseButton:addEventListener("tap", setDefense)
+        createButtonWithBorder(sceneGroup, "Play", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
+                BLACK, BLACK, TRANSPARENT, toGame)
+        createButtonWithBorder(sceneGroup, "Change Lineup", 32, display.contentCenterX * .5, display.contentCenterY * 1.5, 2, 
+                BLACK, BLACK, TRANSPARENT, changeLineup)
+        createButtonWithBorder(sceneGroup, "Create Plays", 32, display.contentCenterX * 1.5, display.contentCenterY * 1.5, 2, 
+                BLACK, BLACK, TRANSPARENT, createPlays)
+        createButtonWithBorder(sceneGroup, "Set Defense", 32, display.contentCenterX, display.contentCenterY * 1.8, 2, 
+                BLACK, BLACK, TRANSPARENT, setDefense)
     end
 
-    local saveButton = display.newText(sceneGroup, "Save Game", 0, 20, native.systemFont, 32)
-    saveButton:setFillColor(0, 0, 0)
-    saveButton:addEventListener("tap", saveGame)
-
-    local saveButtonBorder = display.newRect(sceneGroup, saveButton.x, saveButton.y, saveButton.width, saveButton.height)
-    saveButtonBorder:setStrokeColor(0, 0, 0)
-    saveButtonBorder.strokeWidth = 2
-    saveButtonBorder:setFillColor(0, 0, 0, 0)
-    saveButtonBorder:addEventListener("tap", saveGame)
-
-    local standingsButton = display.newText(sceneGroup, "Standings", display.contentCenterX, 20, native.systemFont, 32)
-    standingsButton:setFillColor(0, 0, 0)
-    standingsButton:addEventListener("tap", seeStandings)
-
-    local standingsButtonBorder = display.newRect(sceneGroup, standingsButton.x, standingsButton.y, standingsButton.width, standingsButton.height)
-    standingsButtonBorder:setStrokeColor(0, 0, 0)
-    standingsButtonBorder.strokeWidth = 2
-    standingsButtonBorder:setFillColor(0, 0, 0, 0)
-    standingsButtonBorder:addEventListener("tap", seeStandings)
-
-    local mvpTrackerButton = display.newText(sceneGroup, "Award Tracking", display.contentWidth, 20, native.systemFont, 32)
-    mvpTrackerButton:setFillColor(0, 0, 0)
-    mvpTrackerButton:addEventListener("tap", mvpTracker)
-
-    local mvpTrackerButtonBorder = display.newRect(sceneGroup, mvpTrackerButton.x, mvpTrackerButton.y, mvpTrackerButton.width, mvpTrackerButton.height)
-    mvpTrackerButtonBorder:setStrokeColor(0, 0, 0)
-    mvpTrackerButtonBorder.strokeWidth = 2
-    mvpTrackerButtonBorder:setFillColor(0, 0, 0, 0)
-    mvpTrackerButtonBorder:addEventListener("tap", mvpTracker)
+    createButtonWithBorder(sceneGroup, "Save Game", 32, 0, 20, 2, BLACK, BLACK, TRANSPARENT, saveGame)
+    createButtonWithBorder(sceneGroup, "Standings", 32, display.contentCenterX, 20, 2, BLACK, BLACK, TRANSPARENT, seeStandings)
+    createButtonWithBorder(sceneGroup, "Award Tracking", 32, display.contentWidth, 20, 2, BLACK, BLACK, TRANSPARENT, mvpTracker)
 end
 
 

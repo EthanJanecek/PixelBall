@@ -122,15 +122,7 @@ function scene:create( event )
     local benchLabel = display.newText(sceneGroup, "Bench", display.contentCenterX, display.contentHeight / 3 + 27,  native.systemFont, 24)
     benchLabel:setFillColor(.922, .910, .329)
 
-    local playButton = display.newText(sceneGroup, "<- Back", 8, 8, native.systemFont, 16)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-    local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-    buttonBorder:setStrokeColor(0, 0, 0)
-    buttonBorder.strokeWidth = 2
-    buttonBorder:setFillColor(0, 0, 0, 0)
-    buttonBorder:addEventListener("tap", nextScene)
+    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
     
     local team = league:findTeam(userTeam)
     for i = 1, #team.players do

@@ -125,35 +125,9 @@ local function setBackdrop()
     backgroundImage.x = display.contentCenterX
     backgroundImage.y = display.contentCenterY
 
-    local backButton = display.newText(sceneGroup, "<- Back", 8, 10, native.systemFont, 16)
-    backButton:setFillColor(0, 0, 0)
-    backButton:addEventListener("tap", nextScene)
-
-    local backButtonBorder = display.newRect(sceneGroup, backButton.x, backButton.y, backButton.width, backButton.height)
-    backButtonBorder:setStrokeColor(0, 0, 0)
-    backButtonBorder.strokeWidth = 2
-    backButtonBorder:setFillColor(0, 0, 0, 0)
-    backButtonBorder:addEventListener("tap", nextScene)
-
-    local clearButton = display.newText(sceneGroup, "Clear", 8, 50, native.systemFont, 16)
-    clearButton:setFillColor(0, 0, 0)
-    clearButton:addEventListener("tap", clearScreen)
-
-    local clearButtonBorder = display.newRect(sceneGroup, clearButton.x, clearButton.y, clearButton.width, clearButton.height)
-    clearButtonBorder:setStrokeColor(0, 0, 0)
-    clearButtonBorder.strokeWidth = 2
-    clearButtonBorder:setFillColor(0, 0, 0, 0)
-    clearButtonBorder:addEventListener("tap", clearScreen)
-
-    local saveButton = display.newText(sceneGroup, "Save", 8, 90, native.systemFont, 16)
-    saveButton:setFillColor(0, 0, 0)
-    saveButton:addEventListener("tap", saveRoute)
-
-    local saveButtonBorder = display.newRect(sceneGroup, saveButton.x, saveButton.y, saveButton.width, saveButton.height)
-    saveButtonBorder:setStrokeColor(0, 0, 0)
-    saveButtonBorder.strokeWidth = 2
-    saveButtonBorder:setFillColor(0, 0, 0, 0)
-    saveButtonBorder:addEventListener("tap", saveRoute)
+    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 10, 2, BLACK, BLACK, TRANSPARENT, nextScene)
+    createButtonWithBorder(sceneGroup, "Clear", 16, 8, 50, 2, BLACK, BLACK, TRANSPARENT, clearScreen)
+    createButtonWithBorder(sceneGroup, "Save", 16, 8, 90, 2, BLACK, BLACK, TRANSPARENT, saveRoute)
 end
 
 -- -----------------------------------------------------------------------------------

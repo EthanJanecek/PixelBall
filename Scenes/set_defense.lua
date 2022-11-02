@@ -69,15 +69,7 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local playButton = display.newText(sceneGroup, "<- Back", 8, 8, native.systemFont, 16)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-    local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-    buttonBorder:setStrokeColor(0, 0, 0)
-    buttonBorder.strokeWidth = 2
-    buttonBorder:setFillColor(0, 0, 0, 0)
-    buttonBorder:addEventListener("tap", nextScene)
+    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
 
     for i = 1, 5 do
         showPlayerCard(strategyNames[i], display.contentWidth * i / 6, display.contentHeight / 5, i)

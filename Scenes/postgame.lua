@@ -120,26 +120,12 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local playButton = display.newText(sceneGroup, "Next Game", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-	local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-	buttonBorder:setStrokeColor(0, 0, 0)
-	buttonBorder.strokeWidth = 2
-	buttonBorder:setFillColor(0, 0, 0, 0)
-	buttonBorder:addEventListener("tap", nextScene)
+	createButtonWithBorder(sceneGroup, "Next Game", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
+			BLACK, BLACK, TRANSPARENT, nextScene)
 
 	if(#qtrScores > 0) then
-		local boxScoreButton = display.newText(sceneGroup, "Box Score", display.contentCenterX, display.contentCenterY * 1.5, native.systemFont, 32)
-		boxScoreButton:setFillColor(0, 0, 0)
-		boxScoreButton:addEventListener("tap", boxScoreScene)
-
-		local boxScoreButtonBorder = display.newRect(sceneGroup, boxScoreButton.x, boxScoreButton.y, boxScoreButton.width, boxScoreButton.height)
-		boxScoreButtonBorder:setStrokeColor(0, 0, 0)
-		boxScoreButtonBorder.strokeWidth = 2
-		boxScoreButtonBorder:setFillColor(0, 0, 0, 0)
-		boxScoreButtonBorder:addEventListener("tap", boxScoreScene)
+		createButtonWithBorder(sceneGroup, "Box Score", 32, display.contentCenterX, display.contentCenterY * 1.5, 2, 
+				BLACK, BLACK, TRANSPARENT, boxScoreScene)
 	end
 end
 

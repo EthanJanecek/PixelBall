@@ -164,35 +164,12 @@ local function simulateDefense()
         end
     end  
 
-    local lineupButton = display.newText(sceneGroup, "Change Lineup", display.contentCenterX, display.contentCenterY * 1.2, native.systemFont, 32)
-    lineupButton:setFillColor(0, 0, 0)
-    lineupButton:addEventListener("tap", changeLineup)
-
-    local lineupButtonBorder = display.newRect(sceneGroup, lineupButton.x, lineupButton.y, lineupButton.width, lineupButton.height)
-    lineupButtonBorder:setStrokeColor(0, 0, 0)
-    lineupButtonBorder.strokeWidth = 2
-    lineupButtonBorder:setFillColor(0, 0, 0, 0)
-    lineupButtonBorder:addEventListener("tap", changeLineup)
-
-    local playCreationButton = display.newText(sceneGroup, "Create Plays", display.contentCenterX, display.contentCenterY * 1.5, native.systemFont, 32)
-    playCreationButton:setFillColor(0, 0, 0)
-    playCreationButton:addEventListener("tap", createPlays)
-
-    local playCreationButtonBorder = display.newRect(sceneGroup, playCreationButton.x, playCreationButton.y, playCreationButton.width, playCreationButton.height)
-    playCreationButtonBorder:setStrokeColor(0, 0, 0)
-    playCreationButtonBorder.strokeWidth = 2
-    playCreationButtonBorder:setFillColor(0, 0, 0, 0)
-    playCreationButtonBorder:addEventListener("tap", createPlays)
-
-    local defenseButton = display.newText(sceneGroup, "Set Defensive Strategy", display.contentCenterX, display.contentCenterY * 1.8, native.systemFont, 32)
-    defenseButton:setFillColor(0, 0, 0)
-    defenseButton:addEventListener("tap", setDefense)
-
-    local defenseButton = display.newRect(sceneGroup, defenseButton.x, defenseButton.y, defenseButton.width, defenseButton.height)
-    defenseButton:setStrokeColor(0, 0, 0)
-    defenseButton.strokeWidth = 2
-    defenseButton:setFillColor(0, 0, 0, 0)
-    defenseButton:addEventListener("tap", setDefense)
+    createButtonWithBorder(sceneGroup, "Change Lineup", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
+            BLACK, BLACK, TRANSPARENT, changeLineup)
+    createButtonWithBorder(sceneGroup, "Create Plays", 32, display.contentCenterX, display.contentCenterY * 1.5, 2, 
+            BLACK, BLACK, TRANSPARENT, createPlays)
+    createButtonWithBorder(sceneGroup, "Set Defense", 32, display.contentCenterX, display.contentCenterY * 1.8, 2, 
+            BLACK, BLACK, TRANSPARENT, setDefense)
 
     background:addEventListener("tap", offense)
 end

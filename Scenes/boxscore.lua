@@ -217,25 +217,8 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local playButton = display.newText(sceneGroup, "<- Back", 0, 8, native.systemFont, 16)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-    local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-    buttonBorder:setStrokeColor(0, 0, 0)
-    buttonBorder.strokeWidth = 2
-    buttonBorder:setFillColor(0, 0, 0, 0)
-    buttonBorder:addEventListener("tap", nextScene)
-
-    local switchTeamButton = display.newText(sceneGroup, "Switch Team", 0, 40, native.systemFont, 16)
-    switchTeamButton:setFillColor(0, 0, 0)
-    switchTeamButton:addEventListener("tap", switchTeam)
-
-    local switchTeamButtonBorder = display.newRect(sceneGroup, switchTeamButton.x, switchTeamButton.y, switchTeamButton.width, switchTeamButton.height)
-    switchTeamButtonBorder:setStrokeColor(0, 0, 0)
-    switchTeamButtonBorder.strokeWidth = 2
-    switchTeamButtonBorder:setFillColor(0, 0, 0, 0)
-    switchTeamButtonBorder:addEventListener("tap", switchTeam)
+    createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
+    createButtonWithBorder(sceneGroup, "Switch Team", 16, 0, 40, 2, BLACK, BLACK, TRANSPARENT, switchTeam)
 
     displayHeader()
     displayQtrBreakdownHeader()

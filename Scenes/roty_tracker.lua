@@ -131,53 +131,11 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-	local playButton = display.newText(sceneGroup, "<- Back", 0, 8, native.systemFont, 16)
-    playButton:setFillColor(0, 0, 0)
-    playButton:addEventListener("tap", nextScene)
-
-    local buttonBorder = display.newRect(sceneGroup, playButton.x, playButton.y, playButton.width, playButton.height)
-    buttonBorder:setStrokeColor(0, 0, 0)
-    buttonBorder.strokeWidth = 2
-    buttonBorder:setFillColor(0, 0, 0, 0)
-    buttonBorder:addEventListener("tap", nextScene)
-
-    local mvpButton = display.newText(sceneGroup, "MVP", display.contentWidth * .25, 8, native.systemFont, 16)
-    mvpButton:setFillColor(0, 0, 0)
-    mvpButton:addEventListener("tap", mvp)
-
-    local mvpButtonBorder = display.newRect(sceneGroup, mvpButton.x, mvpButton.y, mvpButton.width, mvpButton.height)
-    mvpButtonBorder:setStrokeColor(0, 0, 0)
-    mvpButtonBorder.strokeWidth = 2
-    mvpButtonBorder:setFillColor(0, 0, 0, 0)
-    mvpButtonBorder:addEventListener("tap", mvp)
-
-    local sixthManButton = display.newText(sceneGroup, "6MOTY", display.contentWidth * .5, 8, native.systemFont, 16)
-    sixthManButton:setFillColor(0, 0, 0)
-    sixthManButton:addEventListener("tap", sixthMan)
-
-    local sixthManButtonBorder = display.newRect(sceneGroup, sixthManButton.x, sixthManButton.y, sixthManButton.width, sixthManButton.height)
-    sixthManButtonBorder:setStrokeColor(0, 0, 0)
-    sixthManButtonBorder.strokeWidth = 2
-    sixthManButtonBorder:setFillColor(0, 0, 0, 0)
-    sixthManButtonBorder:addEventListener("tap", sixthMan)
-
-    local rotyButton = display.newText(sceneGroup, "ROTY", display.contentWidth * .75, 8, native.systemFont, 16)
-    rotyButton:setFillColor(0, 0, 0)
-
-    local rotyButtonBorder = display.newRect(sceneGroup, rotyButton.x, rotyButton.y, rotyButton.width, rotyButton.height)
-    rotyButtonBorder:setStrokeColor(0, 0, 1)
-    rotyButtonBorder.strokeWidth = 4
-    rotyButtonBorder:setFillColor(0, 0, 0, 0)
-
-    local dpotyButton = display.newText(sceneGroup, "DPOTY", display.contentWidth, 8, native.systemFont, 16)
-    dpotyButton:setFillColor(0, 0, 0)
-    dpotyButton:addEventListener("tap", dpoty)
-
-    local dpotyButtonBorder = display.newRect(sceneGroup, dpotyButton.x, dpotyButton.y, dpotyButton.width, dpotyButton.height)
-    dpotyButtonBorder:setStrokeColor(0, 0, 0)
-    dpotyButtonBorder.strokeWidth = 2
-    dpotyButtonBorder:setFillColor(0, 0, 0, 0)
-    dpotyButtonBorder:addEventListener("tap", dpoty)
+	createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
+    createButtonWithBorder(sceneGroup, "MVP", 16, display.contentWidth * .25, 8, 2, BLACK, BLACK, TRANSPARENT, mvp)
+    createButtonWithBorder(sceneGroup, "6MOTY", 16, display.contentWidth * .5, 8, 2, BLACK, BLACK, TRANSPARENT, sixthMan)
+    createButtonWithBorder(sceneGroup, "ROTY", 16, display.contentWidth * .75, 8, 4, BLACK, DARK_BLUE, TRANSPARENT, nil)
+    createButtonWithBorder(sceneGroup, "DPOTY", 16, display.contentWidth, 8, 2, BLACK, BLACK, TRANSPARENT, dpoty)
 
     drawHeaders()
 
@@ -191,7 +149,7 @@ function scene:create( event )
             for j = 1, #team.players do
                 local player = team.players[j]
 
-                if(player.years == 1) then
+                if(player.years == 0) then
                     local stats = player.yearStats
                     local points = math.round(stats.points / games)
                     local winPercent = math.round(team.wins * 100 / games)

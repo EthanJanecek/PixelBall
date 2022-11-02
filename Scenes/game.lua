@@ -66,16 +66,16 @@ local finishingRadius = 4 * feetToPixels * conversionFactor
 local closeShotRadius = 10 * feetToPixels * conversionFactor
 local maxBlockedProb = 20
 
-local staminaRunningUsage = -.0005
-local shotStaminaUsage = -.4
+local staminaRunningUsage = -.00055
+local shotStaminaUsage = -.45
 local staminaStandingRegen = -staminaRunningUsage / 4
 local staminaBenchRegen = -staminaRunningUsage
 
 local maxShotPowerModifier = .8
 local powerScalingStamina = 5
 
-local heightDiffMin = 5
-local heightDiffMax = 15
+local heightDiffMin = 7.5
+local heightDiffMax = 12.5
 
 local reactionTimeDefault = 150
 local reactionTimeModifier = 40

@@ -1,0 +1,5 @@
+TRANSPARENT = {0, 0, 0, 0}
+BLACK = {0, 0, 0, 1}
+YELLOW = {.922, .910, .329, 1}
+LIGHT_BLUE = {286, .835, .961, 1}
+DARK_BLUE = {0, 0, 1, 1}
