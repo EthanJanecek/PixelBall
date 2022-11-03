@@ -38,8 +38,17 @@ function player:createRandom()
         careerStats = StatsLib:createStats(),
         manualMoving = false,
         movement = {},
-        exp = 0
+        exp = 0,
+        levels = 0
     }, self)
+end
+
+function player:calculateOverall()
+    local sumOverall = self.dribbling + self.closeShot + self.midRange + self.three + self.finishing + self.stealing + 
+            self.blocking + self.contestingInterior + self.contestingExterior + self.passing + self.passDefending
+    local overall = sumOverall / 11.0
+
+    return overall
 end
 
 function player:createPlayer(name, dribbling, closeShot, midRange, three, finishing, stealing, blocking, contestingInt, contestingExt, 
@@ -79,7 +88,8 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
         careerStats = StatsLib:createStats(),
         manualMoving = false,
         movement = {},
-        exp = 0
+        exp = 0,
+        levels = 0
     }, self)
 end
 

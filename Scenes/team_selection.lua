@@ -11,6 +11,17 @@ local function nextScene()
     composer.gotoScene("Scenes.pregame")
 end
 
+local function showRoster(teamName)
+    local options = {
+        params = {
+            team = league:findTeam(teamName)
+        }
+    }
+
+    composer.removeScene("Scenes.team_selection")
+    composer.gotoScene("Scenes.roster", options)
+end
+
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -40,9 +51,13 @@ function scene:create( event )
         team.y = (row * imageSize) + (row * paddingY) + (paddingY * 4)
 
         function chooseTeam()
-            userTeam = teams[i].name
-            league.userTeam = userTeam
-            nextScene()
+            if(event.params and event.params.roster) then
+                showRoster(teams[i].name)
+            else
+                userTeam = teams[i].name
+                league.userTeam = userTeam
+                nextScene()
+            end
         end
 
         team:addEventListener("tap", chooseTeam)

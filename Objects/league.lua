@@ -593,6 +593,119 @@ function league:finals()
     self:finalsSchedule()
 end
 
+local function calculatePlayerExp(player)
+    local stats = player.gameStats
+
+    local shotPercent = (stats.twoPM + stats.threePM) / (stats.twoPA + stats.threePA)
+    local expRaw = (stats.points * shotPercent) + (stats.steals + stats.blocks - stats.turnovers) * 2
+    local factor = math.pow(player.potential / 10.0, player.years)
+
+    local exp = factor * expRaw
+
+    -- Exp is calculated for numGamesSetting = 1
+    if(numGamesSetting == 2) then
+        exp = exp * .5
+    elseif(numGamesSetting == 3) then
+        exp = exp * .4
+    end
+
+    -- Exp is calculated for minutesInQtrSetting = 3
+    if(minutesInQtrSetting == 1) then
+        exp = exp * 3
+    elseif(minutesInQtrSetting == 2) then
+        exp = exp * 1.5
+    end
+
+    if(exp > 50) then
+        exp = 50
+    elseif(exp < 0) then
+        exp = 0
+    end
+
+    return math.round(exp)
+end
+
+local function assignRandomLevel(player)
+    local statValue = 10
+    local stat = -1
+
+    while(statValue == 10) do
+        stat = math.random(1, 11)
+
+        if(stat == 1) then
+            statValue = player.finishing
+        elseif(stat == 2) then
+            statValue = player.closeShot
+        elseif(stat == 3) then
+            statValue = player.midRange
+        elseif(stat == 4) then
+            statValue = player.three
+        elseif(stat == 5) then
+            statValue = player.dribbling
+        elseif(stat == 6) then
+            statValue = player.passing
+        elseif(stat == 7) then
+            statValue = player.passDefending
+        elseif(stat == 8) then
+            statValue = player.stealing
+        elseif(stat == 9) then
+            statValue = player.contestingInterior
+        elseif(stat == 10) then
+            statValue = player.contestingExterior
+        else
+            statValue = player.blocking
+        end
+    end
+
+    if(stat == 1) then
+        player.finishing = player.finishing + 1
+    elseif(stat == 2) then
+        player.closeShot = player.closeShot + 1
+    elseif(stat == 3) then
+        player.midRange = player.midRange + 1
+    elseif(stat == 4) then
+        player.three = player.three + 1
+    elseif(stat == 5) then
+        player.dribbling = player.dribbling + 1
+    elseif(stat == 6) then
+        player.passing = player.passing + 1
+    elseif(stat == 7) then
+        player.passDefending = player.passDefending + 1
+    elseif(stat == 8) then
+        player.stealing = player.stealing + 1
+    elseif(stat == 9) then
+        player.contestingInterior = player.contestingInterior + 1
+    elseif(stat == 10) then
+        player.contestingExterior = player.contestingExterior + 1
+    else
+        player.blocking = player.blocking + 1
+    end
+
+    player.levels = player.levels - 1
+end
+
+function league:giveExp(teamName)
+    local team = self:findTeam(teamName)
+
+    for i = 1, #team.players do
+        local player = team.players[i]
+
+        if(player:calculateOverall() < 10 and player:calculateOverall() < player.potential) then
+            local exp = calculatePlayerExp(player)
+            player.exp = player.exp + exp
+
+            if(player.exp > 200) then
+                player.exp = player.exp - 200
+                player.levels = player.levels + 1
+
+                if(teamName ~= userTeam) then
+                    assignRandomLevel(player)
+                end
+            end
+        end
+    end
+end
+
 function league:nextWeek()
     local allGames = nil
     if(regularSeason) then
@@ -625,6 +738,9 @@ function league:nextWeek()
                 local score = simulateGame(self:findTeam(game.away), self:findTeam(game.home))
                 game.score = score
             end
+
+            self:giveExp(game.away)
+            self:giveExp(game.home)
         end
     end
 

@@ -44,6 +44,28 @@ local function mvpTracker()
     composer.gotoScene("Scenes.mvp_tracker")
 end
 
+local function settings()
+    local options = {
+        params = {
+            leagueStarted = true
+        }
+    }
+
+    composer.removeScene("Scenes.pregame")
+    composer.gotoScene("Scenes.settings", options)
+end
+
+local function roster()
+    local options = {
+        params = {
+            team = league:findTeam(userTeam)
+        }
+    }
+
+    composer.removeScene("Scenes.pregame")
+    composer.gotoScene("Scenes.roster", options)
+end
+
 local function saveGame()
     local path = getSaveDirectory()
     local file, errorString = io.open(path, "w")
@@ -141,6 +163,10 @@ function scene:create( event )
     createButtonWithBorder(sceneGroup, "Save Game", 32, 0, 20, 2, BLACK, BLACK, TRANSPARENT, saveGame)
     createButtonWithBorder(sceneGroup, "Standings", 32, display.contentCenterX, 20, 2, BLACK, BLACK, TRANSPARENT, seeStandings)
     createButtonWithBorder(sceneGroup, "Award Tracking", 32, display.contentWidth, 20, 2, BLACK, BLACK, TRANSPARENT, mvpTracker)
+    createButtonWithBorder(sceneGroup, "Settings", 32, display.contentCenterX * .2, display.contentCenterY * 1.8, 2, 
+            BLACK, BLACK, TRANSPARENT, settings)
+    createButtonWithBorder(sceneGroup, "Roster", 32, display.contentCenterX * 1.8, display.contentCenterY * 1.8, 2, 
+            BLACK, BLACK, TRANSPARENT, roster)
 end
 
 

@@ -3,12 +3,13 @@ local scene = composer.newScene()
 local sceneGroup = nil
 
 local fontSize = 24
+local leagueStarted = false
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function nextScene()
+local function applyChanges()
 	if(numGamesSetting == 1) then
 		games = 29
 		numDays = 100
@@ -35,7 +36,10 @@ local function nextScene()
 	else
 		minutesInQtr = 12
 	end
+end
 
+local function nextScene()
+	applyChanges()
 	league = LeagueLib:createLeague()
 	league:createSchedule()
 
@@ -43,9 +47,21 @@ local function nextScene()
     composer.gotoScene("Scenes.team_selection")
 end
 
+local function back()
+	applyChanges()
+	composer.removeScene("Scenes.settings")
+    composer.gotoScene("Scenes.pregame")
+end
+
 local function redraw()
+	local options = {
+        params = {
+            leagueStarted = leagueStarted
+        }
+    }
+
     composer.removeScene("Scenes.settings")
-    composer.gotoScene("Scenes.settings")
+    composer.gotoScene("Scenes.settings", options)
 end
 
 local function displayNumGamesSetting(i)
@@ -65,11 +81,9 @@ local function displayNumGamesSetting(i)
 
 	local option = display.newText(sceneGroup, str, display.contentWidth * (i * 2) / 6, display.contentHeight / 5, native.systemFont, fontSize)
     option:setFillColor(.922, .910, .329)
-    option:addEventListener("tap", selectNumGames)
 
 	local optionBorder = display.newRect(sceneGroup, option.x, option.y, option.width, option.height)
     optionBorder:setFillColor(0, 0, 0, 0)
-    optionBorder:addEventListener("tap", selectNumGames)
 
 	if(numGamesSetting == i) then
         optionBorder:setStrokeColor(0, 0, 1)
@@ -78,6 +92,11 @@ local function displayNumGamesSetting(i)
         optionBorder:setStrokeColor(.922, .910, .329)
         optionBorder.strokeWidth = 2
     end
+
+	if(not leagueStarted) then
+		option:addEventListener("tap", selectNumGames)
+		optionBorder:addEventListener("tap", selectNumGames)
+	end
 end
 
 local function numGames()
@@ -185,12 +204,18 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
+	if(event.params and event.params.leagueStarted) then
+		leagueStarted = true
+		createButtonWithBorder(sceneGroup, "Apply", fontSize, display.contentCenterX, display.contentHeight * .8, 2, 
+				BLACK, BLACK, TRANSPARENT, back)
+	else
+		createButtonWithBorder(sceneGroup, "Choose Team", fontSize, display.contentCenterX, display.contentHeight * .8, 2, 
+				BLACK, BLACK, TRANSPARENT, nextScene)
+	end
+
 	numGames()
 	difficulty()
 	minutesInQuarter()
-
-	createButtonWithBorder(sceneGroup, "Choose Team", fontSize, display.contentCenterX, display.contentHeight * .8, 2, 
-			BLACK, BLACK, TRANSPARENT, nextScene)
 end
 
 

@@ -503,27 +503,6 @@ local function calculateShotPoints()
     end
 end
 
-local function addDefenseStats()
-    if(manMatchupNum ~= -1) then
-        if(not defenseStats[manMatchupNum]) then
-            defenseStats[manMatchupNum] = {
-                points=0,
-                plays=0
-            }
-        end
-
-        if(result == "2") then
-            defenseStats[manMatchupNum].points = defenseStats[manMatchupNum].points + 2
-            defenseStats[manMatchupNum].plays = defenseStats[manMatchupNum].plays + 1
-        elseif(result == "3") then
-            defenseStats[manMatchupNum].points = defenseStats[manMatchupNum].points + 3
-            defenseStats[manMatchupNum].plays = defenseStats[manMatchupNum].plays + 1
-        elseif(result == "Miss" or result == "Blocked") then
-            defenseStats[manMatchupNum].plays = defenseStats[manMatchupNum].plays + 1
-        end
-    end
-end
-
 local function adjustPlusMinus(offense, defense, points)
     for i = 1, 5 do
         offense.players[i].gameStats.plusMinus = offense.players[i].gameStats.plusMinus + points
@@ -606,7 +585,7 @@ local function calculateDeadzone(shooter, skill)
     local deadzone = deadzoneBase -- Base value
 
     -- Scale up based on how good of a shooter they are
-    deadzone = deadzone + (math.pow(shootingScale, skill * staminaPercent(shooter)))
+    deadzone = deadzone + (math.pow(shootingScale, (skill - 5) * staminaPercent(shooter)))
 
     local distToHoop = getDist(shooter.sprite, hoopCenter)
     local dist3 = (18 * feetToPixels * conversionFactor)
@@ -633,7 +612,10 @@ local function calculateDeadzone(shooter, skill)
 
             local range = findRange(defender)
             local contestSkill = -1
-            if(range == "finishing" or range == "closeShot") then
+
+            if(difficulty == 3) then
+                contestSkill = 10 * deadzoneFactor * staminaPercent(defender)
+            elseif(range == "finishing" or range == "closeShot") then
                 contestSkill = defender.contestingInterior * deadzoneFactor * staminaPercent(defender)
             else
                 contestSkill = defender.contestingExterior * deadzoneFactor * staminaPercent(defender)
@@ -666,6 +648,10 @@ local function isBlocked(shooter)
             local heightDiff = defender.height - shooter.height + 10 -- Will be from 0-20
 
             local contestSkill = defender.blocking * 5 * staminaPercent(defender)
+            if(difficulty == 3) then
+                contestSkill = 10 * 5 * staminaPercent(defender)
+            end
+
             local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
             local probability = (heightDiff / 10) * distanceFactor * contestSkill
             local num = math.random(100)
@@ -1015,6 +1001,10 @@ local function turnover(player, defender)
 
     local distanceFactor = feetToPixels / distance -- Will be in the range of 1/3 - 2
     local turnoverProb =  ((defender.stealing * staminaPercent(defender)) - (player.dribbling * staminaPercent(player)) + 10) * distanceFactor * .5
+
+    if(difficulty == 3) then
+        turnoverProb =  ((10 * staminaPercent(defender)) - (player.dribbling * staminaPercent(player)) + 10) * distanceFactor * .5
+    end
 
     local num = math.random(1000)
 
@@ -1484,6 +1474,12 @@ local function controlClock()
     end
 end
 
+local function maxDefenseStamina()
+    for i = 1, #opponent.players do
+        changeStamina(opponent.players[i], 10)
+    end
+end
+
 local function startGame()
     playing = true
     endedPossession = false
@@ -1522,6 +1518,10 @@ local function gameLoop()
     else
         userIsHome = false
         opponent = league:findTeam(gameInfo.home)
+    end
+
+    if(difficulty == 2 or difficulty == 3) then
+        maxDefenseStamina()
     end
     
     if(gameInProgress) then
