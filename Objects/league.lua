@@ -596,17 +596,20 @@ end
 local function calculatePlayerExp(player)
     local stats = player.gameStats
 
-    local shotPercent = (stats.twoPM + stats.threePM) / (stats.twoPA + stats.threePA)
-    local expRaw = (stats.points * shotPercent) + (stats.steals + stats.blocks - stats.turnovers) * 2
+    local shotPercent = 0
+    if((stats.twoPA + stats.threePA) > 0) then
+        shotPercent = (stats.twoPM + stats.threePM) / (stats.twoPA + stats.threePA)
+    end
+    
+    local expRaw = (stats.points * shotPercent * 2.5) + (stats.steals + stats.blocks - stats.turnovers) * 5
     local factor = math.pow(player.potential / 10.0, player.years)
-
     local exp = factor * expRaw
 
-    -- Exp is calculated for numGamesSetting = 1
-    if(numGamesSetting == 2) then
-        exp = exp * .5
-    elseif(numGamesSetting == 3) then
-        exp = exp * .4
+    -- Exp is calculated for numGamesSetting = 3
+    if(numGamesSetting == 1) then
+        exp = exp * 2.5
+    elseif(numGamesSetting == 2) then
+        exp = exp * 1.25
     end
 
     -- Exp is calculated for minutesInQtrSetting = 3
@@ -694,8 +697,8 @@ function league:giveExp(teamName)
             local exp = calculatePlayerExp(player)
             player.exp = player.exp + exp
 
-            if(player.exp > 200) then
-                player.exp = player.exp - 200
+            if(player.exp > 500) then
+                player.exp = player.exp - 500
                 player.levels = player.levels + 1
 
                 if(teamName ~= userTeam) then

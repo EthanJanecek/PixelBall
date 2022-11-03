@@ -136,7 +136,7 @@ local function displayAttributes()
     local y = 60
     displayString("Overall: " .. string.format("%.2f", player:calculateOverall()), 0, y)
     displayString("Potential: " .. player.potential, display.contentWidth * .33, y)
-    displayString("Experience: " .. player.exp .. "/200", display.contentWidth * .67, y)
+    displayString("Experience: " .. player.exp .. "/500", display.contentWidth * .67, y)
     displayString("Years in NBA: " .. player.years, display.contentWidth, y)
     
     y = y + 35

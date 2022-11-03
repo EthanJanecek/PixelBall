@@ -585,7 +585,7 @@ local function calculateDeadzone(shooter, skill)
     local deadzone = deadzoneBase -- Base value
 
     -- Scale up based on how good of a shooter they are
-    deadzone = deadzone + (math.pow(shootingScale, (skill - 5) * staminaPercent(shooter)))
+    deadzone = deadzone + (math.pow(shootingScale, (skill - 3) * staminaPercent(shooter)))
 
     local distToHoop = getDist(shooter.sprite, hoopCenter)
     local dist3 = (18 * feetToPixels * conversionFactor)
