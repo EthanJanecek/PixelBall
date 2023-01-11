@@ -60,6 +60,9 @@ hoopCenter = {x = centerX, y = conversionFactor * 5.5 * feetToPixels, radius = c
 
 require("Constants.start_positions")
 require("Constants.colors")
+require("Constants.name_generator")
+require("Constants.streaks")
+require("Constants.draft_players")
 LeagueLib = require("Objects.league")
 league = nil
 userTeam = ""
@@ -72,6 +75,7 @@ lineupSwitch = {-1, -1}
 showingUserTeamStats = true
 defensiveStrategy = 1
 defenseStats = {}
+simulateMainGame = false
 
 regularSeason = true
 playoffs = false
@@ -79,6 +83,7 @@ games = 72
 numDays = 200
 difficulty = 1
 minutesInQtr = 12
+draftRound = 1
 
 numGamesSetting = 3
 difficultySetting = 1

@@ -22,8 +22,6 @@ local function nextScene()
 		team = league:findPlayoffTeam(userTeam)
 	end
 
-	local titleStr = ""
-
 	if(gameInfo and score.away) then
 		gameInfo.score = score
 		
@@ -49,11 +47,9 @@ local function nextScene()
 			end
 
 			if(score.home > score.away) then
-				titleStr = "You lost " .. score.home .. " - " .. score.away
 				team.losses = team.losses + 1
 				opponent.wins = opponent.wins + 1
 			else
-				titleStr = "You won " .. score.home .. " - " .. score.away
 				team.wins = team.wins + 1
 				opponent.losses = opponent.losses + 1
 			end
@@ -87,23 +83,18 @@ function scene:create( event )
     end
 
     local gameInfo = league:findGameInfo(allGames, userTeam)
-	local team = league:findTeam(userTeam)
 	local titleStr = ""
 
 	if(gameInfo and score.away) then
 		gameInfo.score = score
 		
 		if(gameInfo.home == userTeam) then
-			local opponent = league:findTeam(gameInfo.away)
-
 			if(score.home > score.away) then
 				titleStr = "You won " .. score.home .. " - " .. score.away
 			else
 				titleStr = "You lost " .. score.home .. " - " .. score.away
 			end
 		else
-			local opponent = league:findTeam(gameInfo.home)
-
 			if(score.home > score.away) then
 				titleStr = "You lost " .. score.home .. " - " .. score.away
 			else

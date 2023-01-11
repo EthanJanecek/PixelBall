@@ -6,9 +6,33 @@ local scene = composer.newScene()
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+local function setUpDraft()
+	table.sort(draftPlayers, function(player1, player2) 
+		return calculateDraftStock(player1) > calculateDraftStock(player2)
+	end)
+
+	for team in league.teams do
+		local tmpPlayers = {}
+		for player in team.players do
+			table.insert(tmpPlayers, player)
+		end
+
+		table.sort(tmpPlayers, function(player1, player2)
+			return calculateOverall(player1) < calculateOverall(player2)
+		end)
+
+		table.remove(team.players, indexOf(team.players, tmpPlayers[1]))
+		table.remove(team.players, indexOf(team.players, tmpPlayers[2]))
+	end
+end
+
 local function nextScene()
+	loadNames()
+	generateDraftPlayers()
+	setUpDraft()
+
 	composer.removeScene("Scenes.champions")
-    composer.gotoScene("Scenes.settings")
+    composer.gotoScene("Scenes.draft")
 end
 
 -- -----------------------------------------------------------------------------------
@@ -32,8 +56,14 @@ function scene:create( event )
 
     if(eastTeam.wins > westTeam.wins) then
         winner = eastTeam.team
+		
+		westTeam.draftPosition = 29
+		eastTeam.draftPosition = 30
     else
         winner = westTeam.team
+
+		eastTeam.draftPosition = 29
+		westTeam.draftPosition = 30
     end
 
 	local title = display.newText(sceneGroup, "The " .. winner .. "\nare your World Champions!", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)

@@ -174,7 +174,7 @@ function scene:create( event )
                     local plusMinus = math.round(stats.plusMinus / games)
         
                     -- normalize each stat from 0-10
-                    local rating = points + plusMinus + (winPercent / 50) + (twoPtPercent / 10) + (threePtPercent / 10) + (ts / 15) + (eFG / 15)
+                    local rating = points + (plusMinus / 2) + (winPercent / 50) + (twoPtPercent / 10) + (threePtPercent / 10) + (ts / 15) + (eFG / 15)
         
                     local playerStats = {
                         name = player.name,

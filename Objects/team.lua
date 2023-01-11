@@ -16,6 +16,7 @@ function team:create(name, abbrev, logo, conference, division, color, rosterData
         conf=conference,
         division=division,
         color=color,
+        draftPosition=-1,
         playbook=PlaybookLib:createPlaybook()
     }, self)
 end

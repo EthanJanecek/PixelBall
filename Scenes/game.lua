@@ -528,6 +528,8 @@ function endPossession()
         end
 
         message = "The 2 is good!"
+
+        addToLast5(team.players[userPlayer], 2)
         team.players[userPlayer].gameStats.points = team.players[userPlayer].gameStats.points + 2
         team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1
         team.players[userPlayer].gameStats.twoPM = team.players[userPlayer].gameStats.twoPM + 1
@@ -540,13 +542,19 @@ function endPossession()
         end
 
         message = "The 3 is good!"
+
+        addToLast5(team.players[userPlayer], 3)
         team.players[userPlayer].gameStats.points = team.players[userPlayer].gameStats.points + 3
         team.players[userPlayer].gameStats.threePA = team.players[userPlayer].gameStats.threePA + 1
         team.players[userPlayer].gameStats.threePM = team.players[userPlayer].gameStats.threePM + 1
     elseif(result == "Miss") then
         message = "The shot is no good!"
+
+        addToLast5(team.players[userPlayer], 0)
     elseif(result == "Blocked") then
         message = "The shot is blocked!"
+
+        addToLast5(team.players[userPlayer], 0)
     elseif(result == "shot clock") then
         message = "The shot clock has expired"
     elseif(result == "Stolen") then
@@ -625,6 +633,17 @@ local function calculateDeadzone(shooter, skill)
             local factor = (heightDiff / 10) * distanceFactor * contestSkill * defenseScale
             deadzone = deadzone - factor
         end
+    end
+
+    local streak = getStreak(shooter)
+    if(streak == ICE_COLD_STR) then
+        deadzone = deadzone * ICE_COLD_FACTOR
+    elseif(streak == COLD_STR) then
+        deadzone = deadzone * COLD_FACTOR
+    elseif(streak == HOT_STR) then
+        deadzone = deadzone * HOT_FACTOR
+    elseif(streak == LAVA_HOT_STR) then
+        deadzone = deadzone * LAVA_HOT_FACTOR
     end
 
     if(deadzone < deadzoneMin) then
@@ -824,6 +843,25 @@ local function displayNames()
         else
             playerName:setFillColor(1, 0, 0)
         end
+
+        local streak = getStreak(player)
+        if(streak == ICE_COLD_STR) then
+            local image = display.newImageRect(sceneGroup, "images/super_cold.png", 8, 8)
+            image.x = playerName.x + (playerName.width / 2) + 10
+            image.y = playerName.y
+        elseif(streak == COLD_STR) then
+            local image = display.newImageRect(sceneGroup, "images/cold.png", 8, 8)
+            image.x = playerName.x + (playerName.width / 2) + 10
+            image.y = playerName.y
+        elseif(streak == HOT_STR) then
+            local image = display.newImageRect(sceneGroup, "images/hot.png", 8, 8)
+            image.x = playerName.x + (playerName.width / 2) + 10
+            image.y = playerName.y
+        elseif(streak == LAVA_HOT_STR) then
+            local image = display.newImageRect(sceneGroup, "images/super_hot.png", 8, 8)
+            image.x = playerName.x + (playerName.width / 2) + 10
+            image.y = playerName.y
+        end
     end
 
     local opponentName = display.newText(sceneGroup, opponent.name, bounds.maxX + 100, display.contentCenterY * 2/3, native.systemFont, 8)
@@ -839,6 +877,25 @@ local function displayNames()
             playerName:setFillColor(1, 1, 0)
         else
             playerName:setFillColor(1, 0, 0)
+        end
+
+        local streak = getStreak(player)
+        if(streak == ICE_COLD_STR) then
+            local image = display.newImageRect(sceneGroup, "images/super_cold.png", 8, 8)
+            image.x = playerName.x + (playerName.width / 2) + 10
+            image.y = playerName.y
+        elseif(streak == COLD_STR) then
+            local image = display.newImageRect(sceneGroup, "images/cold.png", 8, 8)
+            image.x = playerName.x + (playerName.width / 2) + 10
+            image.y = playerName.y
+        elseif(streak == HOT_STR) then
+            local image = display.newImageRect(sceneGroup, "images/hot.png", 8, 8)
+            image.x = playerName.x + (playerName.width / 2) + 10
+            image.y = playerName.y
+        elseif(streak == LAVA_HOT_STR) then
+            local image = display.newImageRect(sceneGroup, "images/super_hot.png", 8, 8)
+            image.x = playerName.x + (playerName.width / 2) + 10
+            image.y = playerName.y
         end
     end
 end
@@ -869,6 +926,9 @@ end
 
 local function calculateEndPointMovement(player, route)
     local maxDist = minSpeed + (player.speed * speedScaling)
+    if(difficultySetting == 2 or difficultySetting == 3) then
+        maxDist = minSpeed + (10 * speedScaling)
+    end
     local nextPoint = route.points[1]
     local distToNext = getDist(player.sprite, nextPoint)
 
@@ -904,6 +964,9 @@ end
 
 local function calculateEndPointMovementZone(player, route, pointTowards)
     local maxDist = minSpeed + (player.speed * speedScaling)
+    if(difficultySetting == 2 or difficultySetting == 3) then
+        maxDist = minSpeed + (10 * speedScaling)
+    end
     local nextPoint = route.points[1]
     local distToNext = getDist(player.sprite, nextPoint)
     local newAngle = getRotation(player.sprite, nextPoint)
@@ -1068,8 +1131,11 @@ local function defenderCloseOut(defender, shooter, distAway)
         end
     end
 
-    local newAngle = getRotation(defender.sprite, newPos) 
+    local newAngle = getRotation(defender.sprite, newPos)
     local percent = getDist(defender.sprite, newPos) / (minSpeed + (defender.speed * speedScaling))
+    if(difficultySetting == 2 or difficultySetting == 3) then
+        percent = getDist(defender.sprite, newPos) / (minSpeed + (10 * speedScaling))
+    end
 
     if((getDist(defender.sprite, newPos) < .1 * feetToPixels or (detectCollision(newPos.x, newPos.y, defender.sprite, collisionRadius) and 
                     getDist(newPos, defender.sprite) < collisionRadius)) and shooter.sprite.sequence == "standing") then
@@ -1335,7 +1401,7 @@ local function getManDefenseType()
     elseif(num <= prob1 + prob2 + prob3 + prob4) then
         return 4
     elseif(num <= prob1 + prob2 + prob3 + prob4 + prob5) then
-        return 2
+        return 5
     else
         return 6
     end

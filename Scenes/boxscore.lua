@@ -12,7 +12,8 @@ local statPositions = {
     .6,    -- 3PA
     .7,      -- BLK
     .8,      -- STL
-    .9       -- TRV
+    .9,       -- TRV
+    1       -- +/-
 }
 
 local fontSize = 12
@@ -157,6 +158,10 @@ local function displayHeader()
                     paddingY, native.systemFont, fontSize)
     turnovers:setFillColor(.922, .910, .329)
 
+    local plusMinus = display.newText(sceneGroup, "+/-", display.contentWidth * statPositions[10] + paddingX, 
+                    paddingY, native.systemFont, fontSize)
+    plusMinus:setFillColor(.922, .910, .329)
+
     local dividerHorizontal = display.newRect(sceneGroup, display.contentCenterX, paddingY + 4, display.contentWidth * 1.5, 2)
     dividerHorizontal:setStrokeColor(.922, .910, .329)
     dividerHorizontal:setFillColor(.922, .910, .329)
@@ -200,6 +205,10 @@ local function showPlayerStats(player, row)
     local turnovers = display.newText(sceneGroup, stats.turnovers, display.contentWidth * statPositions[9] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
     turnovers:setFillColor(.922, .910, .329)
+
+    local plusMinus = display.newText(sceneGroup, stats.plusMinus, display.contentWidth * statPositions[10] + paddingX, 
+                    row * rowDist + paddingY, native.systemFont, fontSize)
+    plusMinus:setFillColor(.922, .910, .329)
 end
 
 

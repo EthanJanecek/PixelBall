@@ -13,7 +13,8 @@ local statPositions = {
     .6,    -- 3PA
     .7,      -- BLK
     .8,      -- STL
-    .9       -- TRV
+    .9,       -- TRV
+    1       -- +/-
 }
 
 local fontSize = 12
@@ -84,6 +85,10 @@ local function displayStatsHeader()
                     paddingY, native.systemFont, fontSize)
     turnovers:setFillColor(.922, .910, .329)
 
+    local plusMinus = display.newText(sceneGroup, "+/-", display.contentWidth * statPositions[10] + paddingX, 
+                    paddingY, native.systemFont, fontSize)
+    plusMinus:setFillColor(.922, .910, .329)
+
     local dividerHorizontal = display.newRect(sceneGroup, display.contentCenterX, paddingY + 4, display.contentWidth * 1.5, 2)
     dividerHorizontal:setStrokeColor(.922, .910, .329)
     dividerHorizontal:setFillColor(.922, .910, .329)
@@ -125,6 +130,10 @@ local function displayStats(text, stats, row)
     local turnovers = display.newText(sceneGroup, stats.turnovers, display.contentWidth * statPositions[9] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
     turnovers:setFillColor(.922, .910, .329)
+
+    local plusMinus = display.newText(sceneGroup, stats.plusMinus, display.contentWidth * statPositions[10] + paddingX, 
+                    row * rowDist + paddingY, native.systemFont, fontSize)
+    plusMinus:setFillColor(.922, .910, .329)
 end
 
 local function displayString(text, x, y)
@@ -134,7 +143,7 @@ end
 
 local function displayAttributes()
     local y = 60
-    displayString("Overall: " .. string.format("%.2f", player:calculateOverall()), 0, y)
+    displayString("Overall: " .. string.format("%.2f", calculateOverall(player)), 0, y)
     displayString("Potential: " .. player.potential, display.contentWidth * .33, y)
     displayString("Experience: " .. player.exp .. "/500", display.contentWidth * .67, y)
     displayString("Years in NBA: " .. player.years, display.contentWidth, y)
@@ -157,14 +166,12 @@ local function displayAttributes()
 
     y = y + 25
     displayString("Dribbling: " .. player.dribbling, 0, y)
-    displayString("Passing: " .. player.passing, display.contentWidth * .33, y)
-    displayString("Pass Defending: " .. player.passDefending, display.contentWidth * .67, y)
-    displayString("Stealing: " .. player.stealing, display.contentWidth, y)
+    displayString("Stealing: " .. player.stealing, display.contentWidth * .5, y)
+    displayString("Blocking: " .. player.blocking, display.contentWidth, y)
 
     y = y + 25
-    displayString("Interior Defending: " .. player.contestingInterior, display.contentWidth * .0, y)
-    displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .5, y)
-    displayString("Blocking: " .. player.blocking, display.contentWidth, y)
+    displayString("Interior Defending: " .. player.contestingInterior, display.contentWidth * .25, y)
+    displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .75, y)
 end
 
 local function showPlayer()

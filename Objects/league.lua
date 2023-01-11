@@ -307,6 +307,33 @@ function league:resetPlayoffWins()
     end
 end
 
+function league:startDraftOrder()
+    local eliminatedTeams = {}
+
+    local eastTeams = self:getEastTeams()
+    local westTeams = self:getWestTeams()
+
+    for i = 11, 15 do
+        table.insert(eliminatedTeams, eastTeams[i])
+        table.insert(eliminatedTeams, westTeams[i])
+    end
+
+    table.sort(eliminatedTeams, function(team1, team2)
+        return team1.wins < team2.wins
+    end)
+
+    for i = 1, #eliminatedTeams do
+        eliminatedTeams.draftPosition = i
+    end
+end
+
+function league:chooseRandomDraftOrder(team, positions)
+    local num = math.random(1, #positions)
+    team.draftPosition = positions[num]
+    table.remove(positions, num)
+    return positions
+end
+
 function league:startPlayoffs()
     self.regularSeason = false
     regularSeason = false
@@ -344,6 +371,8 @@ function league:startPlayoffs()
 
     table.insert(self.playoffs[1], {away=westTeams[8].name, home=westTeams[7].name, score={}})
     table.insert(self.playoffs[1], {away=westTeams[10].name, home=westTeams[9].name, score={}})
+
+    self:startDraftOrder()
 end
 
 function league:playinRoundTwo()
@@ -358,9 +387,11 @@ function league:playinRoundTwo()
 
     local east2Game = self.playoffs[1][2]
     local winnerEast2 = east2Game.home
+    local loserEast2 = east2Game.away
 
     if(east2Game.score.away > east2Game.score.home) then
         winnerEast2 = east2Game.away
+        loserEast2 = east2Game.home
     end
 
     local west1Game = self.playoffs[1][3]
@@ -374,9 +405,11 @@ function league:playinRoundTwo()
 
     local west2Game = self.playoffs[1][4]
     local winnerWest2 = west2Game.home
+    local loserWest2 = west2Game.away
 
     if(west2Game.score.away > west2Game.score.home) then
         winnerWest2 = west2Game.away
+        loserWest2 = west2Game.home
     end
 
     table.insert(self.playoffTeams.east, {
@@ -394,6 +427,15 @@ function league:playinRoundTwo()
 
     table.insert(self.playoffs[2], {away=winnerEast2, home=loserEast1, score={}})
     table.insert(self.playoffs[2], {away=winnerWest2, home=loserWest1, score={}})
+
+    local rand = math.random(2)
+    if(rand == 1) then
+        self:findTeam(loserEast2).draftPosition = 11
+        self:findTeam(loserWest2).draftPosition = 12
+    else
+        self:findTeam(loserEast2).draftPosition = 12
+        self:findTeam(loserWest2).draftPosition = 11
+    end
 end
 
 function league:firstRoundSchedule()
@@ -434,16 +476,20 @@ function league:firstRound()
     
     local eastGame = self.playoffs[2][1]
     local winnerEast = eastGame.home
+    local loserEast = eastGame.away
 
     if(eastGame.score.away > eastGame.score.home) then
         winnerEast = eastGame.away
+        loserEast = eastGame.home
     end
 
     local westGame = self.playoffs[2][2]
     local winnerWest = westGame.home
+    local loserWest = westGame.away
 
     if(westGame.score.away > westGame.score.home) then
         winnerWest = westGame.away
+        loserWest = westGame.home
     end
 
     table.insert(self.playoffTeams.east, {
@@ -459,11 +505,20 @@ function league:firstRound()
         seed = 8
     })
 
+    local rand = math.random(2)
+    if(rand == 1) then
+        self:findTeam(loserEast).draftPosition = 13
+        self:findTeam(loserWest).draftPosition = 14
+    else
+        self:findTeam(loserEast).draftPosition = 14
+        self:findTeam(loserWest).draftPosition = 13
+    end
+
     self:resetPlayoffWins()
     self:firstRoundSchedule()
 end
 
-function league:filterOutLosers()
+function league:filterOutLosers(startDraftPosition)
     local teamsToRemoveEast = {}
     for i = 1, #self.playoffTeams.east do
         if self.playoffTeams.east[i].wins < 4 then
@@ -478,14 +533,22 @@ function league:filterOutLosers()
         end
     end
 
+    local possiblePositions = {}
+    local countTeamsEliminated = #teamsToRemoveEast + #teamsToRemoveWest
+    for i = startDraftPosition, startDraftPosition + countTeamsEliminated do
+        table.insert(possiblePositions, i)
+    end
+
     for i = 1, #teamsToRemoveEast do
         local index = indexOf(self.playoffTeams.east, teamsToRemoveEast[i])
-        table.remove(self.playoffTeams.east, index)
+        local removedTeam = table.remove(self.playoffTeams.east, index)
+        possiblePositions = self:chooseRandomDraftOrder(removedTeam, possiblePositions)
     end
 
     for i = 1, #teamsToRemoveWest do
         local index = indexOf(self.playoffTeams.west, teamsToRemoveWest[i])
-        table.remove(self.playoffTeams.west, index)
+        local removedTeam = table.remove(self.playoffTeams.west, index)
+        possiblePositions = self:chooseRandomDraftOrder(removedTeam, possiblePositions)
     end
 end
 
@@ -524,7 +587,7 @@ function league:secondRoundSchedule()
 end
 
 function league:secondRound()
-    self:filterOutLosers()
+    self:filterOutLosers(15)
     self:resetPlayoffWins()
     self:secondRoundSchedule()
 end
@@ -560,7 +623,7 @@ function league:conferenceChampionshipSchedule()
 end
 
 function league:conferenceChampionship()
-    self:filterOutLosers()
+    self:filterOutLosers(23)
     self:resetPlayoffWins()
     self:conferenceChampionshipSchedule()
 end
@@ -588,7 +651,7 @@ function league:finalsSchedule()
 end
 
 function league:finals()
-    self:filterOutLosers()
+    self:filterOutLosers(27)
     self:resetPlayoffWins()
     self:finalsSchedule()
 end
@@ -602,7 +665,7 @@ local function calculatePlayerExp(player)
     end
     
     local expRaw = (stats.points * shotPercent * 2.5) + (stats.steals + stats.blocks - stats.turnovers) * 5
-    local factor = math.pow(player.potential / 10.0, player.years)
+    local factor = math.pow((player.potential / 20.0) + .5, player.years + 1)
     local exp = factor * expRaw
 
     -- Exp is calculated for numGamesSetting = 3
@@ -619,8 +682,8 @@ local function calculatePlayerExp(player)
         exp = exp * 1.5
     end
 
-    if(exp > 50) then
-        exp = 50
+    if(exp > 100) then
+        exp = 100
     elseif(exp < 0) then
         exp = 0
     end
@@ -693,7 +756,7 @@ function league:giveExp(teamName)
     for i = 1, #team.players do
         local player = team.players[i]
 
-        if(player:calculateOverall() < 10 and player:calculateOverall() < player.potential) then
+        if(player and calculateOverall(player) < 10 and calculateOverall(player) < player.potential) then
             local exp = calculatePlayerExp(player)
             player.exp = player.exp + exp
 
@@ -724,20 +787,23 @@ function league:nextWeek()
             local away = self:findPlayoffTeam(game.away)
             local home = self:findPlayoffTeam(game.home)
 
-            if((away.wins < 4 and home.wins < 4) and (game.away ~= userTeam and game.home ~= userTeam)) then
-                print(game.away .. " vs. " .. game.home)
+            if(away.wins < 4 and home.wins < 4) then
+                if((game.away ~= userTeam and game.home ~= userTeam) or simulateMainGame) then
+                    local score = simulateGame(self:findTeam(game.away), self:findTeam(game.home))
+                    game.score = score
 
-                local score = simulateGame(self:findTeam(game.away), self:findTeam(game.home))
-                game.score = score
-
-                if(game.score.away >= game.score.home) then
-                    away.wins = away.wins + 1
-                else
-                    home.wins = home.wins + 1
+                    if(game.score.away >= game.score.home) then
+                        away.wins = away.wins + 1
+                    else
+                        home.wins = home.wins + 1
+                    end
                 end
+
+                self:giveExp(game.away)
+                self:giveExp(game.home)
             end
         else
-            if(game.away ~= userTeam and game.home ~= userTeam) then
+            if((game.away ~= userTeam and game.home ~= userTeam) or simulateMainGame) then
                 local score = simulateGame(self:findTeam(game.away), self:findTeam(game.home))
                 game.score = score
             end
@@ -747,6 +813,7 @@ function league:nextWeek()
         end
     end
 
+    simulateMainGame = false
     self.weekNum = self.weekNum + 1
 end
 
@@ -831,6 +898,7 @@ local function resetStaminaAndStats(team)
         addStats(team.players[i].yearStats, stats)
         addStats(team.players[i].careerStats, stats)
         team.players[i].gameStats = StatsLib:createStats()
+        team.players[i].last5 = {}
     end
 end
 
@@ -1123,6 +1191,7 @@ function simulatePossession(offense, defense, defenseStrategy)
         end
     end
     
+    addToLast5(player, points)
     return {points=points, time=time, player=player, defender=defender, message=message}
 end
 
@@ -1146,10 +1215,21 @@ function calculatePoints(shooterSkill, defenderSkill, heightDiff, leagueAvg, max
     local wideOpen = wideOpenShot(player, defender)
 
     if(wideOpen) then
-        local scaling = shooterSkill * skillScaling
+        scaling = shooterSkill * skillScaling
     end
 
     local percentageMade = leagueAvg + scaling
+
+    local streak = getStreak(player)
+    if(streak == ICE_COLD_STR) then
+        percentageMade = percentageMade * ICE_COLD_FACTOR
+    elseif(streak == COLD_STR) then
+        percentageMade = percentageMade * COLD_FACTOR
+    elseif(streak == HOT_STR) then
+        percentageMade = percentageMade * HOT_FACTOR
+    elseif(streak == LAVA_HOT_STR) then
+        percentageMade = percentageMade * LAVA_HOT_FACTOR
+    end
 
     if(shotPercent <= percentageMade) then
         return maxPoints

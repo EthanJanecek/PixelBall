@@ -155,11 +155,11 @@ function scene:create( event )
                     end
                     
                     local ptsPerShotMin = ptsPerShot
-                    if(ptsPerShotMin < .25) then
-                        ptsPerShotMin = .25
+                    if(ptsPerShotMin < .1) then
+                        ptsPerShotMin = .1
                     end
                     -- normalize each stat from 0-10
-                    local rating = (winPercent / 20) + (3 / ptsPerShotMin) + (shots / 10) + (blocks * 2) + (steals * 2)
+                    local rating = (winPercent / 20) + (3 * shots / ptsPerShotMin) + (blocks * 3) + (steals * 3)
         
                     local playerStats = {
                         name = player.name,

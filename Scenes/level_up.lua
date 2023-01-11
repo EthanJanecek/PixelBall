@@ -93,32 +93,8 @@ local function displayAttributes()
         displayString("Dribbling: " .. player.dribbling, 0, y)
     end
 
-    if(player.passing < 10) then
-        createButtonWithBorder(sceneGroup, "Passing: " .. player.passing, 16, display.contentWidth * .33, y, 2, YELLOW, YELLOW, TRANSPARENT, 
-                function ()
-                    player.passing = player.passing + 1
-                    player.levels = player.levels - 1
-                    nextScene()
-                end
-            )
-    else
-        displayString("Passing: " .. player.passing, display.contentWidth * .33, y)
-    end
-
-    if(player.passDefending < 10) then
-        createButtonWithBorder(sceneGroup, "Pass Defending: " .. player.passDefending, 16, display.contentWidth * .67, y, 2, YELLOW, YELLOW, TRANSPARENT, 
-                function ()
-                    player.passDefending = player.passDefending + 1
-                    player.levels = player.levels - 1
-                    nextScene()
-                end
-            )
-    else
-        displayString("Pass Defending: " .. player.passDefending, display.contentWidth * .67, y)
-    end
-
     if(player.stealing < 10) then
-        createButtonWithBorder(sceneGroup, "Stealing: " .. player.stealing, 16, display.contentWidth, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Stealing: " .. player.stealing, 16, display.contentWidth * .5, y, 2, YELLOW, YELLOW, TRANSPARENT, 
                 function ()
                     player.stealing = player.stealing + 1
                     player.levels = player.levels - 1
@@ -126,32 +102,7 @@ local function displayAttributes()
                 end
             )
     else
-        displayString("Stealing: " .. player.stealing, display.contentWidth, y)
-    end
-
-    y = y + 30
-    if(player.contestingInterior < 10) then
-        createButtonWithBorder(sceneGroup, "Interior Defending: " .. player.contestingInterior, 16, 0, y, 2, YELLOW, YELLOW, TRANSPARENT, 
-                function ()
-                    player.contestingInterior = player.contestingInterior + 1
-                    player.levels = player.levels - 1
-                    nextScene()
-                end
-            )
-    else
-        displayString("Interior Defending: " .. player.contestingInterior, 0, y)
-    end
-
-    if(player.contestingExterior < 10) then
-        createButtonWithBorder(sceneGroup, "Exterior Defending: " .. player.contestingExterior, 16, display.contentWidth * .5, y, 2, YELLOW, YELLOW, TRANSPARENT, 
-                function ()
-                    player.contestingExterior = player.contestingExterior + 1
-                    player.levels = player.levels - 1
-                    nextScene()
-                end
-            )
-    else
-        displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .5, y)
+        displayString("Stealing: " .. player.stealing, display.contentWidth * .5, y)
     end
 
     if(player.blocking < 10) then
@@ -164,6 +115,31 @@ local function displayAttributes()
             )
     else
         displayString("Blocking: " .. player.blocking, display.contentWidth, y)
+    end
+
+    y = y + 30
+    if(player.contestingInterior < 10) then
+        createButtonWithBorder(sceneGroup, "Interior Defending: " .. player.contestingInterior, 16, display.contentWidth * .25, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+                function ()
+                    player.contestingInterior = player.contestingInterior + 1
+                    player.levels = player.levels - 1
+                    nextScene()
+                end
+            )
+    else
+        displayString("Interior Defending: " .. player.contestingInterior, 0, y)
+    end
+
+    if(player.contestingExterior < 10) then
+        createButtonWithBorder(sceneGroup, "Exterior Defending: " .. player.contestingExterior, 16, display.contentWidth * .75, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+                function ()
+                    player.contestingExterior = player.contestingExterior + 1
+                    player.levels = player.levels - 1
+                    nextScene()
+                end
+            )
+    else
+        displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .5, y)
     end
 end
 

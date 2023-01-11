@@ -145,13 +145,20 @@ function scene:create( event )
         createButtonWithBorder(sceneGroup, "Next Game", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
                 BLACK, BLACK, TRANSPARENT, nextWeek)
     else
+        local function simGame()
+            simulateMainGame = true
+            nextWeek()
+        end
+
         local titleStr = gameInfo.away .. " vs. " .. gameInfo.home
 
         local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 48)
         title:setFillColor(.922, .910, .329)
 
-        createButtonWithBorder(sceneGroup, "Play", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
+        createButtonWithBorder(sceneGroup, "Play", 32, display.contentCenterX * .67, display.contentCenterY * 1.2, 2, 
                 BLACK, BLACK, TRANSPARENT, toGame)
+        createButtonWithBorder(sceneGroup, "Sim Game", 32, display.contentCenterX * 1.33, display.contentCenterY * 1.2, 2,
+                BLACK, BLACK, TRANSPARENT, simGame)
         createButtonWithBorder(sceneGroup, "Change Lineup", 32, display.contentCenterX * .5, display.contentCenterY * 1.5, 2, 
                 BLACK, BLACK, TRANSPARENT, changeLineup)
         createButtonWithBorder(sceneGroup, "Create Plays", 32, display.contentCenterX * 1.5, display.contentCenterY * 1.5, 2, 

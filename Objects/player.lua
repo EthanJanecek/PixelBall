@@ -43,12 +43,80 @@ function player:createRandom()
     }, self)
 end
 
-function player:calculateOverall()
-    local sumOverall = self.dribbling + self.closeShot + self.midRange + self.three + self.finishing + self.stealing + 
-            self.blocking + self.contestingInterior + self.contestingExterior + self.passing + self.passDefending
+function player:createRookie()
+    self.__index = self
+    local speed = math.random(10)
+    local minBallSpeed = speed - 4
+
+    if(minBallSpeed < 1) then
+        minBallSpeed = 1
+    end
+
+    return setmetatable({
+        name = generateName(),
+        years = 0,
+
+        dribbling = math.random(1, 7),
+        closeShot = math.random(1, 7),
+        midRange = math.random(1, 7),
+        three = math.random(1, 7),
+        finishing = math.random(1, 7),
+        stealing = math.random(1, 7),
+        blocking = math.random(1, 7),
+        contestingInterior = math.random(1, 7),
+        contestingExterior = math.random(1, 7),
+        passing = math.random(1, 7),
+        passDefending = math.random(1, 7),
+
+        height = math.random(1, 10),
+        speed = speed,
+        maxStamina = math.random(5, 10),
+        stamina = 10,
+        ballSpeed = math.random(minBallSpeed, speed),
+        quickness = math.random(1, 10),
+        strength = math.random(1, 10),
+        potential = math.random(4, 10),
+
+        attitude = math.random(1, 10),
+        number = math.random(0, 99),
+        hasBall = false,
+        sprite = nil,
+        moving = false,
+        starter = false,
+        gameStats = StatsLib:createStats(),
+        yearStats = StatsLib:createStats(),
+        careerStats = StatsLib:createStats(),
+        manualMoving = false,
+        movement = {},
+        exp = 0,
+        levels = 0,
+        last5 = {}
+    }, self)
+end
+
+function calculateOverall(player)
+    local sumOverall = player.dribbling + player.closeShot + player.midRange + player.three + player.finishing + player.stealing + 
+            player.blocking + player.contestingInterior + player.contestingExterior + player.levels
     local overall = sumOverall / 11.0
 
     return overall
+end
+
+function calculateDraftStock(player)
+    local sumOverall = player.dribbling + player.closeShot + player.midRange + player.three + player.finishing + player.stealing + 
+            player.blocking + player.contestingInterior + player.contestingExterior + player.speed + player.height + player.stamina
+            + player.potential * 3
+    local overall = sumOverall / 15.0
+
+    return overall
+end
+
+function addToLast5(player, result)
+    table.insert(player.last5, result)
+
+    if(#player.last5 > 5) then
+        table.remove(player.last5, 1)
+    end
 end
 
 function player:createPlayer(name, dribbling, closeShot, midRange, three, finishing, stealing, blocking, contestingInt, contestingExt, 
@@ -89,7 +157,8 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
         manualMoving = false,
         movement = {},
         exp = 0,
-        levels = 0
+        levels = 0,
+        last5 = {}
     }, self)
 end
 
