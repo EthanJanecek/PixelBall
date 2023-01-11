@@ -8,20 +8,23 @@ local draftTeams = {}
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function nextPage()
-
-end
-
 local function selectPlayer(player)
-    table.insert(league.findTeam(userTeam), player)
+    table.insert(league:findTeam(userTeam).players, player)
     table.remove(draftPlayers, indexOf(draftPlayers, player))
 
-    for i = league.findTeam(userTeam).draftPosition + 1, 30 do
-        table.insert(draftTeams[i].players, table.remove(draftPlayers, 1))
+    for i = league:findTeam(userTeam).draftPosition + 1, 30 do
+        print(draftTeams[i].name)
+        local removedPlayer = table.remove(draftPlayers, 1)
+        table.insert(draftTeams[i].players, removedPlayer)
     end
 
-    composer.removeScene("Scenes.draft")
-    composer.gotoScene("Scenes.player_card")
+    if(draftRound == 1) then
+        draftRound = 2
+        composer.gotoScene("Scenes.load_scene")
+    else
+        draftRound = 1
+        composer.gotoScene("Scenes.pregame")
+    end
 end
 
 local function getName(name)
@@ -76,15 +79,16 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    for team in league.teams do
+    for i, team in ipairs(league.teams) do
         table.insert(draftTeams, team)
     end
 
     table.sort(draftTeams, function(team1, team2)
-        return team1.draftPosition > team2.draftPosition
+        return team1.draftPosition < team2.draftPosition
     end)
 
-    for i = 1, league.findTeam(userTeam).draftPosition - 1 do
+    for i = 1, league:findTeam(userTeam).draftPosition - 1 do
+        print(draftTeams[i].name)
         table.insert(draftTeams[i].players, table.remove(draftPlayers, 1))
     end
 
@@ -115,7 +119,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

@@ -25,22 +25,18 @@ local paddingY = 30
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	composer.removeScene("Scenes.mvp_tracker")
     composer.gotoScene("Scenes.pregame")
 end
 
 local function sixthMan()
-	composer.removeScene("Scenes.mvp_tracker")
     composer.gotoScene("Scenes.sixth_man_tracker")
 end
 
 local function roty()
-	composer.removeScene("Scenes.mvp_tracker")
     composer.gotoScene("Scenes.roty_tracker")
 end
 
 local function dpoty()
-	composer.removeScene("Scenes.mvp_tracker")
     composer.gotoScene("Scenes.dpoty_tracker")
 end
 
@@ -208,7 +204,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

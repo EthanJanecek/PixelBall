@@ -8,39 +8,32 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function setDefense()
-    composer.removeScene("Scenes.simulate_defense")
     composer.gotoScene("Scenes.set_defense")
 end
 
 local function toGame()
     gameInProgress = true
     score = {away=0, home=0}
-    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.game")
 end
 
 local function seeStandings()
-    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.standings")
 end
 
 local function nextWeek()
-    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.postgame")
 end
 
 local function changeLineup()
-    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.lineup")
 end
 
 local function createPlays()
-    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.play_creation")
 end
 
 local function mvpTracker()
-    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.mvp_tracker")
 end
 
@@ -51,7 +44,6 @@ local function settings()
         }
     }
 
-    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.settings", options)
 end
 
@@ -62,7 +54,6 @@ local function roster()
         }
     }
 
-    composer.removeScene("Scenes.pregame")
     composer.gotoScene("Scenes.roster", options)
 end
 
@@ -185,7 +176,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

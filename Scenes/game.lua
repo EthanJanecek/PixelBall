@@ -324,7 +324,6 @@ end
 
 local function reset()
     Runtime:removeEventListener("enterFrame", movePlayers)
-    composer.removeScene("Scenes.game")
 
     if(gameInProgress) then
         local options = {
@@ -1638,7 +1637,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

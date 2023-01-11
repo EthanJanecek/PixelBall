@@ -43,13 +43,11 @@ local function nextScene()
 	league = LeagueLib:createLeague()
 	league:createSchedule()
 
-    composer.removeScene("Scenes.settings")
     composer.gotoScene("Scenes.team_selection")
 end
 
 local function back()
 	applyChanges()
-	composer.removeScene("Scenes.settings")
     composer.gotoScene("Scenes.pregame")
 end
 
@@ -60,8 +58,7 @@ local function redraw()
         }
     }
 
-    composer.removeScene("Scenes.settings")
-    composer.gotoScene("Scenes.settings", options)
+    composer.gotoScene("Scenes.load_scene", options)
 end
 
 local function displayNumGamesSetting(i)
@@ -227,7 +224,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+		local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

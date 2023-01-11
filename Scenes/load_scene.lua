@@ -1,43 +1,15 @@
 local composer = require( "composer" )
+
 local scene = composer.newScene()
 
-local sceneGroup = nil
-local strategyNames = {"Overall", "Speed", "Interior\nDefending", "Exterior\nDefending", "Height"}
+local params = {}
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function nextScene()
-    composer.gotoScene(lastScene)
-end
 
-local function redraw()
-    composer.gotoScene("Scenes.load_scene")
-end
 
-local function showPlayerCard(name, initialX, initialY, i)
-    local function selectPlayer()
-        defensiveStrategy = i
-        redraw()
-    end
-
-    local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 8, display.contentHeight / 8)
-    playerBorder:setFillColor(0, 0, 0, 0)
-    playerBorder:addEventListener("tap", selectPlayer)
-
-    if(defensiveStrategy == i) then
-        playerBorder:setStrokeColor(0, 0, 1)
-        playerBorder.strokeWidth = 4
-    else
-        playerBorder:setStrokeColor(.922, .910, .329)
-        playerBorder.strokeWidth = 2
-    end
-
-    local playerName = display.newText(sceneGroup, name, playerBorder.x, playerBorder.y, native.systemFont, 12)
-    playerName:setFillColor(.922, .910, .329)
-    playerName:addEventListener("tap", selectPlayer)
-end
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -45,11 +17,7 @@ end
 
 -- create()
 function scene:create( event )
-	sceneGroup = self.view
-
-    if(composer.getSceneName("previous") ~= composer.getSceneName("current") and composer.getSceneName("previous") ~= "Scenes.load_scene") then
-        lastScene = composer.getSceneName("previous")
-    end
+	local sceneGroup = self.view
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
@@ -57,11 +25,7 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
-
-    for i = 1, 5 do
-        showPlayerCard(strategyNames[i], display.contentWidth * i / 6, display.contentHeight / 5, i)
-    end
+    params = event.params
 end
 
 
@@ -73,8 +37,13 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-        local previous = composer.getSceneName("previous")
+		local previous = composer.getSceneName("previous")
 		composer.removeScene(previous)
+
+        local options = {
+            params = params
+        }
+        composer.gotoScene(previous, options)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

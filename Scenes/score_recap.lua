@@ -10,12 +10,10 @@ local offsetY = 40
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextWeek()
-    composer.removeScene("Scenes.score_recap")
     composer.gotoScene("Scenes.pregame")
 end
 
 local function endSeason()
-    composer.removeScene("Scenes.score_recap")
     composer.gotoScene("Scenes.champions")
 end
 
@@ -28,7 +26,6 @@ local function showGameScore(game, xIndex, yIndex)
             }
         }
     
-        composer.removeScene("Scenes.score_recap")
         composer.gotoScene("Scenes.boxscore_other_teams", options)
         return true
     end
@@ -137,7 +134,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

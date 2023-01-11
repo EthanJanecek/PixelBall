@@ -9,7 +9,6 @@ local chosenTeam = nil
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	composer.removeScene("Scenes.roster")
     composer.gotoScene("Scenes.pregame")
 end
 
@@ -21,7 +20,6 @@ local function selectPlayer(player)
         }
     }
 
-    composer.removeScene("Scenes.roster")
     composer.gotoScene("Scenes.player_card", options)
 end
 
@@ -33,7 +31,6 @@ local function changeTeam()
         }
     }
 
-    composer.removeScene("Scenes.roster")
     composer.gotoScene("Scenes.team_selection", options)
 end
 
@@ -138,7 +135,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

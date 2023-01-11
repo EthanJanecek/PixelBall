@@ -66,6 +66,7 @@ require("Constants.draft_players")
 LeagueLib = require("Objects.league")
 league = nil
 userTeam = ""
+lastScene = ""
 
 -- Game Details
 score = {away=0, home=0}

@@ -29,14 +29,12 @@ local qtrOffsetPercent = .5
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	composer.removeScene("Scenes.boxscore")
     composer.gotoScene("Scenes.postgame")
 end
 
 local function switchTeam()
     showingUserTeamStats = not showingUserTeamStats
-	composer.removeScene("Scenes.boxscore")
-    composer.gotoScene("Scenes.boxscore")
+    composer.gotoScene("Scenes.load_scene")
 end
 
 local function displayQtrBreakdownHeader()
@@ -256,7 +254,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

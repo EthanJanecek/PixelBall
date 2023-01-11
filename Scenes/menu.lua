@@ -7,7 +7,6 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	composer.removeScene("Scenes.menu")
     composer.gotoScene("Scenes.settings")
 end
 
@@ -25,7 +24,6 @@ end
 local function loadGame()
 	league = LeagueLib:createFromSave()
 
-	composer.removeScene("Scenes.menu")
     composer.gotoScene("Scenes.pregame")
 end
 -- -----------------------------------------------------------------------------------
@@ -62,7 +60,7 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+		
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

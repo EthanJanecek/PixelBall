@@ -10,24 +10,20 @@ local reSim = false
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function offense()
-    composer.removeScene("Scenes.simulate_defense")
     composer.gotoScene("Scenes.game")
 end
 
 local function changeLineup()
-    composer.removeScene("Scenes.simulate_defense")
     composer.gotoScene("Scenes.lineup")
     return true
 end
 
 local function createPlays()
-    composer.removeScene("Scenes.simulate_defense")
     composer.gotoScene("Scenes.play_creation")
     return true
 end
 
 local function setDefense()
-    composer.removeScene("Scenes.simulate_defense")
     composer.gotoScene("Scenes.set_defense")
     return true
 end
@@ -203,7 +199,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

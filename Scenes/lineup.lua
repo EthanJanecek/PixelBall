@@ -9,14 +9,11 @@ local sceneGroup = nil
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-    local prevScene = composer.getSceneName( "previous" )
-	composer.removeScene("Scenes.lineup")
-    composer.gotoScene(prevScene)
+    composer.gotoScene(lastScene)
 end
 
 local function redraw()
-    composer.removeScene("Scenes.lineup")
-    composer.gotoScene("Scenes.lineup")
+    composer.gotoScene("Scenes.load_scene")
 end
 
 local function switchPlayers()
@@ -110,6 +107,10 @@ end
 function scene:create( event )
 	sceneGroup = self.view
 
+    if(composer.getSceneName("previous") ~= composer.getSceneName("current") and composer.getSceneName("previous") ~= "Scenes.load_scene") then
+        lastScene = composer.getSceneName("previous")
+    end
+
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
@@ -139,7 +140,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

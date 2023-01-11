@@ -176,7 +176,7 @@ function league:createSchedule()
 
                     if(loops > maxLoops) then
                         -- Don't want to get stuck in infinite loop
-                        self.createSchedule()
+                        self:createSchedule()
                         break
                     end
                 end
@@ -323,7 +323,7 @@ function league:startDraftOrder()
     end)
 
     for i = 1, #eliminatedTeams do
-        eliminatedTeams.draftPosition = i
+        eliminatedTeams[i].draftPosition = i
     end
 end
 
@@ -542,13 +542,13 @@ function league:filterOutLosers(startDraftPosition)
     for i = 1, #teamsToRemoveEast do
         local index = indexOf(self.playoffTeams.east, teamsToRemoveEast[i])
         local removedTeam = table.remove(self.playoffTeams.east, index)
-        possiblePositions = self:chooseRandomDraftOrder(removedTeam, possiblePositions)
+        possiblePositions = self:chooseRandomDraftOrder(self:findTeam(removedTeam.team), possiblePositions)
     end
 
     for i = 1, #teamsToRemoveWest do
         local index = indexOf(self.playoffTeams.west, teamsToRemoveWest[i])
         local removedTeam = table.remove(self.playoffTeams.west, index)
-        possiblePositions = self:chooseRandomDraftOrder(removedTeam, possiblePositions)
+        possiblePositions = self:chooseRandomDraftOrder(self:findTeam(removedTeam.team), possiblePositions)
     end
 end
 

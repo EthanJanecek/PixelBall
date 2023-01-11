@@ -57,12 +57,10 @@ local function nextScene()
 	end
 
 	league:nextWeek()
-	composer.removeScene("Scenes.postgame")
     composer.gotoScene("Scenes.score_recap")
 end
 
 local function boxScoreScene()
-	composer.removeScene("Scenes.postgame")
     composer.gotoScene("Scenes.boxscore")
 end
 
@@ -129,7 +127,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+		local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

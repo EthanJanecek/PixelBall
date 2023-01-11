@@ -27,14 +27,11 @@ local sequenceData = {
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-    local prevScene = composer.getSceneName( "previous" )
-	composer.removeScene("Scenes.play_creation")
-    composer.gotoScene(prevScene)
+    composer.gotoScene(lastScene)
 end
 
 local function clearScreen()
-    composer.removeScene("Scenes.play_creation")
-    composer.gotoScene("Scenes.play_creation")
+    composer.gotoScene("Scenes.load_scene")
 end
 
 local function saveRoute()
@@ -139,6 +136,10 @@ function scene:create( event )
 	sceneGroup = self.view
     team = league:findTeam(userTeam)
 
+    if(composer.getSceneName("previous") ~= composer.getSceneName("current") and composer.getSceneName("previous") ~= "Scenes.load_scene") then
+        lastScene = composer.getSceneName("previous")
+    end
+
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     setBackdrop()
     createOffense()
@@ -153,7 +154,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

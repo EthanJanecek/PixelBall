@@ -35,7 +35,6 @@ local offsetY = 40
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-	composer.removeScene("Scenes.boxscore_other_teams")
     composer.gotoScene("Scenes.score_recap")
 end
 
@@ -47,8 +46,7 @@ local function switchTeam()
         }
     }
 
-	composer.removeScene("Scenes.boxscore_other_teams")
-    composer.gotoScene("Scenes.boxscore_other_teams", options)
+    composer.gotoScene("Scenes.load_scene", options)
 end
 
 local function showGameScore(game)
@@ -219,7 +217,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

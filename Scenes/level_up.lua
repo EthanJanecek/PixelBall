@@ -17,10 +17,8 @@ local function nextScene()
     }
 
     if(player.levels > 0) then
-        composer.removeScene("Scenes.level_up")
-        composer.gotoScene("Scenes.level_up", options)
+        composer.gotoScene("Scenes.load_scene", options)
     else
-        composer.removeScene("Scenes.level_up")
         composer.gotoScene("Scenes.player_card", options)
     end
 end
@@ -181,7 +179,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+        local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 

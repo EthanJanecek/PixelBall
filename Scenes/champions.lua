@@ -6,14 +6,36 @@ local scene = composer.newScene()
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+local function resetYear()
+	regularSeason = true
+	playoffs = false
+	
+	league.weekNum = 1
+	league.regularSeason = true
+	league.playoffsActive = false
+	league:createSchedule()
+
+	for i = 1, 30 do
+		local team = league.teams[i]
+		team.wins = 0
+		team.losses = 0
+
+		for j = 1, #team.players do
+			local player = team.players[j]
+			player.years = player.years + 1
+			player.yearStats = StatsLib:createStats()
+		end
+	end
+end
+
 local function setUpDraft()
 	table.sort(draftPlayers, function(player1, player2) 
 		return calculateDraftStock(player1) > calculateDraftStock(player2)
 	end)
 
-	for team in league.teams do
+	for i, team in ipairs(league.teams) do
 		local tmpPlayers = {}
-		for player in team.players do
+		for j, player in ipairs(team.players) do
 			table.insert(tmpPlayers, player)
 		end
 
@@ -29,9 +51,9 @@ end
 local function nextScene()
 	loadNames()
 	generateDraftPlayers()
+	resetYear()
 	setUpDraft()
 
-	composer.removeScene("Scenes.champions")
     composer.gotoScene("Scenes.draft")
 end
 
@@ -57,16 +79,16 @@ function scene:create( event )
     if(eastTeam.wins > westTeam.wins) then
         winner = eastTeam.team
 		
-		westTeam.draftPosition = 29
-		eastTeam.draftPosition = 30
+		league:findTeam(westTeam.team).draftPosition = 29
+		league:findTeam(eastTeam.team).draftPosition = 30
     else
         winner = westTeam.team
 
-		eastTeam.draftPosition = 29
-		westTeam.draftPosition = 30
+		league:findTeam(westTeam.team).draftPosition = 30
+		league:findTeam(eastTeam.team).draftPosition = 29
     end
 
-	local title = display.newText(sceneGroup, "The " .. winner .. "\nare your World Champions!", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)
+	local title = display.newText(sceneGroup, "The " .. winner .. "\nare your World Champions!", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
     title:setFillColor(.922, .910, .329)
 end
 
@@ -79,7 +101,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+		local previous = composer.getSceneName("previous")
+		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 
