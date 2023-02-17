@@ -100,7 +100,7 @@ function scene:create( event )
     end
 
     local gameInfo = league:findGameInfo(allGames, userTeam)
-    if((gameInfo) and (not regularSeason) and (league:findPlayoffTeam(gameInfo.home).wins >= 4 or league:findPlayoffTeam(gameInfo.away).wins >= 4)) then
+    if((gameInfo) and (playoffs) and (league:findPlayoffTeam(gameInfo.home).wins >= 4 or league:findPlayoffTeam(gameInfo.away).wins >= 4)) then
         gameInfo = nil
     end
 

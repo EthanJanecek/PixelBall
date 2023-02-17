@@ -1,4 +1,5 @@
 StatsLib = require("Objects.stats")
+AwardsLib = require("Objects.awards")
 
 local player = {}
 
@@ -33,11 +34,10 @@ function player:createRandom()
         sprite = nil,
         moving = false,
         starter = false,
-        gameStats = StatsLib:createStats(),
-        yearStats = StatsLib:createStats(),
-        careerStats = StatsLib:createStats(),
+        stats = {},
         manualMoving = false,
         movement = {},
+        awards = AwardsLib:createAwards(),
         exp = 0,
         levels = 0
     }, self)
@@ -83,11 +83,10 @@ function player:createRookie()
         sprite = nil,
         moving = false,
         starter = false,
-        gameStats = StatsLib:createStats(),
-        yearStats = StatsLib:createStats(),
-        careerStats = StatsLib:createStats(),
+        stats = {},
         manualMoving = false,
         movement = {},
+        awards = AwardsLib:createAwards(),
         exp = 0,
         levels = 0,
         last5 = {}
@@ -151,15 +150,50 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
         sprite = nil,
         moving = false,
         starter = starter,
-        gameStats = StatsLib:createStats(),
-        yearStats = StatsLib:createStats(),
-        careerStats = StatsLib:createStats(),
+        stats = {},
         manualMoving = false,
         movement = {},
+        awards = AwardsLib:createAwards(),
         exp = 0,
         levels = 0,
         last5 = {}
     }, self)
+end
+
+function player:getGameStats(year, week)
+    for i = 1, #self.stats do
+        local stat = self.stats[i]
+
+        if stat.year == year and stat.week == week then
+            return stat
+        end
+    end
+
+    return StatsLib:createStats()
+end
+
+function player:calculateYearlyStats(year)
+    local tmpStats = StatsLib:createStats()
+
+    for i = 1, #self.stats do
+        local stat = self.stats[i]
+
+        if stat.year == year then
+            addStats(tmpStats, stat)
+        end
+    end
+
+    return tmpStats
+end
+
+function player:calculateCareerStats()
+    local tmpStats = StatsLib:createStats()
+
+    for i = 1, #self.stats do
+        addStats(tmpStats, self.stats[i])
+    end
+
+    return tmpStats
 end
 
 return player

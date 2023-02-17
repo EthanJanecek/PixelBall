@@ -18,7 +18,7 @@ local function nextScene()
     local gameInfo = league:findGameInfo(allGames, userTeam)
 	local team = league:findTeam(userTeam)
 
-	if(not regularSeason) then
+	if(playoffs) then
 		team = league:findPlayoffTeam(userTeam)
 	end
 
@@ -28,30 +28,34 @@ local function nextScene()
 		if(gameInfo.home == userTeam) then
 			local opponent = league:findTeam(gameInfo.away)
 
-			if(not regularSeason) then
+			if(playoffs) then
 				opponent = league:findPlayoffTeam(gameInfo.away)
 			end
 
-			if(score.home > score.away) then
-				team.wins = team.wins + 1
-				opponent.losses = opponent.losses + 1
-			else
-				team.losses = team.losses + 1
-				opponent.wins = opponent.wins + 1
+			if(regularSeason or playoffs) then
+				if(score.home > score.away) then
+					team.wins = team.wins + 1
+					opponent.losses = opponent.losses + 1
+				else
+					team.losses = team.losses + 1
+					opponent.wins = opponent.wins + 1
+				end
 			end
 		else
 			local opponent = league:findTeam(gameInfo.home)
 
-			if(not regularSeason) then
+			if(playoffs) then
 				opponent = league:findPlayoffTeam(gameInfo.home)
 			end
 
-			if(score.home > score.away) then
-				team.losses = team.losses + 1
-				opponent.wins = opponent.wins + 1
-			else
-				team.wins = team.wins + 1
-				opponent.losses = opponent.losses + 1
+			if(regularSeason or playoffs) then
+				if(score.home > score.away) then
+					team.losses = team.losses + 1
+					opponent.wins = opponent.wins + 1
+				else
+					team.wins = team.wins + 1
+					opponent.losses = opponent.losses + 1
+				end
 			end
 		end
 	end

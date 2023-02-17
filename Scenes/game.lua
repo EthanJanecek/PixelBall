@@ -3,7 +3,6 @@ local StickLib   = require("Objects.virtual_joystick")
 local composer = require("composer")
 local RouteLib = require("Objects.route")
 local PlayLib = require("Objects.play")
-local json = require("json")
 
 local scene = composer.newScene()
 local sceneGroup = nil
@@ -68,7 +67,8 @@ local maxBlockedProb = 20
 
 local staminaRunningUsage = -.00055
 local shotStaminaUsage = -.45
-local staminaStandingRegen = -staminaRunningUsage / 4
+--local staminaStandingRegen = -staminaRunningUsage / 4
+local staminaStandingRegen = 0
 local staminaBenchRegen = -staminaRunningUsage
 
 local maxShotPowerModifier = .8
@@ -504,72 +504,78 @@ end
 
 local function adjustPlusMinus(offense, defense, points)
     for i = 1, 5 do
-        offense.players[i].gameStats.plusMinus = offense.players[i].gameStats.plusMinus + points
-        defense.players[i].gameStats.plusMinus = defense.players[i].gameStats.plusMinus - points
+        local offenseStats = offense.players[i].stats[#offense.players[i].stats]
+        local defenseStats = defense.players[i].stats[#defense.players[i].stats]
+
+        offenseStats.plusMinus = offenseStats.plusMinus + points
+        defenseStats.plusMinus = defenseStats.plusMinus - points
     end
 end
 
 function endPossession()
-    endedPossession = true
-    local message = ""
+    if(not endedPossession and display and sceneGroup) then
+        local stats = team.players[userPlayer].stats[#team.players[userPlayer].stats]
+        endedPossession = true
+        local message = ""
 
-    local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
-    background.x = display.contentCenterX
-    background.y = display.contentCenterY
+        local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
+        background:setFillColor(.286, .835, .961)
+        background.x = display.contentCenterX
+        background.y = display.contentCenterY
 
-    if(result == "2") then
-        adjustPlusMinus(team, opponent, 2)
-        if(userIsHome) then
-            score.home = score.home + 2
-        else
-            score.away = score.away + 2
+        if(result == "2") then
+            adjustPlusMinus(team, opponent, 2)
+            if(userIsHome) then
+                score.home = score.home + 2
+            else
+                score.away = score.away + 2
+            end
+
+            message = "The 2 is good!"
+
+            addToLast5(team.players[userPlayer], 2)
+            stats.points = stats.points + 2
+            stats.twoPA = stats.twoPA + 1
+            stats.twoPM = stats.twoPM + 1
+        elseif(result == "3") then
+            adjustPlusMinus(team, opponent, 3)
+            if(userIsHome) then
+                score.home = score.home + 3
+            else
+                score.away = score.away + 3
+            end
+
+            message = "The 3 is good!"
+
+            addToLast5(team.players[userPlayer], 3)
+            stats.points = stats.points + 3
+            stats.threePA = stats.threePA + 1
+            stats.threePM = stats.threePM + 1
+        elseif(result == "Miss") then
+            message = "The shot is no good!"
+
+            addToLast5(team.players[userPlayer], 0)
+        elseif(result == "Blocked") then
+            message = "The shot is blocked!"
+
+            addToLast5(team.players[userPlayer], 0)
+        elseif(result == "shot clock") then
+            message = "The shot clock has expired"
+        elseif(result == "Stolen") then
+            message = "Turnover"
+        elseif(result == "qtr end") then
+            message = "The " .. getQuarterStringFromQtr(gameDetails.qtr - 1) .. " quarter has ended"
+        elseif(result == "game end") then
+            message = "The game has ended"
+            gameInProgress = false
         end
 
-        message = "The 2 is good!"
+        local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
+        displayMessage:setFillColor(.922, .910, .329)
+        displayScoreboard()
 
-        addToLast5(team.players[userPlayer], 2)
-        team.players[userPlayer].gameStats.points = team.players[userPlayer].gameStats.points + 2
-        team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1
-        team.players[userPlayer].gameStats.twoPM = team.players[userPlayer].gameStats.twoPM + 1
-    elseif(result == "3") then
-        adjustPlusMinus(team, opponent, 3)
-        if(userIsHome) then
-            score.home = score.home + 3
-        else
-            score.away = score.away + 3
-        end
-
-        message = "The 3 is good!"
-
-        addToLast5(team.players[userPlayer], 3)
-        team.players[userPlayer].gameStats.points = team.players[userPlayer].gameStats.points + 3
-        team.players[userPlayer].gameStats.threePA = team.players[userPlayer].gameStats.threePA + 1
-        team.players[userPlayer].gameStats.threePM = team.players[userPlayer].gameStats.threePM + 1
-    elseif(result == "Miss") then
-        message = "The shot is no good!"
-
-        addToLast5(team.players[userPlayer], 0)
-    elseif(result == "Blocked") then
-        message = "The shot is blocked!"
-
-        addToLast5(team.players[userPlayer], 0)
-    elseif(result == "shot clock") then
-        message = "The shot clock has expired"
-    elseif(result == "Stolen") then
-        message = "Turnover"
-    elseif(result == "qtr end") then
-        message = "The " .. getQuarterStringFromQtr(gameDetails.qtr - 1) .. " quarter has ended"
-    elseif(result == "game end") then
-        message = "The game has ended"
-        gameInProgress = false
+        background:addEventListener("tap", reset)
     end
-
-    local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-    displayMessage:setFillColor(.922, .910, .329)
-    displayScoreboard()
-
-    background:addEventListener("tap", reset)
 end
 
 local function shootTime()
@@ -679,7 +685,7 @@ local function isBlocked(shooter)
             end
 
             if(num < probability) then
-                defender.gameStats.blocks = defender.gameStats.blocks + 1
+                defender.stats[#defender.stats].blocks = defender.stats[#defender.stats].blocks + 1
                 return true
             end
         end
@@ -735,15 +741,18 @@ local function finishShot()
     local distToHoop = getDist(team.players[userPlayer].sprite, hoopCenter)
     local blocked = isBlocked(team.players[userPlayer])
 
+    local playerStats = team.players[userPlayer].stats[#team.players[userPlayer].stats]
+    local defenderStats = defender.stats[#defender.stats]
+
     if(blocked) then
-        defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
+        defenderStats.shotsAgainst = defenderStats.shotsAgainst + 1
         result = "Blocked"
 
         pts = calculateShotPoints()
         if pts == "2" then
-            team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1
+            playerStats.twoPA = playerStats.twoPA + 1
         elseif pts == "3" then
-            team.players[userPlayer].gameStats.threePA = team.players[userPlayer].gameStats.threePA + 1
+            playerStats.threePA = playerStats.threePA + 1
         end
 
         transition.moveTo(basketball, {x=team.players[userPlayer].sprite.x , y=team.players[userPlayer].sprite.y, time = 1, onComplete=endPossession})
@@ -763,17 +772,17 @@ local function finishShot()
 
         if(math.abs(distToHoop - dist) <= deadzone) then
             result = calculateShotPoints()
-            defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
-            defender.gameStats.pointsAgainst = defender.gameStats.pointsAgainst + result
+            defenderStats.shotsAgainst = defenderStats.shotsAgainst + 1
+            defenderStats.pointsAgainst = defenderStats.pointsAgainst + result
         else
             result = "Miss"
             pts = calculateShotPoints()
-            defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
+            defenderStats.shotsAgainst = defenderStats.shotsAgainst + 1
 
             if pts == "2" then
-                team.players[userPlayer].gameStats.twoPA = team.players[userPlayer].gameStats.twoPA + 1
+                playerStats.twoPA = playerStats.twoPA + 1
             elseif pts == "3" then
-                team.players[userPlayer].gameStats.threePA = team.players[userPlayer].gameStats.threePA + 1
+                playerStats.threePA = playerStats.threePA + 1
             end
         end
 
@@ -1110,8 +1119,8 @@ local function defenderCloseOut(defender, shooter, distAway)
     if(directionChange(shooter)) then
         if(shooter.hasBall and turnover(shooter, defender)) then
             result = "Stolen"
-            shooter.gameStats.turnovers = shooter.gameStats.turnovers + 1
-            defender.gameStats.steals = defender.gameStats.steals + 1
+            shooter.stats[#shooter.stats].turnovers = shooter.stats[#shooter.stats].turnovers + 1
+            defender.stats[#defender.stats].steals = defender.stats[#defender.stats].steals + 1
 
             team.players[userPlayer].hasBall = false
             holdingShoot = false

@@ -84,7 +84,10 @@ games = 72
 numDays = 200
 difficulty = 1
 minutesInQtr = 12
+
 draftRound = 1
+draftPage = 1
+cutPlayers = {}
 
 numGamesSetting = 3
 difficultySetting = 1

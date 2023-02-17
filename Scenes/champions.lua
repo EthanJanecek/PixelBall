@@ -10,6 +10,7 @@ local function resetYear()
 	regularSeason = true
 	playoffs = false
 	
+	league.year = league.year + 1
 	league.weekNum = 1
 	league.regularSeason = true
 	league.playoffsActive = false
@@ -23,7 +24,6 @@ local function resetYear()
 		for j = 1, #team.players do
 			local player = team.players[j]
 			player.years = player.years + 1
-			player.yearStats = StatsLib:createStats()
 		end
 	end
 end
@@ -34,17 +34,19 @@ local function setUpDraft()
 	end)
 
 	for i, team in ipairs(league.teams) do
-		local tmpPlayers = {}
-		for j, player in ipairs(team.players) do
-			table.insert(tmpPlayers, player)
+		if(team.name ~= userTeam) then
+			local tmpPlayers = {}
+			for j, player in ipairs(team.players) do
+				table.insert(tmpPlayers, player)
+			end
+
+			table.sort(tmpPlayers, function(player1, player2)
+				return calculateOverall(player1) < calculateOverall(player2)
+			end)
+
+			table.remove(team.players, indexOf(team.players, tmpPlayers[1]))
+			table.remove(team.players, indexOf(team.players, tmpPlayers[2]))
 		end
-
-		table.sort(tmpPlayers, function(player1, player2)
-			return calculateOverall(player1) < calculateOverall(player2)
-		end)
-
-		table.remove(team.players, indexOf(team.players, tmpPlayers[1]))
-		table.remove(team.players, indexOf(team.players, tmpPlayers[2]))
 	end
 end
 
@@ -54,7 +56,7 @@ local function nextScene()
 	resetYear()
 	setUpDraft()
 
-    composer.gotoScene("Scenes.draft")
+    composer.gotoScene("Scenes.remove_players")
 end
 
 -- -----------------------------------------------------------------------------------
@@ -88,7 +90,7 @@ function scene:create( event )
 		league:findTeam(eastTeam.team).draftPosition = 29
     end
 
-	local title = display.newText(sceneGroup, "The " .. winner .. "\nare your World Champions!", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 32)
+	local title = display.newText(sceneGroup, "The " .. winner .. " are your World Champions!", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 24)
     title:setFillColor(.922, .910, .329)
 end
 

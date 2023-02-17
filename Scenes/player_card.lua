@@ -183,8 +183,8 @@ local function showPlayer()
 
     --Stats
     displayStatsHeader()
-    displayStats("Season", player.yearStats, 1)
-    displayStats("Career", player.careerStats, 2)
+    displayStats("Season", player:calculateYearlyStats(league.year), 1)
+    displayStats("Career", player:calculateCareerStats(), 2)
 end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions

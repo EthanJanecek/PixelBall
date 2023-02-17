@@ -16,6 +16,6 @@ function loadNames()
 
     path = system.pathForFile( "data/names_last.csv", system.ResourceDirectory )
     for line in io.lines(path) do
-        table.insert(lastNames, line)
+        table.insert(lastNames, string.sub(line, 1, 1) .. string.lower(string.sub(line, 2)))
     end
 end

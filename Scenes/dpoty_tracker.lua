@@ -136,7 +136,7 @@ function scene:create( event )
         if(games ~= 0) then
             for j = 1, #team.players do
                 local player = team.players[j]
-                local stats = player.yearStats
+                local stats = player:calculateYearlyStats(league.year)
 
                 if(stats.shotsAgainst ~= 0) then
                     local winPercent = math.round(team.wins * 100 / games)
@@ -178,7 +178,12 @@ function scene:create( event )
         return a.rating > b.rating
     end)
 
-    for i = 1, 15 do
+    local max = #players
+    if max > 15 then
+        max = 15
+    end
+
+    for i = 1, max do
         drawPlayer(players[i], i)
     end
 end

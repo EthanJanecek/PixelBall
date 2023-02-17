@@ -3,51 +3,32 @@ local scene = composer.newScene()
 
 local sceneGroup = nil
 local draftTeams = {}
-local resim = true
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function nextPage()
-    local options = {
-        params = {
-            resim = false
-        }
-    }
+local function cut()
+    local team = league:findTeam(userTeam)
+    table.sort(cutPlayers, function(num1, num2)
+        return num1 > num2
+    end)
 
-    draftPage = draftPage + 1
-    composer.gotoScene("Scenes.load_scene", options)
+    table.remove(team.players, cutPlayers[1])
+    table.remove(team.players, cutPlayers[2])
+
+    composer.gotoScene("Scenes.draft")
 end
 
-local function previousPage()
-    local options = {
-        params = {
-            resim = false
-        }
-    }
-
-    draftPage = draftPage - 1
-    composer.gotoScene("Scenes.load_scene", options)
-end
-
-local function selectPlayer(player)
-    draftPage = 1
-    table.insert(league:findTeam(userTeam).players, player)
-    table.remove(draftPlayers, indexOf(draftPlayers, player))
-
-    for i = league:findTeam(userTeam).draftPosition + 1, 30 do
-        local removedPlayer = table.remove(draftPlayers, 1)
-        table.insert(draftTeams[i].players, removedPlayer)
+local function selectPlayer(i)
+    local index = indexOf(cutPlayers, i)
+    if index ~= -1 then
+        table.remove(cutPlayers, index)
+    elseif(#cutPlayers < 2) then
+        table.insert(cutPlayers, i)
     end
 
-    if(draftRound == 1) then
-        draftRound = 2
-        composer.gotoScene("Scenes.load_scene")
-    else
-        draftRound = 1
-        composer.gotoScene("Scenes.pregame")
-    end
+    composer.gotoScene("Scenes.load_scene")
 end
 
 local function getName(name)
@@ -60,16 +41,21 @@ local function getName(name)
     return string.sub(params[2], 1, 7)
 end
 
-local function showPlayerCard(player, initialX, initialY)
+local function showPlayerCard(player, initialX, initialY, i)
     local function choosePlayer()
-        selectPlayer(player)
+        selectPlayer(i)
     end
 
     local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 6, display.contentHeight / 4)
     playerBorder:setFillColor(0, 0, 0, 0)
     playerBorder:addEventListener("tap", choosePlayer)
-    playerBorder:setStrokeColor(0, 0, 0)
-    playerBorder.strokeWidth = 2
+    if(indexOf(cutPlayers, i) ~= -1) then
+        playerBorder:setStrokeColor(0, 0, 1)
+        playerBorder.strokeWidth = 4
+    else
+        playerBorder:setStrokeColor(0, 0, 0)
+        playerBorder.strokeWidth = 2
+    end
 
     local playerName = display.newText(sceneGroup, getName(player.name), playerBorder.x, playerBorder.y - playerBorder.height / 2.5, native.systemFont, 12)
     playerName:setFillColor(.922, .910, .329)
@@ -88,6 +74,18 @@ local function showPlayerCard(player, initialX, initialY)
     params:addEventListener("tap", choosePlayer)
 end
 
+local function showPlayer(team, i)
+    local player = team.players[i]
+
+    if(i <= 5) then
+        showPlayerCard(player, display.contentWidth * (i - 1) / 4, display.contentHeight * 1.5 / 5, i)
+    elseif(i <= 10) then
+       showPlayerCard(player, display.contentWidth * (i - 6) / 4, display.contentHeight * 3 / 5, i)
+    else
+        showPlayerCard(player, display.contentWidth * (i - 11) / 4, display.contentHeight * 4 / 5 + 20, i)
+    end
+end
+
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -96,54 +94,22 @@ end
 function scene:create( event )
 	sceneGroup = self.view
 
-    if(event.params) then
-        resim = event.params.resim
-    end
-
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    for i, team in ipairs(league.teams) do
-        table.insert(draftTeams, team)
+    local label = display.newText(sceneGroup, "Choose 2 players to cut", display.contentCenterX, 12, native.systemFont, 24)
+    label:setFillColor(.922, .910, .329)
+
+    if(#cutPlayers == 2) then
+        createButtonWithBorder(sceneGroup, "Cut", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, cut)
     end
-
-    table.sort(draftTeams, function(team1, team2)
-        return team1.draftPosition < team2.draftPosition
-    end)
-
-    if(resim) then
-        for i = 1, league:findTeam(userTeam).draftPosition - 1 do
-            table.insert(draftTeams[i].players, table.remove(draftPlayers, 1))
-        end 
-    end
-
-    local maxPlayers = draftPage * 15
-    if(maxPlayers > #draftPlayers) then
-        maxPlayers = #draftPlayers
-    end
-
-    for i = (draftPage - 1) * 15 + 1, maxPlayers do
-        local player = draftPlayers[i]
-        local j = i - ((draftPage - 1) * 15)
-
-        if(j <= 5) then
-            showPlayerCard(player, display.contentWidth * (j - 1) / 4, display.contentHeight * .2)
-        elseif(j <= 10) then
-           showPlayerCard(player, display.contentWidth * ((j - 6) / 4), display.contentHeight * .5)
-        else
-            showPlayerCard(player, display.contentWidth * ((j - 11) / 4), display.contentHeight * .8)
-        end
-    end
-
-    if(draftPage > 1) then
-        createButtonWithBorder(sceneGroup, "Previous", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, previousPage)
-    end
-
-    if(#draftPlayers > draftPage * 15) then
-        createButtonWithBorder(sceneGroup, "Next", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextPage)
+    
+    chosenTeam = league:findTeam(userTeam)
+    for i = 1, #chosenTeam.players do
+        showPlayer(chosenTeam, i)
     end
 end
 

@@ -16,9 +16,10 @@ local heightDiffMax = 15
 
 local maxLoops = 200
 
-local staminaRunningUsage = -.2
-local shotStaminaUsage = -.4
-local staminaStandingRegen = -staminaRunningUsage / 4
+local staminaRunningUsage = -.25
+local shotStaminaUsage = -.45
+--local staminaStandingRegen = -staminaRunningUsage / 4
+local staminaStandingRegen = 0
 local staminaBenchRegen = -staminaRunningUsage
 
 local numDefensiveStrategies = 5
@@ -33,8 +34,10 @@ function league:createLeague()
     return setmetatable({
         teams=createTeams(),
         userTeam="",
+        year=1,
         weekNum=1,
         numGames=games,
+        numGamesSetting=numGamesSetting,
         numDays=numDays,
         difficulty=difficulty,
         minutesInQtr=minutesInQtr,
@@ -56,6 +59,7 @@ function league:createFromSave()
 	userTeam = t.userTeam
     games = t.numGames
     numDays = t.numDays
+    numGamesSetting = t.numGamesSetting
     difficulty = t.difficulty
     minutesInQtr = t.minutesInQtr
     regularSeason = t.regularSeason
@@ -535,7 +539,7 @@ function league:filterOutLosers(startDraftPosition)
 
     local possiblePositions = {}
     local countTeamsEliminated = #teamsToRemoveEast + #teamsToRemoveWest
-    for i = startDraftPosition, startDraftPosition + countTeamsEliminated do
+    for i = startDraftPosition, startDraftPosition + countTeamsEliminated - 1 do
         table.insert(possiblePositions, i)
     end
 
@@ -657,7 +661,7 @@ function league:finals()
 end
 
 local function calculatePlayerExp(player)
-    local stats = player.gameStats
+    local stats = player.stats[#player.stats]
 
     local shotPercent = 0
     if((stats.twoPA + stats.threePA) > 0) then
@@ -894,10 +898,7 @@ local function resetStaminaAndStats(team)
     for i = 1, #team.players do
         team.players[i].stamina = team.players[i].maxStamina
 
-        local stats = team.players[i].gameStats
-        addStats(team.players[i].yearStats, stats)
-        addStats(team.players[i].careerStats, stats)
-        team.players[i].gameStats = StatsLib:createStats()
+        table.insert(team.players[i].stats, StatsLib:createStats())
         team.players[i].last5 = {}
     end
 end
@@ -1028,8 +1029,11 @@ end
 
 local function adjustPlusMinus(offense, defense, points)
     for i = 1, 5 do
-        offense.players[i].gameStats.plusMinus = offense.players[i].gameStats.plusMinus + points
-        defense.players[i].gameStats.plusMinus = defense.players[i].gameStats.plusMinus - points
+        local offenseStats = offense.players[i].stats[#offense.players[i].stats]
+        local defenseStats = defense.players[i].stats[#defense.players[i].stats]
+
+        offenseStats.plusMinus = offenseStats.plusMinus + points
+        defenseStats.plusMinus = defenseStats.plusMinus - points
     end
 end
 
@@ -1122,6 +1126,9 @@ function simulatePossession(offense, defense, defenseStrategy)
         end
     end
 
+    local playerStats = player.stats[#player.stats]
+    local defenderStats = defender.stats[#defender.stats]
+
     local max = player.finishing + player.closeShot + player.midRange + player.three
     local shotType = math.random(max)
     local time = math.random(6, 24)
@@ -1152,8 +1159,8 @@ function simulatePossession(offense, defense, defenseStrategy)
     local message = "Defended"
     if(turnover(player, defender)) then
         points = 0
-        player.gameStats.turnovers = player.gameStats.turnovers + 1
-        defender.gameStats.steals = defender.gameStats.steals + 1
+        playerStats.turnovers = playerStats.turnovers + 1
+        defenderStats.steals = defenderStats.steals + 1
         message = "Stolen"
 
         time = time / 2
@@ -1162,32 +1169,32 @@ function simulatePossession(offense, defense, defenseStrategy)
         end
     elseif(blocked(player, defender)) then
         points = 0
-        defender.gameStats.blocks = defender.gameStats.blocks + 1
-        defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
+        defenderStats.blocks = defenderStats.blocks + 1
+        defenderStats.shotsAgainst = defenderStats.shotsAgainst + 1
         message = "Blocked"
     end
 
     changeTeamStamina(offense, defense, player, defender)
 
     if shotPoints == 2 then
-        defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
-        defender.gameStats.pointsAgainst = defender.gameStats.pointsAgainst + points
-        player.gameStats.twoPA = player.gameStats.twoPA + 1
+        defenderStats.shotsAgainst = defenderStats.shotsAgainst + 1
+        defenderStats.pointsAgainst = defenderStats.pointsAgainst + points
+        playerStats.twoPA = playerStats.twoPA + 1
 
         if points ~= 0 then
             adjustPlusMinus(offense, defense, 2)
-            player.gameStats.points = player.gameStats.points + 2
-            player.gameStats.twoPM = player.gameStats.twoPM + 1
+            playerStats.points = playerStats.points + 2
+            playerStats.twoPM = playerStats.twoPM + 1
         end
     else
-        defender.gameStats.shotsAgainst = defender.gameStats.shotsAgainst + 1
-        defender.gameStats.pointsAgainst = defender.gameStats.pointsAgainst + points
-        player.gameStats.threePA = player.gameStats.threePA + 1
+        defenderStats.shotsAgainst = defenderStats.shotsAgainst + 1
+        defenderStats.pointsAgainst = defenderStats.pointsAgainst + points
+        playerStats.threePA = playerStats.threePA + 1
 
         if points ~= 0 then
             adjustPlusMinus(offense, defense, 3)
-            player.gameStats.points = player.gameStats.points + 3
-            player.gameStats.threePM = player.gameStats.threePM + 1
+            playerStats.points = playerStats.points + 3
+            playerStats.threePM = playerStats.threePM + 1
         end
     end
     

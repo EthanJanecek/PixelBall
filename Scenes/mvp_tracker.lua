@@ -144,7 +144,7 @@ function scene:create( event )
         if(games ~= 0) then
             for j = 1, #team.players do
                 local player = team.players[j]
-                local stats = player.yearStats
+                local stats = player:calculateYearlyStats(league.year)
                 local points = math.round(stats.points / games)
                 local winPercent = math.round(team.wins * 100 / games)
 
@@ -168,7 +168,7 @@ function scene:create( event )
                 local plusMinus = math.round(stats.plusMinus / games)
     
                 -- normalize each stat from 0-10
-                local rating = points + plusMinus + (winPercent / 20) + (twoPtPercent / 10) + (threePtPercent / 10) + (ts / 15) + (eFG / 15)
+                local rating = (points * 1.5) + plusMinus + (winPercent / 20) + (twoPtPercent / 10) + (threePtPercent / 10) + (ts / 15) + (eFG / 15)
     
                 local playerStats = {
                     name = player.name,
@@ -191,7 +191,12 @@ function scene:create( event )
         return a.rating > b.rating
     end)
 
-    for i = 1, 15 do
+    local max = #players
+    if max > 15 then
+        max = 15
+    end
+
+    for i = 1, max do
         drawPlayer(players[i], i)
     end
 end
