@@ -6,6 +6,7 @@ function stats:createStats()
     return setmetatable({
         year = league.year,
         week = league.weekNum,
+        playoffs = playoffs,
         points = 0,
         twoPA = 0,
         twoPM = 0,

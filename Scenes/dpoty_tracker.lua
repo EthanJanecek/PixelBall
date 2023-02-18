@@ -136,7 +136,7 @@ function scene:create( event )
         if(games ~= 0) then
             for j = 1, #team.players do
                 local player = team.players[j]
-                local stats = player:calculateYearlyStats(league.year)
+                local stats = calculateYearlyStats(player, league.year)
 
                 if(stats.shotsAgainst ~= 0) then
                     local winPercent = math.round(team.wins * 100 / games)

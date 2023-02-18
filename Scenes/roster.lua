@@ -12,11 +12,27 @@ local function nextScene()
     composer.gotoScene("Scenes.pregame")
 end
 
+local function findLastGameWeek()
+    local i = league.weekNum - 1
+
+    while i > 0 do
+        if(league:findGameInfo(league.schedule[i], chosenTeam.name)) then
+            return i
+        end
+
+        i = i - 1
+    end
+
+    return -1
+end
+
 local function selectPlayer(player)
     local options = {
         params = {
             player = player,
-            team = chosenTeam
+            team = chosenTeam,
+            week = findLastGameWeek(),
+            year = league.year
         }
     }
 
@@ -110,6 +126,8 @@ function scene:create( event )
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
+
+    displayPlayerStatsView = false
 
 	local startersLabel = display.newText(sceneGroup, "Starters", display.contentCenterX, 12, native.systemFont, 24)
     startersLabel:setFillColor(.922, .910, .329)

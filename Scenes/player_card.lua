@@ -4,6 +4,9 @@ local scene = composer.newScene()
 local sceneGroup = nil
 local player = nil
 local team = nil
+local week = league.weekNum
+local year = league.year
+
 local statPositions = {
     0,      -- Name
     .25,    -- Pts
@@ -20,7 +23,8 @@ local statPositions = {
 local fontSize = 12
 local rowDist = 16
 local paddingX = 8
-local paddingY = display.contentHeight - (rowDist * 3) - fontSize
+local paddingY = display.contentHeight * .2
+
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
@@ -44,6 +48,71 @@ local function levelUp()
     }
 
     composer.gotoScene("Scenes.level_up", options)
+end
+
+local function alterDisplay()
+    local options = {
+        params = {
+            player = player,
+            team = team,
+            week = week,
+            year = year
+        }
+    }
+
+    displayPlayerStatsView = not displayPlayerStatsView
+    composer.gotoScene("Scenes.load_scene", options)
+end
+
+local function reloadDisplay()
+    local options = {
+        params = {
+            player = player,
+            team = team,
+            week = week,
+            year = year
+        }
+    }
+
+    composer.gotoScene("Scenes.load_scene", options)
+end
+
+local function findPreviousGameWeek()
+    local i = week - 1
+
+    while i > 0 do
+        if(league:findGameInfo(league.schedule[i], team.name)) then
+            return i
+        end
+
+        i = i - 1
+    end
+
+    return -1
+end
+
+local function findNextGameWeek()
+    local i = week + 1
+
+    while i < league.weekNum do
+        if(league:findGameInfo(league.schedule[i], team.name)) then
+            return i
+        end
+
+        i = i + 1
+    end
+
+    return -1
+end
+
+local function lastGame()
+    week = findPreviousGameWeek()
+    reloadDisplay()
+end
+
+local function nextGame()
+    week = findNextGameWeek()
+    reloadDisplay()
 end
 
 local function displayStatsHeader()
@@ -146,7 +215,7 @@ local function displayAttributes()
     displayString("Experience: " .. player.exp .. "/500", display.contentWidth * .67, y)
     displayString("Years in NBA: " .. player.years, display.contentWidth, y)
     
-    y = y + 35
+    y = y + 50
     displayString("Height: " .. player.height, 0, y)
     displayString("Speed: " .. player.speed, display.contentWidth * .33, y)
     displayString("Ball Speed: " .. player.ballSpeed, display.contentWidth * .67, y)
@@ -170,21 +239,59 @@ local function displayAttributes()
     y = y + 25
     displayString("Interior Defending: " .. player.contestingInterior, display.contentWidth * .25, y)
     displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .75, y)
+
+    y = y + 50
+    displayString("MVP: " .. player.awards.mvp, 0, y)
+    displayString("DPOTY: " .. player.awards.dpoty, display.contentWidth * .33, y)
+    displayString("ROTY: " .. player.awards.roty, display.contentWidth * .67, y)
+    displayString("6MOTY: " .. player.awards.smoty, display.contentWidth, y)
+
+    y = y + 25
+    displayString("Rings: " .. player.awards.rings, display.contentWidth * .33, y)
+    displayString("FMVP: " .. player.awards.fmvp, display.contentWidth * .67, y)
 end
 
-local function showPlayer()
+local function showPlayerAttributes()
     -- Number + Name
     local nameStr = "#" .. player.number .. " - " .. player.name
     local startersLabel = display.newText(sceneGroup, nameStr, display.contentCenterX, 20, native.systemFont, 24)
     startersLabel:setFillColor(.922, .910, .329)
 
-    -- Attributes
     displayAttributes()
+end
 
-    --Stats
+local function showPlayerStats()
+    -- Number + Name
+    local nameStr = "#" .. player.number .. " - " .. player.name
+    local startersLabel = display.newText(sceneGroup, nameStr, display.contentCenterX, 20, native.systemFont, 24)
+    startersLabel:setFillColor(.922, .910, .329)
+
+    local gameInfo = league:findGameInfo(league.schedule[week], team.name)
+
+    if(gameInfo) then
+        if(gameInfo.home == team.name) then
+            displayString("Day " .. week .. " vs " .. gameInfo.away, display.contentCenterX, display.contentHeight * .15)
+        else
+            displayString("Day " .. week .. " vs " .. gameInfo.home, display.contentCenterX, display.contentHeight * .15)
+        end
+
+        displayStats("Game", getGameStats(player, year, week), 1)
+    else
+        displayString("No Games Yet", display.contentCenterX, display.contentHeight * .15)
+        displayStats("Game", StatsLib:createStats(), 1)
+    end
+
     displayStatsHeader()
-    displayStats("Season", player:calculateYearlyStats(league.year), 1)
-    displayStats("Career", player:calculateCareerStats(), 2)
+    displayStats("Season", calculateYearlyStats(player, league.year), 2)
+    displayStats("Career", calculateCareerStats(player), 3)
+
+    if(findPreviousGameWeek() ~= -1) then
+        createButtonWithBorder(sceneGroup, "<- Last Game", 16, 8, display.contentHeight * .15, 2, BLACK, BLACK, TRANSPARENT, lastGame)
+    end
+
+    if(findNextGameWeek() ~= -1) then
+        createButtonWithBorder(sceneGroup, "Next Game ->", 16, display.contentWidth - 8, display.contentHeight * .15, 2, BLACK, BLACK, TRANSPARENT, nextGame)
+    end
 end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -197,6 +304,8 @@ function scene:create( event )
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     player = event.params.player
     team = event.params.team
+    year = event.params.year
+    week = event.params.week
 
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
@@ -204,13 +313,19 @@ function scene:create( event )
     background.y = display.contentCenterY
 
     createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
-    
+
     if(player.levels > 0) then
         createButtonWithBorder(sceneGroup, "Level Up (" .. player.levels .. ")", 16, display.contentWidth - 8, 8, 2, 
                 BLACK, BLACK, TRANSPARENT, levelUp)
     end
 
-    showPlayer()
+    if(not displayPlayerStatsView) then
+        createButtonWithBorder(sceneGroup, "Stats", 16, 92, 8, 2, BLACK, BLACK, TRANSPARENT, alterDisplay)
+        showPlayerAttributes()
+    else
+        createButtonWithBorder(sceneGroup, "Attributes", 16, 92, 8, 2, BLACK, BLACK, TRANSPARENT, alterDisplay)
+        showPlayerStats()
+    end
 end
 
 

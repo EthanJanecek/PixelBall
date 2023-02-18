@@ -3,6 +3,7 @@ local StickLib   = require("Objects.virtual_joystick")
 local composer = require("composer")
 local RouteLib = require("Objects.route")
 local PlayLib = require("Objects.play")
+local ShotLib = require("Objects.shot")
 
 local scene = composer.newScene()
 local sceneGroup = nil
@@ -513,6 +514,9 @@ local function adjustPlusMinus(offense, defense, points)
 end
 
 function endPossession()
+    print("Ended Possession")
+    print(result)
+
     if(not endedPossession and display and sceneGroup) then
         local stats = team.players[userPlayer].stats[#team.players[userPlayer].stats]
         endedPossession = true
@@ -537,6 +541,8 @@ function endPossession()
             stats.points = stats.points + 2
             stats.twoPA = stats.twoPA + 1
             stats.twoPM = stats.twoPM + 1
+
+            table.insert(stats.shots, ShotLib:createShot(team.players[userPlayer].sprite.x, team.players[userPlayer].sprite.y, true))
         elseif(result == "3") then
             adjustPlusMinus(team, opponent, 3)
             if(userIsHome) then
@@ -551,14 +557,18 @@ function endPossession()
             stats.points = stats.points + 3
             stats.threePA = stats.threePA + 1
             stats.threePM = stats.threePM + 1
+
+            table.insert(stats.shots, ShotLib:createShot(team.players[userPlayer].sprite.x, team.players[userPlayer].sprite.y, true))
         elseif(result == "Miss") then
             message = "The shot is no good!"
 
             addToLast5(team.players[userPlayer], 0)
+            table.insert(stats.shots, ShotLib:createShot(team.players[userPlayer].sprite.x, team.players[userPlayer].sprite.y, false))
         elseif(result == "Blocked") then
             message = "The shot is blocked!"
 
             addToLast5(team.players[userPlayer], 0)
+            table.insert(stats.shots, ShotLib:createShot(team.players[userPlayer].sprite.x, team.players[userPlayer].sprite.y, false))
         elseif(result == "shot clock") then
             message = "The shot clock has expired"
         elseif(result == "Stolen") then
@@ -1531,7 +1541,7 @@ local function controlClock()
     end
 
     if(gameDetails.shotClock == 0) then
-        if(playing ~= false) then
+        if(playing ~= false and not endedPossession) then
             -- They didn't get the shot off in time
             team.players[userPlayer].hasBall = false
             holdingShoot = false

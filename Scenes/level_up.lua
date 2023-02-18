@@ -12,7 +12,9 @@ local function nextScene()
     local options = {
         params = {
             team = team,
-            player = player
+            player = player,
+            week = league.weekNum,
+            year = league.year
         }
     }
 

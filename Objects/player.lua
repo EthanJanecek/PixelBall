@@ -160,9 +160,9 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
     }, self)
 end
 
-function player:getGameStats(year, week)
-    for i = 1, #self.stats do
-        local stat = self.stats[i]
+function getGameStats(player, year, week)
+    for i = 1, #player.stats do
+        local stat = player.stats[i]
 
         if stat.year == year and stat.week == week then
             return stat
@@ -172,11 +172,11 @@ function player:getGameStats(year, week)
     return StatsLib:createStats()
 end
 
-function player:calculateYearlyStats(year)
+function calculateYearlyStats(player, year)
     local tmpStats = StatsLib:createStats()
 
-    for i = 1, #self.stats do
-        local stat = self.stats[i]
+    for i = 1, #player.stats do
+        local stat = player.stats[i]
 
         if stat.year == year then
             addStats(tmpStats, stat)
@@ -186,11 +186,11 @@ function player:calculateYearlyStats(year)
     return tmpStats
 end
 
-function player:calculateCareerStats()
+function calculateCareerStats(player)
     local tmpStats = StatsLib:createStats()
 
-    for i = 1, #self.stats do
-        addStats(tmpStats, self.stats[i])
+    for i = 1, #player.stats do
+        addStats(tmpStats, player.stats[i])
     end
 
     return tmpStats

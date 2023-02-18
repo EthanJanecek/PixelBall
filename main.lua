@@ -73,6 +73,7 @@ score = {away=0, home=0}
 gameDetails = {qtr=1, min=minutesInQtr, sec=0, shotClock=24}
 gameInProgress = false
 lineupSwitch = {-1, -1}
+displayPlayerStatsView = false
 showingUserTeamStats = true
 defensiveStrategy = 1
 defenseStats = {}
