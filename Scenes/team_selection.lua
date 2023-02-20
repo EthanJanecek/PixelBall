@@ -37,6 +37,8 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
+    league:createNewStats()
+
     local col = 0
 	for i = 1, 30 do
         local row = (i - 1) % 5

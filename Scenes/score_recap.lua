@@ -9,7 +9,7 @@ local offsetY = 40
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function nextWeek()
+local function nextScene()
     composer.gotoScene("Scenes.pregame")
 end
 
@@ -95,7 +95,7 @@ function scene:create( event )
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
     background.y = display.contentCenterY
-    background:addEventListener("tap", nextWeek)
+    background:addEventListener("tap", nextScene)
 
     local allGames = nil
     if(regularSeason) then

@@ -6,6 +6,7 @@ local player = nil
 local team = nil
 local week = league.weekNum
 local year = league.year
+local playoffTime = not regularSeason
 
 local statPositions = {
     0,      -- Name
@@ -56,7 +57,8 @@ local function alterDisplay()
             player = player,
             team = team,
             week = week,
-            year = year
+            year = year,
+            playoffs = playoffTime
         }
     }
 
@@ -70,48 +72,110 @@ local function reloadDisplay()
             player = player,
             team = team,
             week = week,
-            year = year
+            year = year,
+            playoffs = playoffTime
         }
     }
 
     composer.gotoScene("Scenes.load_scene", options)
 end
 
-local function findPreviousGameWeek()
-    local i = week - 1
+local function findPreviousGameWeekHelper()
+    local i = numDays
 
     while i > 0 do
         if(league:findGameInfo(league.schedule[i], team.name)) then
-            return i
+            return {day = i, playoffs = false}
         end
 
         i = i - 1
     end
 
-    return -1
+    return {day = -1, playoffs = false}
 end
 
-local function findNextGameWeek()
-    local i = week + 1
+local function findPreviousGameWeek()
+    local i = week - 1
+
+    while i > 0 do
+        if(playoffTime) then
+            if(league:findGameInfo(league.playoffs[i], team.name)) then
+                return {day = i, playoffs = playoffTime}
+            end
+        else
+            if(league:findGameInfo(league.schedule[i], team.name)) then
+                return {day = i, playoffs = playoffTime}
+            end
+        end
+
+        i = i - 1
+    end
+
+    if(playoffTime) then
+        return findPreviousGameWeekHelper()
+    end
+
+    return {day = -1, playoffs = false}
+end
+
+local function findNextGameWeekHelper()
+    local i = 1
 
     while i < league.weekNum do
-        if(league:findGameInfo(league.schedule[i], team.name)) then
-            return i
+        if(league:findGameInfo(league.playoffs[i], team.name)) then
+            return {day = i, playoffs = true}
         end
 
         i = i + 1
     end
 
-    return -1
+    return {day = -1, playoffs = false}
+end
+
+local function findNextGameWeek()
+    local i = week + 1
+
+    if(playoffTime) then
+        while i < league.weekNum do
+            if(league:findGameInfo(league.playoffs[i], team.name)) then
+                return {day = i, playoffs = playoffTime}
+            end
+    
+            i = i + 1
+        end
+    else
+        local max = league.weekNum
+        if(not regularSeason) then
+            max = numDays + 1
+        end
+
+        while i < max do
+            if(league:findGameInfo(league.schedule[i], team.name)) then
+                return {day = i, playoffs = playoffTime}
+            end
+    
+            i = i + 1
+        end
+
+        if(i == numDays + 1) then
+            return findNextGameWeekHelper()
+        end
+    end
+
+    return {day = -1, playoffs = false}
 end
 
 local function lastGame()
-    week = findPreviousGameWeek()
+    local results = findPreviousGameWeek()
+    week = results.day
+    playoffTime = results.playoffs
     reloadDisplay()
 end
 
 local function nextGame()
-    week = findNextGameWeek()
+    local results = findNextGameWeek()
+    week = results.day
+    playoffTime = results.playoffs
     reloadDisplay()
 end
 
@@ -267,15 +331,21 @@ local function showPlayerStats()
     startersLabel:setFillColor(.922, .910, .329)
 
     local gameInfo = league:findGameInfo(league.schedule[week], team.name)
+    local dayStr = "Day "
+
+    if(playoffTime) then
+        dayStr = "Playoff " .. dayStr
+        gameInfo = league:findGameInfo(league.playoffs[week], team.name)
+    end
 
     if(gameInfo) then
         if(gameInfo.home == team.name) then
-            displayString("Day " .. week .. " vs " .. gameInfo.away, display.contentCenterX, display.contentHeight * .15)
+            displayString(dayStr .. week .. " vs " .. gameInfo.away, display.contentCenterX, display.contentHeight * .15)
         else
-            displayString("Day " .. week .. " vs " .. gameInfo.home, display.contentCenterX, display.contentHeight * .15)
+            displayString(dayStr .. week .. " vs " .. gameInfo.home, display.contentCenterX, display.contentHeight * .15)
         end
 
-        displayStats("Game", getGameStats(player, year, week), 1)
+        displayStats("Game", getGameStats(player, year, week, playoffTime), 1)
     else
         displayString("No Games Yet", display.contentCenterX, display.contentHeight * .15)
         displayStats("Game", StatsLib:createStats(), 1)
@@ -285,11 +355,11 @@ local function showPlayerStats()
     displayStats("Season", calculateYearlyStats(player, league.year), 2)
     displayStats("Career", calculateCareerStats(player), 3)
 
-    if(findPreviousGameWeek() ~= -1) then
+    if(findPreviousGameWeek().day ~= -1) then
         createButtonWithBorder(sceneGroup, "<- Last Game", 16, 8, display.contentHeight * .15, 2, BLACK, BLACK, TRANSPARENT, lastGame)
     end
 
-    if(findNextGameWeek() ~= -1) then
+    if(findNextGameWeek().day ~= -1) then
         createButtonWithBorder(sceneGroup, "Next Game ->", 16, display.contentWidth - 8, display.contentHeight * .15, 2, BLACK, BLACK, TRANSPARENT, nextGame)
     end
 end
@@ -306,6 +376,7 @@ function scene:create( event )
     team = event.params.team
     year = event.params.year
     week = event.params.week
+    playoffTime = event.params.playoffs
 
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)

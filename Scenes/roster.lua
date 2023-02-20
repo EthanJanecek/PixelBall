@@ -12,27 +12,54 @@ local function nextScene()
     composer.gotoScene("Scenes.pregame")
 end
 
-local function findLastGameWeek()
-    local i = league.weekNum - 1
+local function findLastGameWeekHelper()
+    local i = numDays
 
     while i > 0 do
         if(league:findGameInfo(league.schedule[i], chosenTeam.name)) then
-            return i
+            return {day = i, playoffs = false}
         end
 
         i = i - 1
     end
 
-    return -1
+    return {day = -1, playoffs = false}
+end
+
+local function findLastGameWeek()
+    local i = league.weekNum - 1
+
+    while i > 0 do
+        if(not regularSeason) then
+            if(league:findGameInfo(league.playoffs[i], chosenTeam.name)) then
+                return {day = i, playoffs = not regularSeason}
+            end
+        else
+            if(league:findGameInfo(league.schedule[i], chosenTeam.name)) then
+                return {day = i, playoffs = not regularSeason}
+            end
+        end
+
+        i = i - 1
+    end
+
+    if(not regularSeason) then
+        return findLastGameWeekHelper()
+    end
+
+    return {day = -1, playoffs = false}
 end
 
 local function selectPlayer(player)
+    local results = findLastGameWeek()
+
     local options = {
         params = {
             player = player,
             team = chosenTeam,
-            week = findLastGameWeek(),
-            year = league.year
+            week = results.day,
+            year = league.year,
+            playoffs = results.playoffs
         }
     }
 

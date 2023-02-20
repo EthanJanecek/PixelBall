@@ -93,28 +93,28 @@ function player:createRookie()
     }, self)
 end
 
-function calculateOverall(player)
-    local sumOverall = player.dribbling + player.closeShot + player.midRange + player.three + player.finishing + player.stealing + 
-            player.blocking + player.contestingInterior + player.contestingExterior + player.levels
+function calculateOverall(playerTmp)
+    local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
+            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior + playerTmp.levels
     local overall = sumOverall / 11.0
 
     return overall
 end
 
-function calculateDraftStock(player)
-    local sumOverall = player.dribbling + player.closeShot + player.midRange + player.three + player.finishing + player.stealing + 
-            player.blocking + player.contestingInterior + player.contestingExterior + player.speed + player.height + player.stamina
-            + player.potential * 3
+function calculateDraftStock(playerTmp)
+    local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
+            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior + playerTmp.speed + 
+            playerTmp.height + playerTmp.stamina + playerTmp.potential * 3
     local overall = sumOverall / 15.0
 
     return overall
 end
 
-function addToLast5(player, result)
-    table.insert(player.last5, result)
+function addToLast5(playerTmp, result)
+    table.insert(playerTmp.last5, result)
 
-    if(#player.last5 > 5) then
-        table.remove(player.last5, 1)
+    if(#playerTmp.last5 > 5) then
+        table.remove(playerTmp.last5, 1)
     end
 end
 
@@ -124,7 +124,7 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
 
     return setmetatable({
         name = name,
-        years = tonumber(years),
+        years = tonumber(years) - 1,
         dribbling = tonumber(dribbling),
         closeShot = tonumber(closeShot),
         midRange = tonumber(midRange),
@@ -160,11 +160,11 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
     }, self)
 end
 
-function getGameStats(player, year, week)
-    for i = 1, #player.stats do
-        local stat = player.stats[i]
+function getGameStats(playerTmp, year, week, playoffTime)
+    for i = 1, #playerTmp.stats do
+        local stat = playerTmp.stats[i]
 
-        if stat.year == year and stat.week == week then
+        if stat.year == year and stat.week == week and stat.playoffs == playoffTime then
             return stat
         end
     end
@@ -172,13 +172,13 @@ function getGameStats(player, year, week)
     return StatsLib:createStats()
 end
 
-function calculateYearlyStats(player, year)
+function calculateYearlyStats(playerTmp, year)
     local tmpStats = StatsLib:createStats()
 
-    for i = 1, #player.stats do
-        local stat = player.stats[i]
+    for i = 1, #playerTmp.stats do
+        local stat = playerTmp.stats[i]
 
-        if stat.year == year then
+        if stat.year == year and not stat.playoffs then
             addStats(tmpStats, stat)
         end
     end
@@ -186,11 +186,25 @@ function calculateYearlyStats(player, year)
     return tmpStats
 end
 
-function calculateCareerStats(player)
+function calculateFinalsStats(playerTmp, year)
     local tmpStats = StatsLib:createStats()
 
-    for i = 1, #player.stats do
-        addStats(tmpStats, player.stats[i])
+    for i = #playerTmp.stats, #playerTmp.stats - 7 do
+        local stat = playerTmp.stats[i]
+
+        if stat.year == year and stat.playoffs then
+            addStats(tmpStats, stat)
+        end
+    end
+
+    return tmpStats
+end
+
+function calculateCareerStats(playerTmp)
+    local tmpStats = StatsLib:createStats()
+
+    for i = 1, #playerTmp.stats do
+        addStats(tmpStats, playerTmp.stats[i])
     end
 
     return tmpStats

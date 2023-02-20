@@ -776,6 +776,18 @@ function league:giveExp(teamName)
     end
 end
 
+function league:createNewStats()
+    for i = 1, 30 do
+        local team = self.teams[i]
+
+        for j = 1, #team.players do
+            local player = team.players[j]
+
+            table.insert(player.stats, StatsLib:createStats())
+        end
+    end
+end
+
 function league:nextWeek()
     local allGames = nil
     if(regularSeason) then
@@ -819,6 +831,7 @@ function league:nextWeek()
 
     simulateMainGame = false
     self.weekNum = self.weekNum + 1
+    self:createNewStats()
 end
 
 local function changeStamina(player, diff)
@@ -897,8 +910,6 @@ end
 local function resetStaminaAndStats(team)
     for i = 1, #team.players do
         team.players[i].stamina = team.players[i].maxStamina
-
-        table.insert(team.players[i].stats, StatsLib:createStats())
         team.players[i].last5 = {}
     end
 end
@@ -955,12 +966,14 @@ function simulateGame(away, home)
         end
     end
     
-    if(score.home > score.away) then
-        home.wins = home.wins + 1
-        away.losses = away.losses + 1
-    else
-        away.wins = away.wins + 1
-        home.losses = home.losses + 1
+    if(regularSeason) then
+        if(score.home > score.away) then
+            home.wins = home.wins + 1
+            away.losses = away.losses + 1
+        else
+            away.wins = away.wins + 1
+            home.losses = home.losses + 1
+        end 
     end
 
     return score
