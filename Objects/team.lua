@@ -28,15 +28,6 @@ function rows(connection, sql_stmt)
     end
 end
 
-function createRandomPlayers()
-    local players = {}
-    for i = 1, 11 do
-        table.insert(players, PlayerLib:createRandom())
-    end
-    
-    return players
-end
-
 function createRoster(file)
     local players = {}
     local i = 1
@@ -48,8 +39,9 @@ function createRoster(file)
             table.insert(params, param)
         end
 
-        table.insert(players, PlayerLib:createPlayer(params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], params[10], 
-                params[11], params[12], params[13], params[14], params[15], params[16], params[17], params[18], params[19], params[20], params[21], (i <= 5)))
+        table.insert(players, PlayerLib:createPlayer(params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], 
+                params[9], params[10], params[11], params[12], params[13], params[14], params[15], params[16], params[17], params[18], 
+                params[19], params[20], params[21], params[22], params[23], (i <= 5)))
 
         i = i + 1
     end

@@ -1,4 +1,3 @@
-import requests
 from bs4 import BeautifulSoup
 import csv
 import unidecode
@@ -8,6 +7,7 @@ import cloudscraper
 scraper = cloudscraper.create_scraper() 
 url_base = "https://www.2kratings.com/teams/"
 
+contractInfo = []
 teams = ["philadelphia-76ers", "milwaukee-bucks", "chicago-bulls", "charlotte-hornets", "new-york-knicks", "miami-heat", "washington-wizards", "atlanta-hawks", 
             "brooklyn-nets", "cleveland-cavaliers", "boston-celtics", "toronto-raptors", "orlando-magic", "indiana-pacers", "detroit-pistons", "golden-state-warriors",
             "utah-jazz", "memphis-grizzlies", "denver-nuggets", "minnesota-timberwolves", "dallas-mavericks", "los-angeles-clippers", "sacramento-kings", "phoenix-suns",
@@ -16,6 +16,20 @@ teams = ["philadelphia-76ers", "milwaukee-bucks", "chicago-bulls", "charlotte-ho
 stats = ["Ball Handle", "Close Shot", "Mid-Range Shot", "Three-Point Shot", "Layup", "Steal", "Block", "Interior Defense", 
             "Perimeter Defense", "Speed", "Stamina", "Pass Accuracy", "Speed with Ball", "Lateral Quickness", "Pass Perception",
             "Strength", "Potential"]
+
+def findContractInfo(player):
+    for contract in contractInfo:
+        if(contract["name"] in player or player in contract["name"]):
+            return contract
+    
+    return {"name": "", "contractValue": 1000000, "contractLength": 1}
+
+
+with open('data/contracts.csv', newline='') as csvfile:
+    spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+
+    for row in spamreader:
+        contractInfo.append({"name": row[0], "contractValue": row[1], "contractLength": row[2]})
 
 for team in teams:
     with open('data/' + team + '.csv', 'w', newline='') as csvfile:
@@ -93,5 +107,11 @@ for team in teams:
                 playerAttrs.append(heightValue)
                 playerAttrs.append(number)
                 playerAttrs.append(years)
+
+                # Get Contract Values
+                contract = findContractInfo(nameToLook)
+                playerAttrs.append(contract["contractValue"])
+                playerAttrs.append(contract["contractLength"])
+
                 spamwriter.writerow(playerAttrs)
 

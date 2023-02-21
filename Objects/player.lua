@@ -1,47 +1,8 @@
 StatsLib = require("Objects.stats")
 AwardsLib = require("Objects.awards")
+ContractLib = require("Objects.contract")
 
 local player = {}
-
-function player:createRandom()
-    self.__index = self
-
-    return setmetatable({
-        name = "Player " .. tostring(math.random(1, 10000)),
-        years = math.random(1, 10),
-        dribbling = math.random(1, 10),
-        closeShot = math.random(1, 10),
-        midRange = math.random(1, 10),
-        three = math.random(1, 10),
-        finishing = math.random(1, 10),
-        stealing = math.random(1, 10),
-        blocking = math.random(1, 10),
-        contestingInterior = math.random(1, 10),
-        contestingExterior = math.random(1, 10),
-        height = math.random(72, 84),
-        speed = math.random(1, 10),
-        maxStamina = 10,
-        stamina = 10,
-        passing = math.random(1, 10),
-        ballSpeed = math.random(1, 10),
-        quickness = math.random(1, 10),
-        passDefending = math.random(1, 10),
-        strength = math.random(1, 10),
-        potential = math.random(1, 10),
-        attitude = math.random(1, 10),
-        number = math.random(0, 99),
-        hasBall = false,
-        sprite = nil,
-        moving = false,
-        starter = false,
-        stats = {},
-        manualMoving = false,
-        movement = {},
-        awards = AwardsLib:createAwards(),
-        exp = 0,
-        levels = 0
-    }, self)
-end
 
 function player:createRookie()
     self.__index = self
@@ -89,37 +50,14 @@ function player:createRookie()
         awards = AwardsLib:createAwards(),
         exp = 0,
         levels = 0,
-        last5 = {}
+        last5 = {},
+        contract = ContractLib:createContract(math.random(2000000, 10000000), 4)
     }, self)
 end
 
-function calculateOverall(playerTmp)
-    local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
-            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior + playerTmp.levels
-    local overall = sumOverall / 11.0
-
-    return overall
-end
-
-function calculateDraftStock(playerTmp)
-    local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
-            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior + playerTmp.speed + 
-            playerTmp.height + playerTmp.stamina + playerTmp.potential * 3
-    local overall = sumOverall / 15.0
-
-    return overall
-end
-
-function addToLast5(playerTmp, result)
-    table.insert(playerTmp.last5, result)
-
-    if(#playerTmp.last5 > 5) then
-        table.remove(playerTmp.last5, 1)
-    end
-end
-
 function player:createPlayer(name, dribbling, closeShot, midRange, three, finishing, stealing, blocking, contestingInt, contestingExt, 
-                speed, stamina, passing, ballSpeed, quickness, passDefending, strength, potential, height, number, years, starter)
+        speed, stamina, passing, ballSpeed, quickness, passDefending, strength, potential, height, number, years, contractValue,
+        contractLength, starter)
     self.__index = self
 
     return setmetatable({
@@ -156,8 +94,34 @@ function player:createPlayer(name, dribbling, closeShot, midRange, three, finish
         awards = AwardsLib:createAwards(),
         exp = 0,
         levels = 0,
-        last5 = {}
+        last5 = {},
+        contract = ContractLib:createContract(tonumber(contractValue), tonumber(contractLength))
     }, self)
+end
+
+function calculateOverall(playerTmp)
+    local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
+            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior + playerTmp.levels
+    local overall = sumOverall / 11.0
+
+    return overall
+end
+
+function calculateDraftStock(playerTmp)
+    local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
+            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior + playerTmp.speed + 
+            playerTmp.height + playerTmp.stamina + playerTmp.potential * 3
+    local overall = sumOverall / 15.0
+
+    return overall
+end
+
+function addToLast5(playerTmp, result)
+    table.insert(playerTmp.last5, result)
+
+    if(#playerTmp.last5 > 5) then
+        table.remove(playerTmp.last5, 1)
+    end
 end
 
 function getGameStats(playerTmp, year, week, playoffTime)
