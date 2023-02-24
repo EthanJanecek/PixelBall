@@ -63,6 +63,7 @@ require("Constants.colors")
 require("Constants.name_generator")
 require("Constants.streaks")
 require("Constants.draft_players")
+require("Constants.salaries")
 LeagueLib = require("Objects.league")
 league = nil
 userTeam = ""

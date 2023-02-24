@@ -305,14 +305,8 @@ local function displayAttributes()
     displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .75, y)
 
     y = y + 50
-    displayString("MVP: " .. player.awards.mvp, 0, y)
-    displayString("DPOTY: " .. player.awards.dpoty, display.contentWidth * .33, y)
-    displayString("ROTY: " .. player.awards.roty, display.contentWidth * .67, y)
-    displayString("6MOTY: " .. player.awards.smoty, display.contentWidth, y)
-
-    y = y + 25
-    displayString("Rings: " .. player.awards.rings, display.contentWidth * .33, y)
-    displayString("FMVP: " .. player.awards.fmvp, display.contentWidth * .67, y)
+    displayString("Contract: $" .. formatContractMoney(player.contract.value), display.contentWidth * .25, y)
+    displayString("Years: " .. player.contract.length, display.contentWidth * .75, y)
 end
 
 local function showPlayerAttributes()
@@ -362,6 +356,16 @@ local function showPlayerStats()
     if(findNextGameWeek().day ~= -1) then
         createButtonWithBorder(sceneGroup, "Next Game ->", 16, display.contentWidth - 8, display.contentHeight * .15, 2, BLACK, BLACK, TRANSPARENT, nextGame)
     end
+
+    local y = display.contentCenterY
+    displayString("MVP: " .. player.awards.mvp, 0, y)
+    displayString("DPOTY: " .. player.awards.dpoty, display.contentWidth * .33, y)
+    displayString("ROTY: " .. player.awards.roty, display.contentWidth * .67, y)
+    displayString("6MOTY: " .. player.awards.smoty, display.contentWidth, y)
+
+    y = y + 25
+    displayString("Rings: " .. player.awards.rings, display.contentWidth * .33, y)
+    displayString("FMVP: " .. player.awards.fmvp, display.contentWidth * .67, y)
 end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions

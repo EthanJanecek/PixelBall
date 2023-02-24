@@ -16,6 +16,7 @@ function team:create(name, abbrev, logo, conference, division, color, rosterData
         conf=conference,
         division=division,
         color=color,
+        cap=SALARY_CAP_LEVEL_1,
         draftPosition=-1,
         playbook=PlaybookLib:createPlaybook()
     }, self)
@@ -26,6 +27,16 @@ function rows(connection, sql_stmt)
     return function() 
         return cursor:fetch()
     end
+end
+
+function calculateCap(teamObj)
+    local sum = 0
+
+    for i = 1, #teamObj.players do
+        sum = sum + teamObj.players[i].contract.value
+    end
+
+    return sum
 end
 
 function createRoster(file)

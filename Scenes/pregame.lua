@@ -7,6 +7,44 @@ local scene = composer.newScene()
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+local function findLastGameWeekHelper(team)
+    local i = numDays
+
+    while i > 0 do
+        if(league:findGameInfo(league.schedule[i], team.name)) then
+            return {day = i, playoffs = false}
+        end
+
+        i = i - 1
+    end
+
+    return {day = -1, playoffs = false}
+end
+
+local function findLastGameWeek(team)
+    local i = league.weekNum - 1
+
+    while i > 0 do
+        if(not regularSeason) then
+            if(league:findGameInfo(league.playoffs[i], team.name)) then
+                return {day = i, playoffs = not regularSeason}
+            end
+        else
+            if(league:findGameInfo(league.schedule[i], team.name)) then
+                return {day = i, playoffs = not regularSeason}
+            end
+        end
+
+        i = i - 1
+    end
+
+    if(not regularSeason) then
+        return findLastGameWeekHelper(team)
+    end
+
+    return {day = -1, playoffs = false}
+end
+
 local function setDefense()
     composer.gotoScene("Scenes.set_defense")
 end
@@ -47,14 +85,19 @@ local function settings()
     composer.gotoScene("Scenes.settings", options)
 end
 
-local function roster()
+local function teamInfo()
+    local results = findLastGameWeek(league:findTeam(userTeam))
+
     local options = {
         params = {
-            team = league:findTeam(userTeam)
+            team = league:findTeam(userTeam),
+            week = results.day,
+            year = league.year,
+            playoffs = results.playoffs
         }
     }
 
-    composer.gotoScene("Scenes.roster", options)
+    composer.gotoScene("Scenes.team_info", options)
 end
 
 local function saveGame()
@@ -163,8 +206,8 @@ function scene:create( event )
     createButtonWithBorder(sceneGroup, "Award Tracking", 32, display.contentWidth, 20, 2, BLACK, BLACK, TRANSPARENT, mvpTracker)
     createButtonWithBorder(sceneGroup, "Settings", 32, display.contentCenterX * .2, display.contentCenterY * 1.8, 2, 
             BLACK, BLACK, TRANSPARENT, settings)
-    createButtonWithBorder(sceneGroup, "Roster", 32, display.contentCenterX * 1.8, display.contentCenterY * 1.8, 2, 
-            BLACK, BLACK, TRANSPARENT, roster)
+    createButtonWithBorder(sceneGroup, "Team Info", 32, display.contentCenterX * 1.8, display.contentCenterY * 1.8, 2, 
+            BLACK, BLACK, TRANSPARENT, teamInfo)
 end
 
 

@@ -8,10 +8,6 @@ local chosenTeam = nil
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function nextScene()
-    composer.gotoScene("Scenes.pregame")
-end
-
 local function findLastGameWeekHelper()
     local i = numDays
 
@@ -50,6 +46,21 @@ local function findLastGameWeek()
     return {day = -1, playoffs = false}
 end
 
+local function nextScene()
+    local results = findLastGameWeek()
+    
+    local options = {
+        params = {
+            team = chosenTeam,
+            week = results.day,
+            year = league.year,
+            playoffs = results.playoffs
+        }
+    }
+
+    composer.gotoScene("Scenes.team_info", options)
+end
+
 local function selectPlayer(player)
     local results = findLastGameWeek()
 
@@ -64,17 +75,6 @@ local function selectPlayer(player)
     }
 
     composer.gotoScene("Scenes.player_card", options)
-end
-
-
-local function changeTeam()
-    local options = {
-        params = {
-            roster = true
-        }
-    }
-
-    composer.gotoScene("Scenes.team_selection", options)
 end
 
 local function getName(name)
@@ -163,7 +163,6 @@ function scene:create( event )
     benchLabel:setFillColor(.922, .910, .329)
 
     createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
-    createButtonWithBorder(sceneGroup, "Change Team", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, changeTeam)
     
     chosenTeam = event.params.team
     for i = 1, #chosenTeam.players do

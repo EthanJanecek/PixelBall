@@ -127,7 +127,7 @@ local function displayHeader()
 end
 
 local function showPlayerStats(player, row)
-    local stats = player.stats[#player.stats]
+    local stats = player.stats[#player.stats - 1]
 
     local name = display.newText(sceneGroup, player.name, display.contentWidth * statPositions[1] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)

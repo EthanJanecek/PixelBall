@@ -18,7 +18,6 @@ local maxLoops = 200
 
 local staminaRunningUsage = -.25
 local shotStaminaUsage = -.45
---local staminaStandingRegen = -staminaRunningUsage / 4
 local staminaStandingRegen = 0
 local staminaBenchRegen = -staminaRunningUsage
 
@@ -70,6 +69,20 @@ function league:createFromSave()
     return setmetatable(t, self)
 end
 
+local function setInitialTeamCapLevel(team)
+    local capHit = calculateCap(team)
+
+    if(capHit < SALARY_CAP_LEVEL_1) then
+        team.cap = SALARY_CAP_LEVEL_1
+    elseif(capHit < SALARY_CAP_LEVEL_2) then
+        team.cap = SALARY_CAP_LEVEL_2
+    elseif(capHit < SALARY_CAP_LEVEL_3) then
+        team.cap = SALARY_CAP_LEVEL_3
+    else
+        team.cap = SALARY_CAP_MAX
+    end
+end
+
 function createTeams()
     local teams = {}
 
@@ -116,6 +129,10 @@ function createTeams()
     table.insert(teams, TeamLib:create("Pelicans", "NOP", "images/logos/pelicans.png", "West", "Southwest", "red", "data/new-orleans-pelicans.csv"))
     table.insert(teams, TeamLib:create("Mavericks", "DAL", "images/logos/mavericks.png", "West", "Southwest", "blue", "data/dallas-mavericks.csv"))
     table.insert(teams, TeamLib:create("Grizzlies", "MEM", "images/logos/grizzlies.png", "West", "Southwest", "cyan", "data/memphis-grizzlies.csv"))
+
+    for i = 1, #teams do
+        setInitialTeamCapLevel(teams[i])
+    end
 
     return teams
 end
@@ -1056,7 +1073,33 @@ function simulatePossession(offense, defense, defenseStrategy)
 
     local teamStarters = {unpack(offense.players, 1, 5)}
     table.sort(teamStarters, function (a, b) 
-        return (a.closeShot + a.midRange + a.three + a.finishing) > (b.closeShot + b.midRange + b.three + b.finishing)
+        local closeA = a.finishing + a.closeShot
+        local midA = a.closeShot + a.midRange
+        local longA = a.midRange + a.three
+
+        local closeB = b.finishing + b.closeShot
+        local midB = b.closeShot + b.midRange
+        local longB = b.midRange + b.three
+
+        local maxA = 0
+        if(closeA >= midA and closeA >= longA) then
+            maxA = closeA
+        elseif(midA >= closeA and midA >= longA) then
+            maxA = midA
+        else
+            maxA = longA
+        end
+        
+        local maxB = 0
+        if(closeB >= midB and closeB >= longB) then
+            maxB = closeB
+        elseif(midB >= closeB and midB >= longB) then
+            maxB = midB
+        else
+            maxB = longB
+        end
+
+        return maxA > maxB
     end)
 
     local opponentStarters = {unpack(defense.players, 1, 5)}

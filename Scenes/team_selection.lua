@@ -6,18 +6,61 @@ local scene = composer.newScene()
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
+local function findLastGameWeekHelper(team)
+    local i = numDays
+
+    while i > 0 do
+        if(league:findGameInfo(league.schedule[i], team.name)) then
+            return {day = i, playoffs = false}
+        end
+
+        i = i - 1
+    end
+
+    return {day = -1, playoffs = false}
+end
+
+local function findLastGameWeek(team)
+    local i = league.weekNum - 1
+
+    while i > 0 do
+        if(not regularSeason) then
+            if(league:findGameInfo(league.playoffs[i], team.name)) then
+                return {day = i, playoffs = not regularSeason}
+            end
+        else
+            if(league:findGameInfo(league.schedule[i], team.name)) then
+                return {day = i, playoffs = not regularSeason}
+            end
+        end
+
+        i = i - 1
+    end
+
+    if(not regularSeason) then
+        return findLastGameWeekHelper()
+    end
+
+    return {day = -1, playoffs = false}
+end
+
 local function nextScene()
     composer.gotoScene("Scenes.pregame")
 end
 
 local function showRoster(teamName)
+    local results = findLastGameWeek(league:findTeam(teamName))
+    
     local options = {
         params = {
-            team = league:findTeam(teamName)
+            team = league:findTeam(teamName),
+            week = results.day,
+            year = league.year,
+            playoffs = results.playoffs
         }
     }
 
-    composer.gotoScene("Scenes.roster", options)
+    composer.gotoScene("Scenes.team_info", options)
 end
 
 -- -----------------------------------------------------------------------------------
