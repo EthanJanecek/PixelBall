@@ -3,7 +3,7 @@ PlaybookLib = require("Objects.playbook")
 
 local team = {}
 
-function team:create(name, abbrev, logo, conference, division, color, rosterData)
+function team:create(name, abbrev, logo, conference, division, color, rosterData, desirability)
     self.__index = self
 
     return setmetatable({
@@ -18,7 +18,8 @@ function team:create(name, abbrev, logo, conference, division, color, rosterData
         color=color,
         cap=SALARY_CAP_LEVEL_1,
         draftPosition=-1,
-        playbook=PlaybookLib:createPlaybook()
+        playbook=PlaybookLib:createPlaybook(),
+        cityDesirability=desirability
     }, self)
 end
 
@@ -33,7 +34,9 @@ function calculateCap(teamObj)
     local sum = 0
 
     for i = 1, #teamObj.players do
-        sum = sum + teamObj.players[i].contract.value
+        if(teamObj.players[i].contract.length > 0) then
+            sum = sum + teamObj.players[i].contract.value 
+        end
     end
 
     return sum
@@ -58,6 +61,108 @@ function createRoster(file)
     end
 
     return players
+end
+
+function retirePlayers(teamObj)
+    local i = #teamObj.players
+    while i >= 1 do
+        local player = teamObj.players[i]
+
+        if(player.years >= 18) then
+            table.remove(teamObj.players, i)
+        end
+
+        i = i - 1
+    end
+end
+
+function adjustCap(teamObj)
+    if(teamObj.draftPosition <= 8) then
+        teamObj.cap = SALARY_CAP_LEVEL_1
+    elseif(teamObj.draftPosition <= 14) then
+        teamObj.cap = SALARY_CAP_LEVEL_2
+    elseif(teamObj.draftPosition <= 22) then
+        teamObj.cap = SALARY_CAP_LEVEL_3
+    else -- Made Conference Finals or better
+        teamObj.cap = SALARY_CAP_MAX
+    end
+end
+
+function resignPlayers(teamObj)
+    table.sort(teamObj.players, function (a, b)
+        return calculateOverall(a) > calculateOverall(b)
+    end)
+
+    local cutPlayers = {}
+    for i = 1, #teamObj.players do
+        local player = teamObj.players[i]
+
+        if(player.contract.length == 0) then
+            local salary = calculateFairSalary(player)
+
+            if(calculateCap(teamObj) + salary <= teamObj.cap) then
+                player.contract.value = salary
+                player.contract.length = 4
+            else
+                table.insert(cutPlayers, player)
+            end
+        end
+    end
+
+    for i = 1, #cutPlayers do
+        table.insert(league.freeAgents, cutPlayers[i])
+        table.remove(teamObj.players, indexOf(teamObj.players, cutPlayers[i]))
+    end
+
+    if(calculateCap(teamObj) > teamObj.cap) then
+        local playerRatings = {}
+
+        for i = 1, #teamObj.players do
+            local player = teamObj.players[i]
+
+            if(player.years ~= 0) then
+                local fairSalary = calculateFairSalary(player)
+                local salaryDiff = (fairSalary - player.contract.value) / player.contract.value -- The lower value the worse
+                
+                table.insert(playerRatings, {
+                    player=player,
+                    salaryDiff=salaryDiff,
+                    fairSalary=fairSalary
+                }) 
+            end
+        end
+
+        table.sort(playerRatings, function (a, b)
+            return a.salaryDiff < b.salaryDiff
+        end)
+
+        local i = 1
+        while calculateCap(teamObj) > teamObj.cap do
+            local player = playerRatings[i].player
+            table.insert(league.freeAgents, player)
+            table.remove(teamObj.players, indexOf(teamObj.players, player))
+            i = i + 1
+        end
+    end
+
+    if(#teamObj.players > 15) then
+        local tmpPlayers = {}
+        for j, player in ipairs(teamObj.players) do
+            if(player.years ~= 0) then
+                table.insert(tmpPlayers, player)
+            end
+        end
+
+        table.sort(tmpPlayers, function(player1, player2)
+            return calculateOverall(player1) < calculateOverall(player2)
+        end)
+
+        local i = 1
+        while #teamObj.players > 15 do
+            table.remove(teamObj.players, indexOf(teamObj.players, tmpPlayers[i]))
+            i = i + 1
+        end
+    end
 end
 
 return team

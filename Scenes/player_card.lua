@@ -25,6 +25,8 @@ local fontSize = 12
 local rowDist = 16
 local paddingX = 8
 local paddingY = display.contentHeight * .2
+local fairSalary = 0
+local fairLength = 4
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
@@ -305,14 +307,19 @@ local function displayAttributes()
     displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .75, y)
 
     y = y + 50
-    displayString("Contract: $" .. formatContractMoney(player.contract.value), display.contentWidth * .25, y)
-    displayString("Years: " .. player.contract.length, display.contentWidth * .75, y)
+    if(player.contract.length > 0) then
+        displayString("Contract: $" .. formatContractMoney(player.contract.value), display.contentWidth * .25, y)
+        displayString("Years: " .. player.contract.length, display.contentWidth * .75, y)
+    else
+        displayString("Proposed Contract: $" .. formatContractMoney(fairSalary), display.contentWidth * .25, y)
+        displayString("Proposed Years: " .. fairLength, display.contentWidth * .75, y)
+    end
 end
 
 local function showPlayerAttributes()
     -- Number + Name
     local nameStr = "#" .. player.number .. " - " .. player.name
-    local startersLabel = display.newText(sceneGroup, nameStr, display.contentCenterX, 20, native.systemFont, 24)
+    local startersLabel = display.newText(sceneGroup, nameStr, display.contentCenterX, 24, native.systemFont, 24)
     startersLabel:setFillColor(.922, .910, .329)
 
     displayAttributes()
@@ -367,6 +374,25 @@ local function showPlayerStats()
     displayString("Rings: " .. player.awards.rings, display.contentWidth * .33, y)
     displayString("FMVP: " .. player.awards.fmvp, display.contentWidth * .67, y)
 end
+
+local function cutPlayer()
+    table.remove(team.players, indexOf(team.players, player))
+    nextScene()
+end
+
+local function reSign()
+    player.contract.value = fairSalary
+    player.contract.length = fairLength
+
+    nextScene()
+end
+
+local function reject()
+    table.insert(league.freeAgents, player)
+    table.remove(team.players, indexOf(team.players, player))
+
+    nextScene()
+end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -382,6 +408,10 @@ function scene:create( event )
     week = event.params.week
     playoffTime = event.params.playoffs
 
+    if(freeAgency and player.contract.length == 0) then
+        fairSalary = calculateFairSalary(player)
+    end
+
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(.286, .835, .961)
     background.x = display.contentCenterX
@@ -390,16 +420,27 @@ function scene:create( event )
     createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
 
     if(player.levels > 0) then
-        createButtonWithBorder(sceneGroup, "Level Up (" .. player.levels .. ")", 16, display.contentWidth - 8, 8, 2, 
+        createButtonWithBorder(sceneGroup, "Level Up (" .. player.levels .. ")", 16, display.contentCenterX, 8, 2, 
                 BLACK, BLACK, TRANSPARENT, levelUp)
     end
 
     if(not displayPlayerStatsView) then
-        createButtonWithBorder(sceneGroup, "Stats", 16, 92, 8, 2, BLACK, BLACK, TRANSPARENT, alterDisplay)
+        createButtonWithBorder(sceneGroup, "Stats", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, alterDisplay)
         showPlayerAttributes()
     else
-        createButtonWithBorder(sceneGroup, "Attributes", 16, 92, 8, 2, BLACK, BLACK, TRANSPARENT, alterDisplay)
+        createButtonWithBorder(sceneGroup, "Attributes", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, alterDisplay)
         showPlayerStats()
+    end
+
+    if(team.name == userTeam) then
+        if(player.contract.length > 0) then
+            createButtonWithBorder(sceneGroup, "Cut", 16, display.contentCenterX, display.contentHeight - 8, 2, BLACK, BLACK, TRANSPARENT, cutPlayer)
+        else
+            createButtonWithBorder(sceneGroup, "Re-Sign", 16, display.contentWidth * .33, display.contentHeight - 8, 2, BLACK, BLACK, TRANSPARENT, reSign)
+            createButtonWithBorder(sceneGroup, "Reject", 16, display.contentWidth * .67, display.contentHeight - 8, 2, BLACK, BLACK, TRANSPARENT, reject)
+        end
+    elseif(player.contract.length > 0) then
+        createButtonWithBorder(sceneGroup, "Sign", 16, display.contentCenterX, display.contentHeight - 8, 2, BLACK, BLACK, TRANSPARENT, reSign)
     end
 end
 

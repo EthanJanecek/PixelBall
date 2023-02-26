@@ -46,7 +46,20 @@ local function selectPlayer(player)
         composer.gotoScene("Scenes.load_scene")
     else
         draftRound = 1
-        composer.gotoScene("Scenes.pregame")
+        freeAgency = true
+
+        local options = {
+            params = {
+                team = league:findTeam(userTeam),
+                week = 1,
+                year = league.year - 1,
+                playoffs = false
+            }
+        }
+        
+        league:createNewStats()
+        league:resignPlayers()
+        composer.gotoScene("Scenes.team_info", options)
     end
 end
 

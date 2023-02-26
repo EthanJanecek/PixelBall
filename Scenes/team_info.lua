@@ -13,6 +13,7 @@ local playoffTime = not regularSeason
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function back()
+    freeAgency = false
     composer.gotoScene("Scenes.pregame")
 end
 
@@ -163,7 +164,7 @@ local function gameLog()
         gameInfo = league:findGameInfo(league.playoffs[week], team.name)
     end
 
-    if(gameInfo) then
+    if(gameInfo and gameInfo.score.home) then
         local awayTeam = league:findTeam(gameInfo.away)
         local homeTeam = league:findTeam(gameInfo.home)
     
@@ -177,8 +178,26 @@ local function gameLog()
     
         local scoreStr = gameInfo.score.away .. " - " .. gameInfo.score.home
         local score = display.newText(sceneGroup, scoreStr, display.contentWidth * .5, display.contentHeight * .5, native.systemFont, 16)
-        score:setFillColor(.922, .910, .329) 
+        score:setFillColor(.922, .910, .329)
     end
+end
+
+local function checkIfSeasonCanStart()
+    if(#team.players > 15) then
+        return false
+    end
+
+    if(calculateCap(team) > team.cap) then
+        return false
+    end
+
+    for i = 1, #team.players do
+        if(team.players[i].contract.length == 0) then
+            return false
+        end
+    end
+
+    return true
 end
 
 -- -----------------------------------------------------------------------------------
@@ -200,9 +219,19 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, back)
     createButtonWithBorder(sceneGroup, "Roster", 16, display.contentCenterX, 8, 2, BLACK, BLACK, TRANSPARENT, roster)
-    createButtonWithBorder(sceneGroup, "Change Team", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, changeTeam)
+
+    if(not freeAgency) then
+        createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, back)
+        createButtonWithBorder(sceneGroup, "Change Team", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, changeTeam)
+    else
+        if(checkIfSeasonCanStart()) then
+            createButtonWithBorder(sceneGroup, "Start Season", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, back)
+        else
+            local options = display.newText(sceneGroup, "1. Team must be under cap\n2. Team can't have more than 15 players\n3.Team can't have any outstanding free agents", display.contentCenterX, display.contentHeight * .75, native.systemFont, 16)
+            options:setFillColor(.922, .910, .329)
+        end
+    end
 
     local name = display.newText(sceneGroup, team.name, display.contentCenterX, 35, native.systemFont, 24)
     name:setFillColor(.922, .910, .329)

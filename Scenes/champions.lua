@@ -7,50 +7,6 @@ local sceneGroup = nil
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function resetYear()
-	regularSeason = true
-	playoffs = false
-	
-	league.year = league.year + 1
-	league.weekNum = 1
-	league.regularSeason = true
-	league.playoffsActive = false
-	league:createSchedule()
-
-	for i = 1, 30 do
-		local team = league.teams[i]
-		team.wins = 0
-		team.losses = 0
-
-		for j = 1, #team.players do
-			local player = team.players[j]
-			player.years = player.years + 1
-		end
-	end
-end
-
-local function setUpDraft()
-	table.sort(draftPlayers, function(player1, player2) 
-		return calculateDraftStock(player1) > calculateDraftStock(player2)
-	end)
-
-	for i, team in ipairs(league.teams) do
-		if(team.name ~= userTeam) then
-			local tmpPlayers = {}
-			for j, player in ipairs(team.players) do
-				table.insert(tmpPlayers, player)
-			end
-
-			table.sort(tmpPlayers, function(player1, player2)
-				return calculateOverall(player1) < calculateOverall(player2)
-			end)
-
-			table.remove(team.players, indexOf(team.players, tmpPlayers[1]))
-			table.remove(team.players, indexOf(team.players, tmpPlayers[2]))
-		end
-	end
-end
-
 local function findMVP()
 	local players = {}
 
@@ -319,7 +275,6 @@ local function findFMVP(team)
 		local player = team.players[i]
 		local stats = calculateFinalsStats(player, league.year)
 		local points = math.round(stats.points / games)
-		local winPercent = math.round(team.wins * 100 / games)
 
 		local twoPtPercent = 0
 		if(stats.twoPA ~= 0) then
@@ -341,12 +296,11 @@ local function findFMVP(team)
 		local plusMinus = math.round(stats.plusMinus / games)
 
 		-- normalize each stat from 0-10
-		local rating = (points * 1.5) + plusMinus + (winPercent / 20) + (twoPtPercent / 10) + (threePtPercent / 10) + (ts / 15) + (eFG / 15)
+		local rating = (points * 1.5) + plusMinus + (twoPtPercent / 10) + (threePtPercent / 10) + (ts / 15) + (eFG / 15)
 
 		local playerStats = {
 			playerObj = player,
 			name = player.name,
-			winPercent = winPercent,
 			pts = points,
 			twoPtPercent = twoPtPercent,
 			threePtPercent = threePtPercent,
@@ -357,7 +311,6 @@ local function findFMVP(team)
 		}
 
 		table.insert(players, playerStats)
-		calculateFinalsStats(team.players[i], league.year)
 	end
 
 	table.sort(players, function(a, b)
@@ -381,10 +334,9 @@ end
 local function nextScene()
 	loadNames()
 	generateDraftPlayers()
-	resetYear()
-	setUpDraft()
+	league:nextYear()
 
-    composer.gotoScene("Scenes.remove_players")
+    composer.gotoScene("Scenes.retiring_players")
 end
 
 -- -----------------------------------------------------------------------------------

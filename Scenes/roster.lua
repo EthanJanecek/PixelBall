@@ -48,7 +48,7 @@ end
 
 local function nextScene()
     local results = findLastGameWeek()
-    
+
     local options = {
         params = {
             team = chosenTeam,
@@ -96,12 +96,22 @@ local function showPlayerCard(player, initialX, initialY, i)
     playerBorder:setFillColor(0, 0, 0, 0)
     playerBorder:addEventListener("tap", choosePlayer)
 
-    if(player.levels == 0) then
-        playerBorder:setStrokeColor(0, 0, 0)
-        playerBorder.strokeWidth = 2
+    if(freeAgency) then
+        if(player.contract.length > 0) then
+            playerBorder:setStrokeColor(0, 0, 0)
+            playerBorder.strokeWidth = 2
+        else
+            playerBorder:setStrokeColor(0, 0, 1)
+            playerBorder.strokeWidth = 4
+        end
     else
-        playerBorder:setStrokeColor(1, 0, 0)
-        playerBorder.strokeWidth = 4
+        if(player.levels == 0) then
+            playerBorder:setStrokeColor(0, 0, 0)
+            playerBorder.strokeWidth = 2
+        else
+            playerBorder:setStrokeColor(1, 0, 0)
+            playerBorder.strokeWidth = 4
+        end
     end
 
     if(i <= 5) then

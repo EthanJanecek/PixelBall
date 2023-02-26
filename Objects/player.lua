@@ -2,6 +2,8 @@ StatsLib = require("Objects.stats")
 AwardsLib = require("Objects.awards")
 ContractLib = require("Objects.contract")
 
+PLAYER_AGING_START = 14
+
 local player = {}
 
 function player:createRookie()
@@ -13,15 +15,18 @@ function player:createRookie()
         minBallSpeed = 1
     end
 
+    local shortShots = math.random(2, 6)
+    local longShots = math.random(2, 6)
+
     return setmetatable({
         name = generateName(),
         years = 0,
 
         dribbling = math.random(1, 7),
-        closeShot = math.random(1, 7),
-        midRange = math.random(1, 7),
-        three = math.random(1, 7),
-        finishing = math.random(1, 7),
+        closeShot = math.random(shortShots - 1, shortShots + 1),
+        midRange = math.random(longShots - 1, longShots + 1),
+        three = math.random(longShots - 1, longShots + 1),
+        finishing = math.random(shortShots - 1, shortShots + 1),
         stealing = math.random(1, 7),
         blocking = math.random(1, 7),
         contestingInterior = math.random(1, 7),
@@ -51,7 +56,7 @@ function player:createRookie()
         exp = 0,
         levels = 0,
         last5 = {},
-        contract = ContractLib:createContract(math.random(2000000, 10000000), 4)
+        contract = ContractLib:createContract(4000000, 3)
     }, self)
 end
 
@@ -153,12 +158,8 @@ end
 function calculateFinalsStats(playerTmp, year)
     local tmpStats = StatsLib:createStats()
 
-    for i = #playerTmp.stats, #playerTmp.stats - 7 do
-        local stat = playerTmp.stats[i]
-
-        if stat.year == year and stat.playoffs then
-            addStats(tmpStats, stat)
-        end
+    for i = #playerTmp.stats - 7, #playerTmp.stats do
+        addStats(tmpStats, playerTmp.stats[i])
     end
 
     return tmpStats
@@ -172,6 +173,21 @@ function calculateCareerStats(playerTmp)
     end
 
     return tmpStats
+end
+
+function agePlayer(playerObj)
+    playerObj.years = playerObj.years + 1
+    playerObj.contract.length = playerObj.contract.length - 1
+
+    if(playerObj.years >= PLAYER_AGING_START) then
+        if(playerObj.speed > 5) then
+            playerObj.speed = playerObj.speed - 1
+        end
+
+        if(playerObj.maxStamina > 5) then
+            playerObj.maxStamina = playerObj.maxStamina - 1
+        end
+    end
 end
 
 return player

@@ -38,7 +38,7 @@ local function findLastGameWeek(team)
     end
 
     if(not regularSeason) then
-        return findLastGameWeekHelper()
+        return findLastGameWeekHelper(team)
     end
 
     return {day = -1, playoffs = false}

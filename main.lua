@@ -82,6 +82,7 @@ simulateMainGame = false
 
 regularSeason = true
 playoffs = false
+freeAgency = false
 games = 72
 numDays = 200
 difficulty = 1
