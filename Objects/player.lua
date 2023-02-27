@@ -173,6 +173,22 @@ function calculateCareerStats(playerTmp)
     return tmpStats
 end
 
+function clearStats(playerObj)
+    local tmpStats = calculateYearlyStats(playerObj, league.year - 1)
+    tmpStats.year = league.year - 1
+
+    local i = 1
+    while i <= #playerObj.stats do
+        if(playerObj.stats[i].year == league.year - 1) then
+            table.remove(playerObj.stats, i)
+        else
+            i = i + 1
+        end
+    end
+
+    table.insert(playerObj.stats, tmpStats)
+end
+
 function agePlayer(playerObj)
     playerObj.years = playerObj.years + 1
     playerObj.contract.length = playerObj.contract.length - 1
@@ -186,6 +202,8 @@ function agePlayer(playerObj)
             playerObj.maxStamina = playerObj.maxStamina - 1
         end
     end
+
+    clearStats(playerObj)
 end
 
 return player

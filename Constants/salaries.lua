@@ -6,9 +6,9 @@ SALARY_CAP_LEVEL_1 = 125000000
 CONTRACT_MAX = 50000000
 CONTRACT_MAX_LENGTH = 4
 
-OFFENSE_FACTOR = .45
+OFFENSE_FACTOR = .4
 DEFENSE_FACTOR = .25
-SKILL_LEVEL_FACTOR = .15
+SKILL_LEVEL_FACTOR = .2
 AGE_FACTOR = .15
 
 BAD_CITY = .7
@@ -195,10 +195,12 @@ function calculateFairSalary(player)
 
     local offenseFactor = offenseRanking
     local defenseFactor = defenseRanking
-    local ageFactor = (PLAYER_AGING_START - player.years) / PLAYER_AGING_START
-    local skillFactor = skillLevel / 6
+    local ageFactor = (12 - player.years) / 12
+    local skillFactor = ((skillLevel - 2.5) * 3.5) / 10
     if(skillFactor > 1) then
         skillFactor = 1
+    elseif(skillFactor < 0) then
+        skillFactor = 0
     end
 
     local percent = (offenseFactor * OFFENSE_FACTOR) + (defenseFactor * DEFENSE_FACTOR) + (skillFactor * SKILL_LEVEL_FACTOR) +

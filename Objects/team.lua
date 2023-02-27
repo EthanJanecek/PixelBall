@@ -94,6 +94,21 @@ function resignPlayers(teamObj)
         return calculateOverall(a) > calculateOverall(b)
     end)
 
+    local j = #teamObj.players
+    while j > 0 do
+        local player = teamObj.players[j]
+        local stats = calculateYearlyStats(player, league.year - 1)
+        if(player.years ~= 0 and player.contract.length ~= 0 and stats.twoPA + stats.threePA == 0) then
+            table.insert(league.freeAgents, player)
+            table.remove(teamObj.players, indexOf(teamObj.players, player))
+        elseif(player.years ~= 0 and player.contract.length ~= 0 and (calculateFairSalary(player) / player.contract.value) < .5) then
+            table.insert(league.freeAgents, player)
+            table.remove(teamObj.players, indexOf(teamObj.players, player))
+        end
+
+        j = j - 1
+    end
+
     local cutPlayers = {}
     for i = 1, #teamObj.players do
         local player = teamObj.players[i]
