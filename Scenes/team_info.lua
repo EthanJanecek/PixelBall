@@ -13,8 +13,21 @@ local playoffTime = not regularSeason
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function back()
-    freeAgency = false
     composer.gotoScene("Scenes.pregame")
+end
+
+local function freeAgencyBack()
+    composer.gotoScene("Scenes.free_agency")
+end
+
+local function seasonStart()
+    table.sort(league.freeAgents, function(a, b)
+        return calculateOverall(a) > calculateOverall(b)
+    end)
+
+    preseason = false
+    freeAgency = true
+    composer.gotoScene("Scenes.free_agency")
 end
 
 local function roster()
@@ -221,12 +234,14 @@ function scene:create( event )
 
     createButtonWithBorder(sceneGroup, "Roster", 16, display.contentCenterX, 8, 2, BLACK, BLACK, TRANSPARENT, roster)
 
-    if(not freeAgency) then
+    if(not preseason and not freeAgency) then
         createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, back)
         createButtonWithBorder(sceneGroup, "Change Team", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, changeTeam)
+    elseif(freeAgency) then
+        createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, freeAgencyBack)
     else
         if(checkIfSeasonCanStart()) then
-            createButtonWithBorder(sceneGroup, "Start Season", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, back)
+            createButtonWithBorder(sceneGroup, "Start Season", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, seasonStart)
         else
             local options = display.newText(sceneGroup, "1. Team must be under cap\n2. Team can't have more than 15 players\n3.Team can't have any outstanding free agents", display.contentCenterX, display.contentHeight * .75, native.systemFont, 16)
             options:setFillColor(.922, .910, .329)
@@ -237,8 +252,11 @@ function scene:create( event )
     name:setFillColor(.922, .910, .329)
 
     local recordStr = "Record: " .. team.wins .. " - " .. team.losses
-    local record = display.newText(sceneGroup, recordStr, display.contentWidth * .5, 65, native.systemFont, 16)
+    local record = display.newText(sceneGroup, recordStr, display.contentWidth * .33, 65, native.systemFont, 16)
     record:setFillColor(.922, .910, .329)
+
+    local rings = display.newText(sceneGroup, "Rings: " .. team.rings, display.contentWidth * .67, 65, native.systemFont, 16)
+    rings:setFillColor(.922, .910, .329)
 
     local capStr = "Cap Hit: $" .. formatContractMoney(calculateCap(team)) .. " / $" .. formatContractMoney(team.cap)
     local cap = display.newText(sceneGroup, capStr, display.contentWidth * .5, 85, native.systemFont, 16)

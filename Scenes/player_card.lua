@@ -408,7 +408,7 @@ function scene:create( event )
     week = event.params.week
     playoffTime = event.params.playoffs
 
-    if(freeAgency and player.contract.length == 0) then
+    if(preseason and player.contract.length == 0) then
         fairSalary = calculateFairSalary(player)
     end
 

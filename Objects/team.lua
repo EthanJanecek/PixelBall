@@ -12,6 +12,7 @@ function team:create(name, abbrev, logo, conference, division, color, rosterData
         players=createRoster(rosterData),
         wins=0,
         losses=0,
+        rings=0,
         logo=logo,
         conf=conference,
         division=division,
@@ -163,6 +164,18 @@ function resignPlayers(teamObj)
             i = i + 1
         end
     end
+end
+
+function calculateStarterOverall(teamObj)
+    local sum = 0
+
+    for i = 1, #teamObj.players do
+        if(teamObj.players[i].starter) then
+            sum = sum + calculateOverall(teamObj.players[i])
+        end
+    end
+
+    return sum / 5
 end
 
 return team

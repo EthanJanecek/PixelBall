@@ -371,6 +371,7 @@ function scene:create( event )
     end
 
 	local winningTeam = league:findTeam(winner)
+    winningTeam.rings = winningTeam.rings + 1
 	for i = 1, #winningTeam.players do
 		winningTeam.players[i].awards.rings = winningTeam.players[i].awards.rings + 1
 	end

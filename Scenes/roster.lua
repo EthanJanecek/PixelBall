@@ -96,7 +96,7 @@ local function showPlayerCard(player, initialX, initialY, i)
     playerBorder:setFillColor(0, 0, 0, 0)
     playerBorder:addEventListener("tap", choosePlayer)
 
-    if(freeAgency) then
+    if(preseason) then
         if(player.contract.length > 0) then
             playerBorder:setStrokeColor(0, 0, 0)
             playerBorder.strokeWidth = 2

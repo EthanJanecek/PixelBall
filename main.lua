@@ -65,6 +65,7 @@ require("Constants.streaks")
 require("Constants.draft_players")
 require("Constants.salaries")
 LeagueLib = require("Objects.league")
+OfferLib = require("Objects.offer")
 league = nil
 userTeam = ""
 lastScene = ""
@@ -83,6 +84,7 @@ simulateMainGame = false
 regularSeason = true
 playoffs = false
 freeAgency = false
+preseason = false
 games = 72
 numDays = 200
 difficulty = 1
@@ -90,6 +92,7 @@ minutesInQtr = 12
 
 draftRound = 1
 draftPage = 1
+freeAgentPage = 1
 cutPlayers = {}
 
 numGamesSetting = 3

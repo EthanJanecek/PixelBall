@@ -863,11 +863,6 @@ local function changeStamina(player, diff)
     end
 end
 
-local function sumProps(player)
-    return player.closeShot + player.midRange + player.three + player.finishing + player.contestingInterior + player.contestingExterior + player.height + player.dribbling
-                + player.blocking + player.stealing + player.speed
-end
-
 local function indexOf(table, value)
     for i = 1, #table do
         if(table[i] == value) then
@@ -893,7 +888,7 @@ local function findBestAvailableBenchPlayer(team)
 
     local teamBench = {unpack(team.players, 6, len)}
     table.sort(teamBench, function (a, b) 
-        return sumProps(a) > sumProps(b)
+        return calculateOverall(a) > calculateOverall(b)
     end)
 
     for i = 1, #teamBench do
@@ -1304,19 +1299,6 @@ function calculatePoints(shooterSkill, defenderSkill, heightDiff, leagueAvg, max
     end
 end
 
-function league:retireFreeAgents()
-    local i = #self.freeAgents
-    while i > 0 do
-        local player = self.freeAgents[i]
-
-        if(player.years >= 18 or #player.stats == 0 or player.stats[#player.stats].year ~= (self.year - 1)) then
-            table.remove(self.freeAgents, i)
-        end
-
-        i = i - 1
-    end
-end
-
 function league:resignPlayers()
     for i = 1, #self.teams do
         if(self.teams[i].name ~= userTeam) then
@@ -1328,6 +1310,7 @@ end
 function league:nextYear()
     regularSeason = true
 	playoffs = false
+    preseason = true
 	
 	self.year = self.year + 1
 	self.weekNum = 1
@@ -1347,8 +1330,76 @@ function league:nextYear()
             agePlayer(player)
 		end
 	end
+end
 
-    self:retireFreeAgents()
+function league:freeAgentOffers(player, offer)
+    local offers = {}
+    local fairSalary = calculateFairSalary(player)
+    local overall = calculateOverall(player)
+
+    for i = 1, #self.teams do
+        local team = self.teams[i]
+
+        if(team.name ~= userTeam) then
+            if(calculateCap(team) + fairSalary < team.cap and #team.players < 15) then
+                local max = team.cap - calculateCap(team)
+                if(max > CONTRACT_MAX) then
+                    max = CONTRACT_MAX
+                end
+
+                local percentBetter = overall / calculateStarterOverall(team)
+                local offerValue = percentBetter * fairSalary
+
+                if(offerValue > max) then
+                    offerValue = max
+                elseif(offerValue < fairSalary) then
+                    offerValue = fairSalary
+                end
+
+                offerValue = math.round(offerValue)
+
+                table.insert(offers, OfferLib:createOffer(team, player, offerValue, 4))
+            end
+        elseif(offer) then
+            table.insert(offers, offer)
+        end
+    end
+
+    if(#offers > 0) then
+        table.sort(offers, function (a, b)
+            return offerRating(a, fairSalary) > offerRating(b, fairSalary)
+        end)
+    
+        local winningOffer = offers[1]
+
+        player.contract.value = winningOffer.salary
+        player.contract.length = winningOffer.length
+    
+        table.insert(winningOffer.team.players, player)
+        table.remove(self.freeAgents, indexOf(self.freeAgents, player))
+
+        return winningOffer.team.name
+    end
+
+    return ""
+end
+
+function league:readjustStarters()
+    for i = 1, #self.teams do
+        local team = self.teams[i]
+
+        table.sort(team.players, function (a, b)
+            return calculateOverall(a) > calculateOverall(b)
+        end)
+
+        for j = 1, #team.players do
+            if(j <= 5) then
+                team.players[j].starter = true
+            else
+                team.players[j].starter = false
+            end
+		end
+    end
 end
 
 return league

@@ -2,8 +2,6 @@ StatsLib = require("Objects.stats")
 AwardsLib = require("Objects.awards")
 ContractLib = require("Objects.contract")
 
-PLAYER_AGING_START = 14
-
 local player = {}
 
 function player:createRookie()
@@ -56,7 +54,7 @@ function player:createRookie()
         exp = 0,
         levels = 0,
         last5 = {},
-        contract = ContractLib:createContract(4000000, 3)
+        contract = ContractLib:createContract(2000000, 3)
     }, self)
 end
 

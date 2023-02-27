@@ -514,9 +514,6 @@ local function adjustPlusMinus(offense, defense, points)
 end
 
 function endPossession()
-    print("Ended Possession")
-    print(result)
-
     if(not endedPossession and display and sceneGroup) then
         local stats = team.players[userPlayer].stats[#team.players[userPlayer].stats]
         endedPossession = true

@@ -4,21 +4,24 @@ SALARY_CAP_LEVEL_2 = 150000000
 SALARY_CAP_LEVEL_1 = 125000000
 
 CONTRACT_MAX = 50000000
-CONTRACT_MAX_OTHER_TEAM = 40000000
 CONTRACT_MAX_LENGTH = 4
 
 OFFENSE_FACTOR = .45
-DEFENSE_FACTOR = .2
-SKILL_LEVEL_FACTOR = .25
-AGE_FACTOR = .1
+DEFENSE_FACTOR = .25
+SKILL_LEVEL_FACTOR = .15
+AGE_FACTOR = .15
 
-BAD_CITY = 1
-MID_CITY = 2
-GOOD_CITY = 3
-GREAT_CITY = 4
+BAD_CITY = .7
+MID_CITY = .9
+GOOD_CITY = 1.1
+GREAT_CITY = 1.3
+
+PLAYER_AGING_START = 15
+PLAYER_MAX_AGE = 18
 
 local function findOffenseRanking(playerObj)
     local playerStats = calculateYearlyStats(playerObj, league.year - 1)
+
     if(playerStats.twoPA + playerStats.threePA == 0) then
         return 0
     end
@@ -57,6 +60,37 @@ local function findOffenseRanking(playerObj)
         
                 table.insert(players, playerStats)
             end
+        end
+    end
+
+    for j = 1, #league.freeAgents do
+        local player = league.freeAgents[j]
+        local stats = calculateYearlyStats(player, league.year - 1)
+
+        if(stats.twoPA + stats.threePA ~= 0) then
+            local points = math.round(stats.points)
+
+            local twoPtPercent = 0
+            if(stats.twoPA ~= 0) then
+                twoPtPercent = math.round(stats.twoPM * 100 / stats.twoPA)
+            end
+            
+            local threePtPercent = 0
+            if(stats.threePA ~= 0) then
+                threePtPercent = math.round(stats.threePM * 100 / stats.threePA)
+            end
+    
+            local plusMinus = math.round(stats.plusMinus / games)
+    
+            -- normalize each stat from 0-10
+            local rating = (points * 2) + plusMinus + (twoPtPercent / 10) + (threePtPercent / 10)
+    
+            local playerStats = {
+                playerObj = player,
+                rating = rating
+            }
+    
+            table.insert(players, playerStats)
         end
     end
     
@@ -113,6 +147,34 @@ local function findDefenseRanking(playerObj)
         end
     end
 
+    for j = 1, #league.freeAgents do
+        local player = league.freeAgents[j]
+        local stats = calculateYearlyStats(player, league.year - 1)
+        
+        if(stats.shotsAgainst ~= 0) then
+            local points = math.round(stats.pointsAgainst)
+            local shots = math.round(stats.shotsAgainst)
+            local blocks = math.round(stats.blocks)
+            local steals = math.round(stats.steals)
+
+            local ptsPerShot = tonumber(string.format("%.2f", (points / shots)))
+            
+            local ptsPerShotMin = ptsPerShot
+            if(ptsPerShotMin < .1) then
+                ptsPerShotMin = .1
+            end
+            -- normalize each stat from 0-10
+            local rating = (3 * shots / ptsPerShotMin) + (blocks * 3) + (steals * 3)
+
+            local playerStats = {
+                playerObj = player,
+                rating = rating
+            }
+
+            table.insert(players, playerStats)
+        end
+    end
+
     table.sort(players, function(a, b)
         return a.rating > b.rating
     end)
@@ -129,12 +191,12 @@ end
 function calculateFairSalary(player)
     local offenseRanking = findOffenseRanking(player)
     local defenseRanking = findDefenseRanking(player)
-    local skillLevel = calculateOverall(player) / 10
+    local skillLevel = calculateOverall(player)
 
     local offenseFactor = offenseRanking
     local defenseFactor = defenseRanking
-    local ageFactor = (18 - player.years) / 18
-    local skillFactor = (skillLevel * 2) / 10
+    local ageFactor = (PLAYER_AGING_START - player.years) / PLAYER_AGING_START
+    local skillFactor = skillLevel / 6
     if(skillFactor > 1) then
         skillFactor = 1
     end
@@ -165,4 +227,13 @@ function formatContractMoney(value)
     end
 
     return string.reverse(tmp)
+end
+
+function offerRating(offer, fairSalary)
+    local salaryRating = offer.salary / fairSalary
+    local lengthRating = offer.length / 4
+    local cityRating = offer.team.cityDesirability
+    local chanceToWin = offer.team.cap / SALARY_CAP_MAX
+
+    return salaryRating * lengthRating * cityRating * chanceToWin
 end

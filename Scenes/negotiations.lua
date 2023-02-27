@@ -4,8 +4,7 @@ local composer = require( "composer" )
 local scene = composer.newScene()
 local sceneGroup = nil
 local player = nil
-local team = nil
-local salaryOptions = {1000000, 2000000, 5000000, 10000000, 15000000, 20000000, 25000000, 30000000, 35000000, 40000000}
+local salaryOptions = {1000000, 2000000, 5000000, 10000000, 15000000, 20000000, 25000000, 30000000, 35000000, 40000000, 45000000, 50000000}
 local lengthOptions = {1, 2, 3, 4}
 
 local salaryIndex = 0
@@ -16,13 +15,17 @@ local lengthIndex = 0
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
+    composer.gotoScene("Scenes.free_agency")
+end
+
+local function submit()
     local options = {
         params = {
-            team = team
+            offer = OfferLib:createOffer(league:findTeam(userTeam), player, salaryOptions[salaryIndex], lengthOptions[lengthIndex])
         }
     }
 
-    composer.gotoScene("Scenes.free_agency", options)
+    composer.gotoScene("Scenes.submit_offer", options)
 end
 
 local function reloadScene(deltaSalary, deltaLength)
@@ -65,11 +68,11 @@ local function showContractOptions()
     displayString(formatContractMoney(salaryOptions[salaryIndex]), display.contentCenterX, display.contentHeight * .25)
 
     if(salaryIndex ~= 1) then
-        createButtonWithBorder(sceneGroup, "<-", 16, display.contentWidth * .4, display.contentHeight * .25, 2, BLACK, BLACK, TRANSPARENT, lastContractValue)
+        createButtonWithBorder(sceneGroup, "<-", 16, display.contentWidth * .35, display.contentHeight * .25, 2, BLACK, BLACK, TRANSPARENT, lastContractValue)
     end
 
     if(salaryIndex ~= #salaryOptions) then
-        createButtonWithBorder(sceneGroup, "->", 16, display.contentWidth * .6, display.contentHeight * .25, 2, BLACK, BLACK, TRANSPARENT, nextContractValue)
+        createButtonWithBorder(sceneGroup, "->", 16, display.contentWidth * .65, display.contentHeight * .25, 2, BLACK, BLACK, TRANSPARENT, nextContractValue)
     end
 
     -- Length Selector
@@ -77,12 +80,17 @@ local function showContractOptions()
     displayString(lengthIndex, display.contentCenterX, display.contentHeight * .45)
 
     if(lengthIndex ~= 1) then
-        createButtonWithBorder(sceneGroup, "<-", 16, display.contentWidth * .4, display.contentHeight * .45, 2, BLACK, BLACK, TRANSPARENT, lastYearsValue)
+        createButtonWithBorder(sceneGroup, "<-", 16, display.contentWidth * .35, display.contentHeight * .45, 2, BLACK, BLACK, TRANSPARENT, lastYearsValue)
     end
 
     if(lengthIndex ~= #lengthOptions) then
-        createButtonWithBorder(sceneGroup, "->", 16, display.contentWidth * .6, display.contentHeight * .45, 2, BLACK, BLACK, TRANSPARENT, nextYearsValue)
+        createButtonWithBorder(sceneGroup, "->", 16, display.contentWidth * .65, display.contentHeight * .45, 2, BLACK, BLACK, TRANSPARENT, nextYearsValue)
     end
+end
+
+local function canSubmitOffer()
+    local team = league:findTeam(userTeam)
+    return calculateCap(team) + salaryOptions[salaryIndex] < team.cap and #team.players < 15
 end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -91,8 +99,7 @@ end
 -- create()
 function scene:create( event )
 	sceneGroup = self.view
-    player = event.pararms.player
-    team = event.pararms.team
+    player = event.params.player
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen	
 	local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
@@ -107,20 +114,22 @@ function scene:create( event )
     local fairSalary = calculateFairSalary(player)
     table.insert(salaryOptions, fairSalary)
 
-    if(team.name == userTeam) then
-        table.insert(salaryOptions, 45000000)
-        table.insert(salaryOptions, 50000000)
-    end
-
     table.sort(salaryOptions, function(a, b)
         return a < b
     end)
+
+    -- Remove salaries below fair salary
+    while(salaryOptions[1] ~= fairSalary) do
+        table.remove(salaryOptions, 1)
+    end
 
     salaryIndex = event.params.salary or indexOf(salaryOptions, fairSalary)
     lengthIndex = event.params.length or 4
 
 	createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
-    showPlayerAttributes()
+    if(canSubmitOffer()) then
+        createButtonWithBorder(sceneGroup, "Submit Offer", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, submit)
+    end
     showContractOptions()
 end
 

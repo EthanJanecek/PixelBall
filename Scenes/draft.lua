@@ -46,7 +46,6 @@ local function selectPlayer(player)
         composer.gotoScene("Scenes.load_scene")
     else
         draftRound = 1
-        freeAgency = true
 
         local options = {
             params = {
