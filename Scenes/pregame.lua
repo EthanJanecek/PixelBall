@@ -148,7 +148,7 @@ function scene:create( event )
     end
 
     if(regularSeason) then
-        local dayStr = "Day: " .. league.weekNum .. "/" .. numDays
+        local dayStr = "Year: " .. league.year .. "    Day: " .. league.weekNum .. "/" .. numDays
         local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
         day:setFillColor(.922, .910, .329)
     elseif(playoffs) then
@@ -161,11 +161,11 @@ function scene:create( event )
             roundString = "Finals"
         end
 
-        local dayStr = "Playoffs - " .. roundString
+        local dayStr = "Year: " .. league.year .. "    Playoffs - " .. roundString
         local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
         day:setFillColor(.922, .910, .329)
     else
-        local dayStr = "Play-In"
+        local dayStr = "Year: " .. league.year .. "    Play-In"
         local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
         day:setFillColor(.922, .910, .329)
     end

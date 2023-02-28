@@ -688,7 +688,7 @@ local function calculatePlayerExp(player)
     end
     
     local expRaw = (stats.points * shotPercent * 2.5) + (stats.steals + stats.blocks - stats.turnovers) * 5
-    local factor = math.pow((player.potential / 20.0) + .5, player.years + 1)
+    local factor = math.pow((player.potential / 20.0) + .425, player.years + 1)
     local exp = factor * expRaw
 
     -- Exp is calculated for numGamesSetting = 3
@@ -718,56 +718,50 @@ local function assignRandomLevel(player)
     local statValue = 10
     local stat = -1
 
-    while(statValue == 10) do
-        stat = math.random(1, 11)
-
-        if(stat == 1) then
-            statValue = player.finishing
-        elseif(stat == 2) then
-            statValue = player.closeShot
-        elseif(stat == 3) then
-            statValue = player.midRange
-        elseif(stat == 4) then
-            statValue = player.three
-        elseif(stat == 5) then
-            statValue = player.dribbling
-        elseif(stat == 6) then
-            statValue = player.passing
-        elseif(stat == 7) then
-            statValue = player.passDefending
-        elseif(stat == 8) then
-            statValue = player.stealing
-        elseif(stat == 9) then
-            statValue = player.contestingInterior
-        elseif(stat == 10) then
-            statValue = player.contestingExterior
-        else
-            statValue = player.blocking
+    if(calculateOverallSkills(player) < 10) then
+        while(statValue == 10) do
+            stat = math.random(1, 9)
+    
+            if(stat == 1) then
+                statValue = player.finishing
+            elseif(stat == 2) then
+                statValue = player.closeShot
+            elseif(stat == 3) then
+                statValue = player.midRange
+            elseif(stat == 4) then
+                statValue = player.three
+            elseif(stat == 5) then
+                statValue = player.dribbling
+            elseif(stat == 6) then
+                statValue = player.stealing
+            elseif(stat == 7) then
+                statValue = player.contestingInterior
+            elseif(stat == 8) then
+                statValue = player.contestingExterior
+            else
+                statValue = player.blocking
+            end
         end
-    end
-
-    if(stat == 1) then
-        player.finishing = player.finishing + 1
-    elseif(stat == 2) then
-        player.closeShot = player.closeShot + 1
-    elseif(stat == 3) then
-        player.midRange = player.midRange + 1
-    elseif(stat == 4) then
-        player.three = player.three + 1
-    elseif(stat == 5) then
-        player.dribbling = player.dribbling + 1
-    elseif(stat == 6) then
-        player.passing = player.passing + 1
-    elseif(stat == 7) then
-        player.passDefending = player.passDefending + 1
-    elseif(stat == 8) then
-        player.stealing = player.stealing + 1
-    elseif(stat == 9) then
-        player.contestingInterior = player.contestingInterior + 1
-    elseif(stat == 10) then
-        player.contestingExterior = player.contestingExterior + 1
-    else
-        player.blocking = player.blocking + 1
+    
+        if(stat == 1) then
+            player.finishing = player.finishing + 1
+        elseif(stat == 2) then
+            player.closeShot = player.closeShot + 1
+        elseif(stat == 3) then
+            player.midRange = player.midRange + 1
+        elseif(stat == 4) then
+            player.three = player.three + 1
+        elseif(stat == 5) then
+            player.dribbling = player.dribbling + 1
+        elseif(stat == 6) then
+            player.stealing = player.stealing + 1
+        elseif(stat == 7) then
+            player.contestingInterior = player.contestingInterior + 1
+        elseif(stat == 8) then
+            player.contestingExterior = player.contestingExterior + 1
+        else
+            player.blocking = player.blocking + 1
+        end
     end
 
     player.levels = player.levels - 1
@@ -972,11 +966,9 @@ function simulateGame(away, home)
         for i = 1, 5 do
             local result = simulatePossession(home, away, math.random(numDefensiveStrategies))
             score.home = score.home + result.points
-            time = time + result.time
 
             result = simulatePossession(away, home, math.random(numDefensiveStrategies))
             score.away = score.away + result.points
-            time = time + result.time
         end
     end
     

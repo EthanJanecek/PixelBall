@@ -353,7 +353,11 @@ local function showPlayerStats()
     end
 
     displayStatsHeader()
-    displayStats("Season", calculateYearlyStats(player, league.year), 2)
+    if(preseason or freeAgency) then
+        displayStats("Season", calculateYearlyStats(player, league.year - 1), 2)
+    else
+        displayStats("Season", calculateYearlyStats(player, league.year), 2)
+    end
     displayStats("Career", calculateCareerStats(player), 3)
 
     if(findPreviousGameWeek().day ~= -1) then
@@ -419,7 +423,7 @@ function scene:create( event )
 
     createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
 
-    if(player.levels > 0) then
+    if(player.levels > 0 and calculateOverallSkills(player) < 10) then
         createButtonWithBorder(sceneGroup, "Level Up (" .. player.levels .. ")", 16, display.contentCenterX, 8, 2, 
                 BLACK, BLACK, TRANSPARENT, levelUp)
     end

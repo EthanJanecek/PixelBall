@@ -110,6 +110,14 @@ function calculateOverall(playerTmp)
     return overall
 end
 
+function calculateOverallSkills(playerTmp)
+    local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
+            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior
+    local overall = sumOverall / 9.0
+
+    return overall
+end
+
 function calculateDraftStock(playerTmp)
     local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
             playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior + playerTmp.speed + 

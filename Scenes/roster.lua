@@ -105,7 +105,7 @@ local function showPlayerCard(player, initialX, initialY, i)
             playerBorder.strokeWidth = 4
         end
     else
-        if(player.levels == 0) then
+        if(player.levels <= 0 or calculateOverallSkills(player) >= 10) then
             playerBorder:setStrokeColor(0, 0, 0)
             playerBorder.strokeWidth = 2
         else
@@ -123,12 +123,12 @@ local function showPlayerCard(player, initialX, initialY, i)
     playerName:setFillColor(.922, .910, .329)
     playerName:addEventListener("tap", choosePlayer)
 
-    local paramStr = "DRB: " .. player.dribbling .. "  STL: " .. player.stealing .. 
+    local paramStr =  "SPD: " .. player.speed .. "DRB: " .. player.dribbling .. 
                         "\nFNS: " .. player.finishing .. "  CLS: " .. player.closeShot .. 
                         "\nMDR: " .. player.midRange .. "  3PT: " .. player.three .. 
                         "\nCTE: " .. player.contestingExterior .. "  CTI: " .. player.contestingInterior .. 
-                        "\nBLK: " .. player.blocking .. "  PSS: " .. player.passing .. 
-                        "\nSPD: " .. player.speed .. "  HGT: " .. player.height .. 
+                        "\nBLK: " .. player.blocking .. "  STL: " .. player.stealing .. 
+                        "\nHGT: " .. player.height .. "  POT: " .. player.potential .. 
                         "\nSTMNA: " .. string.format("%.1f", player.stamina) .. "/" .. player.maxStamina
 
     local params = display.newText(sceneGroup, paramStr, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 16 + 8 * 2, native.systemFont, 8)

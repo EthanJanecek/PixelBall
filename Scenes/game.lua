@@ -538,8 +538,6 @@ function endPossession()
             stats.points = stats.points + 2
             stats.twoPA = stats.twoPA + 1
             stats.twoPM = stats.twoPM + 1
-
-            table.insert(stats.shots, ShotLib:createShot(team.players[userPlayer].sprite.x, team.players[userPlayer].sprite.y, true))
         elseif(result == "3") then
             adjustPlusMinus(team, opponent, 3)
             if(userIsHome) then
@@ -554,18 +552,14 @@ function endPossession()
             stats.points = stats.points + 3
             stats.threePA = stats.threePA + 1
             stats.threePM = stats.threePM + 1
-
-            table.insert(stats.shots, ShotLib:createShot(team.players[userPlayer].sprite.x, team.players[userPlayer].sprite.y, true))
         elseif(result == "Miss") then
             message = "The shot is no good!"
 
             addToLast5(team.players[userPlayer], 0)
-            table.insert(stats.shots, ShotLib:createShot(team.players[userPlayer].sprite.x, team.players[userPlayer].sprite.y, false))
         elseif(result == "Blocked") then
             message = "The shot is blocked!"
 
             addToLast5(team.players[userPlayer], 0)
-            table.insert(stats.shots, ShotLib:createShot(team.players[userPlayer].sprite.x, team.players[userPlayer].sprite.y, false))
         elseif(result == "shot clock") then
             message = "The shot clock has expired"
         elseif(result == "Stolen") then

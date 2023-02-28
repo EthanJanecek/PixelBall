@@ -18,14 +18,7 @@ function stats:createStats()
         plusMinus = 0,
         pointsAgainst = 0,
         shotsAgainst = 0,
-        shots = {}
     }, self)
-end
-
-function addShots(shots1, shots2)
-    for i = 1, #shots2 do
-        table.insert(shots1, #shots1 + i, shots2[i])
-    end
 end
 
 function addStats(stats1, stats2)
@@ -40,7 +33,6 @@ function addStats(stats1, stats2)
     stats1.plusMinus = stats1.plusMinus + stats2.plusMinus
     stats1.pointsAgainst = stats1.pointsAgainst + stats2.pointsAgainst
     stats1.shotsAgainst = stats1.shotsAgainst + stats2.shotsAgainst
-    addShots(stats1.shots, stats2.shots)
 end
 
 return stats

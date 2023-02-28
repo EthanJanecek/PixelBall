@@ -107,7 +107,7 @@ function scene:create( event )
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    local nameStr = "#" .. player.number .. " - " .. player.name
+    local nameStr = "#" .. player.number .. " - " .. player.name .. " - Year " .. player.years
     local startersLabel = display.newText(sceneGroup, nameStr, display.contentCenterX, 24, native.systemFont, 24)
     startersLabel:setFillColor(.922, .910, .329)
 
