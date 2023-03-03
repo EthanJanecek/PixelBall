@@ -23,7 +23,7 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen	
 	local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
     background:addEventListener("tap", nextScene)
@@ -39,7 +39,7 @@ function scene:create( event )
 
     local result = league:freeAgentOffers(offer.player, offer)
     local name = display.newText(sceneGroup, offer.player.name .. " has signed with " .. result, display.contentCenterX, 24, native.systemFont, 24)
-    name:setFillColor(.922, .910, .329)
+    name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 

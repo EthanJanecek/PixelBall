@@ -19,6 +19,8 @@ GREAT_CITY = 1.3
 PLAYER_AGING_START = 15
 PLAYER_MAX_AGE = 18
 
+MIN_SHOT_ATTEMPTS = 25
+
 local function findOffenseRanking(playerObj)
     local playerStats = calculateYearlyStats(playerObj, league.year - 1)
 
@@ -35,7 +37,7 @@ local function findOffenseRanking(playerObj)
             local player = team.players[i]
             local stats = calculateYearlyStats(player, league.year - 1)
 
-            if(stats.twoPA + stats.threePA ~= 0) then
+            if(stats.twoPA + stats.threePA >= MIN_SHOT_ATTEMPTS) then
                 local points = math.round(stats.points)
     
                 local twoPtPercent = 0
@@ -67,7 +69,7 @@ local function findOffenseRanking(playerObj)
         local player = league.freeAgents[j]
         local stats = calculateYearlyStats(player, league.year - 1)
 
-        if(stats.twoPA + stats.threePA ~= 0) then
+        if(stats.twoPA + stats.threePA >= MIN_SHOT_ATTEMPTS) then
             local points = math.round(stats.points)
 
             local twoPtPercent = 0
@@ -122,7 +124,7 @@ local function findDefenseRanking(playerObj)
             local player = team.players[j]
             local stats = calculateYearlyStats(player, league.year - 1)
             
-            if(stats.shotsAgainst ~= 0) then
+            if(stats.shotsAgainst >= MIN_SHOT_ATTEMPTS) then
                 local points = math.round(stats.pointsAgainst)
                 local shots = math.round(stats.shotsAgainst)
                 local blocks = math.round(stats.blocks)
@@ -151,7 +153,7 @@ local function findDefenseRanking(playerObj)
         local player = league.freeAgents[j]
         local stats = calculateYearlyStats(player, league.year - 1)
         
-        if(stats.shotsAgainst ~= 0) then
+        if(stats.shotsAgainst >= MIN_SHOT_ATTEMPTS) then
             local points = math.round(stats.pointsAgainst)
             local shots = math.round(stats.shotsAgainst)
             local blocks = math.round(stats.blocks)

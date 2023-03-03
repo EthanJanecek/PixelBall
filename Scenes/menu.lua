@@ -7,24 +7,36 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 local function nextScene()
-    composer.gotoScene("Scenes.settings")
+	local options = {
+        params = {
+            new=true
+        }
+    }
+
+    composer.gotoScene("Scenes.saves", options)
 end
 
 local function doesSaveFileExist()
-	local path = getSaveDirectory()
-	local f = io.open(path, "r")
+	for i = 1, 3 do
+		local path = getSaveDirectory(i)
+		local f = io.open(path, "r")
 
-	if(f) then
-		return true
-	else
-		return false
+		if(f) then
+			return true
+		end
 	end
+	
+	return false
 end
 
-local function loadGame()
-	league = LeagueLib:createFromSave()
+local function loadOptions()
+	local options = {
+        params = {
+            new=false
+        }
+    }
 
-    composer.gotoScene("Scenes.pregame")
+    composer.gotoScene("Scenes.saves", options)
 end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -36,18 +48,18 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
 	local title = display.newText(sceneGroup, "Pixel-Ball", display.contentCenterX, display.contentCenterY / 2, native.systemFont, 64)
-    title:setFillColor(.922, .910, .329)
+    title:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
-	createButtonWithBorder(sceneGroup, "New", 32, display.contentCenterX, display.contentCenterY, 2, BLACK, BLACK, TRANSPARENT, nextScene)
+	createButtonWithBorder(sceneGroup, "New", 32, display.contentCenterX, display.contentCenterY, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
 
 	if(doesSaveFileExist()) then
-		createButtonWithBorder(sceneGroup, "Continue", 32, display.contentCenterX, display.contentCenterY * 1.3, 2, 
-				BLACK, BLACK, TRANSPARENT, loadGame)
+		createButtonWithBorder(sceneGroup, "Load", 32, display.contentCenterX, display.contentCenterY * 1.3, 2, 
+				TEXT_COLOR, TEXT_COLOR, TRANSPARENT, loadOptions)
 	end
 end
 

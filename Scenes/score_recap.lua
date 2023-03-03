@@ -36,7 +36,7 @@ local function showGameScore(game, xIndex, yIndex)
     local y = yIndex * (display.contentHeight / 5) + offsetY
 
     local boxscoreBox = display.newRect(sceneGroup, x + 50, y + 6, 100 + imageSize, 12 + imageSize)
-    boxscoreBox:setFillColor(.286, .835, .961)
+    boxscoreBox:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
 
     local awayLogo = display.newImageRect(sceneGroup, awayTeam.logo, imageSize, imageSize)
     awayLogo.x = x
@@ -51,35 +51,34 @@ local function showGameScore(game, xIndex, yIndex)
         local scoreStr = game.score.away .. " - " .. game.score.home
         local score = display.newText(sceneGroup, scoreStr, 0, y, native.systemFont, 16)
         score.x = x + imageSize + ((110 - score.width) / 2)
-        score:setFillColor(.922, .910, .329)
+        score:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     end
 
     if(regularSeason) then
         local awayRecordStr = "(" .. awayTeam.wins .. "-" .. awayTeam.losses .. ")"
         local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
-        awayRecord:setFillColor(.922, .910, .329)
+        awayRecord:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         local homeRecordStr = "(" .. homeTeam.wins .. "-" .. homeTeam.losses .. ")"
         local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
-        homeRecord:setFillColor(.922, .910, .329)
+        homeRecord:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     elseif(playoffs) then
         awayTeam = league:findPlayoffTeam(game.away)
         homeTeam = league:findPlayoffTeam(game.home)
 
         local awayRecordStr = awayTeam.wins
         local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
-        awayRecord:setFillColor(.922, .910, .329)
+        awayRecord:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         local homeRecordStr = homeTeam.wins
         local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
-        homeRecord:setFillColor(.922, .910, .329)
+        homeRecord:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         local awaySeed = display.newText(sceneGroup, awayTeam.seed, awayLogo.x - 5 - (awayLogo.width / 2), awayLogo.y, native.systemFont, 12)
-        awaySeed:setFillColor(.922, .910, .329)
+        awaySeed:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         local homeSeed = display.newText(sceneGroup, homeTeam.seed, homeLogo.x + 5 + (homeLogo.width / 2), homeLogo.y, native.systemFont, 12)
-        homeSeed:setFillColor(.922, .910, .329)
-
+        homeSeed:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     end
 end
 -- -----------------------------------------------------------------------------------
@@ -92,7 +91,7 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
     background:addEventListener("tap", nextScene)

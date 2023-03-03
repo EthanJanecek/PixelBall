@@ -78,13 +78,13 @@ local function showPlayerCard(player, initialX, initialY)
     end
 
     local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 6, display.contentHeight / 4)
-    playerBorder:setFillColor(0, 0, 0, 0)
+    playerBorder:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
     playerBorder:addEventListener("tap", choosePlayer)
-    playerBorder:setStrokeColor(0, 0, 0)
+    playerBorder:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
     playerBorder.strokeWidth = 2
 
     local playerName = display.newText(sceneGroup, getName(player.name), playerBorder.x, playerBorder.y - playerBorder.height / 2.5, native.systemFont, 12)
-    playerName:setFillColor(.922, .910, .329)
+    playerName:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     playerName:addEventListener("tap", choosePlayer)
 
     local paramStr = "DRB: " .. player.dribbling .. "  STL: " .. player.stealing .. 
@@ -96,7 +96,7 @@ local function showPlayerCard(player, initialX, initialY)
                         "\nSTMNA: " .. player.maxStamina .. "  POT: " .. player.potential
 
     local params = display.newText(sceneGroup, paramStr, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 16 + 8 * 2, native.systemFont, 8)
-    params:setFillColor(.922, .910, .329)
+    params:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     params:addEventListener("tap", choosePlayer)
 end
 
@@ -114,7 +114,7 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
@@ -151,11 +151,11 @@ function scene:create( event )
     end
 
     if(draftPage > 1) then
-        createButtonWithBorder(sceneGroup, "Previous", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, previousPage)
+        createButtonWithBorder(sceneGroup, "Previous", 16, 8, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, previousPage)
     end
 
     if(#draftPlayers > draftPage * 15) then
-        createButtonWithBorder(sceneGroup, "Next", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextPage)
+        createButtonWithBorder(sceneGroup, "Next", 16, display.contentWidth - 8, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextPage)
     end
 end
 

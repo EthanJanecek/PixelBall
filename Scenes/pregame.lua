@@ -101,7 +101,7 @@ local function teamInfo()
 end
 
 local function saveGame()
-    local path = getSaveDirectory()
+    local path = currentSaveFile
     local file, errorString = io.open(path, "w")
     
     if file then
@@ -110,6 +110,25 @@ local function saveGame()
     else
         print(errorString)
     end
+end
+
+local function reloadScene()
+    composer.gotoScene("Scenes.load_scene")
+end
+
+local function simSeason()
+    simulateMainGame = true
+
+    while league.weekNum < numDays do
+        league:nextWeek()
+    end
+
+    reloadScene()
+end
+
+local function simGame()
+    simulateMainGame = true
+    nextWeek()
 end
 
 -- -----------------------------------------------------------------------------------
@@ -122,6 +141,7 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     league:resetTeams()
+    simulateMainGame = false
 
     lineupSwitch = {-1, -1}
     score = {}
@@ -131,7 +151,7 @@ function scene:create( event )
     defenseStats = {}
     
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
@@ -150,7 +170,7 @@ function scene:create( event )
     if(regularSeason) then
         local dayStr = "Year: " .. league.year .. "    Day: " .. league.weekNum .. "/" .. numDays
         local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
-        day:setFillColor(.922, .910, .329)
+        day:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     elseif(playoffs) then
         local roundString = "Round 1"
         if(league.weekNum >= 10 and league.weekNum < 17) then
@@ -163,51 +183,57 @@ function scene:create( event )
 
         local dayStr = "Year: " .. league.year .. "    Playoffs - " .. roundString
         local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
-        day:setFillColor(.922, .910, .329)
+        day:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     else
         local dayStr = "Year: " .. league.year .. "    Play-In"
         local day = display.newText(sceneGroup, dayStr, display.contentCenterX, display.contentCenterY * .4, native.systemFont, 32)
-        day:setFillColor(.922, .910, .329)
+        day:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     end
 
     if(gameInfo == nil) then
         local title = "Off Day"
 
         local title = display.newText(sceneGroup, title, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 48)
-        title:setFillColor(.922, .910, .329)
+        title:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         createButtonWithBorder(sceneGroup, "Next Game", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
-                BLACK, BLACK, TRANSPARENT, nextWeek)
+                TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextWeek)
     else
-        local function simGame()
-            simulateMainGame = true
-            nextWeek()
-        end
-
         local titleStr = gameInfo.away .. " vs. " .. gameInfo.home
 
         local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 48)
-        title:setFillColor(.922, .910, .329)
+        title:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
-        createButtonWithBorder(sceneGroup, "Play", 32, display.contentCenterX * .67, display.contentCenterY * 1.2, 2, 
-                BLACK, BLACK, TRANSPARENT, toGame)
-        createButtonWithBorder(sceneGroup, "Sim Game", 32, display.contentCenterX * 1.33, display.contentCenterY * 1.2, 2,
-                BLACK, BLACK, TRANSPARENT, simGame)
+        createButtonWithBorder(sceneGroup, "Play", 32, display.contentWidth * .2, display.contentCenterY * 1.2, 2, 
+                TEXT_COLOR, TEXT_COLOR, TRANSPARENT, toGame)
+        createButtonWithBorder(sceneGroup, "Sim Game", 32, display.contentWidth * .5, display.contentCenterY * 1.2, 2,
+                TEXT_COLOR, TEXT_COLOR, TRANSPARENT, simGame)
         createButtonWithBorder(sceneGroup, "Change Lineup", 32, display.contentCenterX * .5, display.contentCenterY * 1.5, 2, 
-                BLACK, BLACK, TRANSPARENT, changeLineup)
+                TEXT_COLOR, TEXT_COLOR, TRANSPARENT, changeLineup)
         createButtonWithBorder(sceneGroup, "Create Plays", 32, display.contentCenterX * 1.5, display.contentCenterY * 1.5, 2, 
-                BLACK, BLACK, TRANSPARENT, createPlays)
+                TEXT_COLOR, TEXT_COLOR, TRANSPARENT, createPlays)
         createButtonWithBorder(sceneGroup, "Set Defense", 32, display.contentCenterX, display.contentCenterY * 1.8, 2, 
-                BLACK, BLACK, TRANSPARENT, setDefense)
+                TEXT_COLOR, TEXT_COLOR, TRANSPARENT, setDefense)
     end
 
-    createButtonWithBorder(sceneGroup, "Save Game", 32, 0, 20, 2, BLACK, BLACK, TRANSPARENT, saveGame)
-    createButtonWithBorder(sceneGroup, "Standings", 32, display.contentCenterX, 20, 2, BLACK, BLACK, TRANSPARENT, seeStandings)
-    createButtonWithBorder(sceneGroup, "Award Tracking", 32, display.contentWidth, 20, 2, BLACK, BLACK, TRANSPARENT, mvpTracker)
+    if(regularSeason and league.weekNum < numDays) then
+            createButtonWithBorder(sceneGroup, "Sim Season", 32, display.contentWidth * .9, display.contentCenterY * 1.2, 2,
+                TEXT_COLOR, TEXT_COLOR, TRANSPARENT, simSeason)
+        end
+
+    createButtonWithBorder(sceneGroup, "Save Game", 32, 0, 20, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, saveGame)
+    createButtonWithBorder(sceneGroup, "Standings", 32, display.contentCenterX, 20, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, seeStandings)
+    createButtonWithBorder(sceneGroup, "Award Tracking", 32, display.contentWidth, 20, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, mvpTracker)
     createButtonWithBorder(sceneGroup, "Settings", 32, display.contentCenterX * .2, display.contentCenterY * 1.8, 2, 
-            BLACK, BLACK, TRANSPARENT, settings)
-    createButtonWithBorder(sceneGroup, "Team Info", 32, display.contentCenterX * 1.8, display.contentCenterY * 1.8, 2, 
-            BLACK, BLACK, TRANSPARENT, teamInfo)
+            TEXT_COLOR, TEXT_COLOR, TRANSPARENT, settings)
+    
+    if(canLevelUp(league:findTeam(userTeam))) then
+        createButtonWithBorder(sceneGroup, "Team Info", 32, display.contentCenterX * 1.8, display.contentCenterY * 1.8, 2, 
+            TEXT_COLOR, RED, TRANSPARENT, teamInfo)
+    else
+        createButtonWithBorder(sceneGroup, "Team Info", 32, display.contentCenterX * 1.8, display.contentCenterY * 1.8, 2, 
+            TEXT_COLOR, TEXT_COLOR, TRANSPARENT, teamInfo)
+    end
 end
 
 

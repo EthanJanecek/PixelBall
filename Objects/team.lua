@@ -20,7 +20,10 @@ function team:create(name, abbrev, logo, conference, division, color, rosterData
         cap=SALARY_CAP_LEVEL_1,
         draftPosition=-1,
         playbook=PlaybookLib:createPlaybook(),
-        cityDesirability=desirability
+        cityDesirability=desirability,
+        playoffAppearances=0,
+        confFinalsAppearances=0,
+        finalsAppearances=0
     }, self)
 end
 
@@ -191,6 +194,16 @@ function calculateStarterOverall(teamObj)
     end
 
     return sum / 5
+end
+
+function canLevelUp(teamObj)
+    for i = 1, #teamObj.players do
+        if(teamObj.players[i].levels > 0) then
+            return true
+        end
+    end
+
+    return false
 end
 
 return team

@@ -54,7 +54,7 @@ function player:createRookie()
         exp = 0,
         levels = 0,
         last5 = {},
-        contract = ContractLib:createContract(2000000, 3)
+        contract = ContractLib:createContract(2000000, 4)
     }, self)
 end
 
@@ -112,7 +112,7 @@ end
 
 function calculateOverallSkills(playerTmp)
     local sumOverall = playerTmp.dribbling + playerTmp.closeShot + playerTmp.midRange + playerTmp.three + playerTmp.finishing + 
-            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior
+            playerTmp.stealing + playerTmp.blocking + playerTmp.contestingInterior + playerTmp.contestingExterior + playerTmp.levels
     local overall = sumOverall / 9.0
 
     return overall

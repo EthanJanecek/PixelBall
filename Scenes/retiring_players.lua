@@ -21,13 +21,13 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
     background:addEventListener("tap", nextScene)
 
 	local title = display.newText(sceneGroup, "Retiring Players", display.contentCenterX, 16, native.systemFont, 24)
-    title:setFillColor(.922, .910, .329)
+    title:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     for i = 1, #league.teams do
         local team = league.teams[i]
@@ -40,8 +40,8 @@ function scene:create( event )
                 local player = team.players[j]
 
                 if(player.years >= 18) then
-                    local name = display.newText(sceneGroup, player.name, display.contentCenterX, 64 + (playersRetired * 20), native.systemFont, 24)
-                    name:setFillColor(.922, .910, .329)
+                    local name = display.newText(sceneGroup, player.name, display.contentCenterX, 64 + (playersRetired * 20), native.systemFont, 18)
+                    name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
                     playersRetired = playersRetired + 1
                     table.remove(team.players, j)
                 end

@@ -9,14 +9,13 @@ system.activate( "multitouch" )
 local composer = require("composer")
 
 math.randomseed(os.time())
-androidDirectory = '/storage/emulated/0/Documents/save.json'
 
 
-function getSaveDirectory()
-    local path = system.pathForFile("save.json", system.DocumentsDirectory)
+function getSaveDirectory(num)
+    local path = system.pathForFile("save" .. num .. ".json", system.DocumentsDirectory)
 
     if(string.find(path, "/data/user")) then
-        return androidDirectory
+        return '/storage/emulated/0/Documents/save' .. num .. '.json'
     else
         return path
     end
@@ -69,6 +68,12 @@ OfferLib = require("Objects.offer")
 league = nil
 userTeam = ""
 lastScene = ""
+currentSaveFile = ""
+
+darkMode = true
+BACKGROUND_COLOR = BACKGROUND_DARK
+TEXT_COLOR = TEXT_DARK
+UTILITY_COLOR = BLUE
 
 -- Game Details
 score = {away=0, home=0}

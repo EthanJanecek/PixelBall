@@ -27,13 +27,13 @@ end
 
 local function displayString(text, x, y)
     local label = display.newText(sceneGroup, text, x, y, native.systemFont, 16)
-    label:setFillColor(.922, .910, .329)
+    label:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function displayAttributes()
     local y = 60
     if(player.finishing < 10) then
-        createButtonWithBorder(sceneGroup, "Finishing: " .. player.finishing, 16, 0, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Finishing: " .. player.finishing, 16, 0, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.finishing = player.finishing + 1
                     player.levels = player.levels - 1
@@ -45,7 +45,7 @@ local function displayAttributes()
     end
 
     if(player.closeShot < 10) then
-        createButtonWithBorder(sceneGroup, "Close Shot: " .. player.closeShot, 16, display.contentWidth * .33, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Close Shot: " .. player.closeShot, 16, display.contentWidth * .33, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.closeShot = player.closeShot + 1
                     player.levels = player.levels - 1
@@ -57,7 +57,7 @@ local function displayAttributes()
     end
 
     if(player.midRange < 10) then
-        createButtonWithBorder(sceneGroup, "Mid-Range: " .. player.midRange, 16, display.contentWidth * .67, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Mid-Range: " .. player.midRange, 16, display.contentWidth * .67, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.midRange = player.midRange + 1
                     player.levels = player.levels - 1
@@ -69,7 +69,7 @@ local function displayAttributes()
     end
 
     if(player.three < 10) then
-        createButtonWithBorder(sceneGroup, "3-PT: " .. player.three, 16, display.contentWidth, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "3-PT: " .. player.three, 16, display.contentWidth, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.three = player.three + 1
                     player.levels = player.levels - 1
@@ -82,7 +82,7 @@ local function displayAttributes()
 
     y = y + 30
     if(player.dribbling < 10) then
-        createButtonWithBorder(sceneGroup, "Dribbling: " .. player.dribbling, 16, 0, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Dribbling: " .. player.dribbling, 16, 0, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.dribbling = player.dribbling + 1
                     player.levels = player.levels - 1
@@ -94,7 +94,7 @@ local function displayAttributes()
     end
 
     if(player.stealing < 10) then
-        createButtonWithBorder(sceneGroup, "Stealing: " .. player.stealing, 16, display.contentWidth * .5, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Stealing: " .. player.stealing, 16, display.contentWidth * .5, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.stealing = player.stealing + 1
                     player.levels = player.levels - 1
@@ -106,7 +106,7 @@ local function displayAttributes()
     end
 
     if(player.blocking < 10) then
-        createButtonWithBorder(sceneGroup, "Blocking: " .. player.blocking, 16, display.contentWidth, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Blocking: " .. player.blocking, 16, display.contentWidth, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.blocking = player.blocking + 1
                     player.levels = player.levels - 1
@@ -119,7 +119,7 @@ local function displayAttributes()
 
     y = y + 30
     if(player.contestingInterior < 10) then
-        createButtonWithBorder(sceneGroup, "Interior Defending: " .. player.contestingInterior, 16, display.contentWidth * .25, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Interior Defending: " .. player.contestingInterior, 16, display.contentWidth * .25, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.contestingInterior = player.contestingInterior + 1
                     player.levels = player.levels - 1
@@ -127,11 +127,11 @@ local function displayAttributes()
                 end
             )
     else
-        displayString("Interior Defending: " .. player.contestingInterior, 0, y)
+        displayString("Interior Defending: " .. player.contestingInterior, display.contentWidth * .25, y)
     end
 
     if(player.contestingExterior < 10) then
-        createButtonWithBorder(sceneGroup, "Exterior Defending: " .. player.contestingExterior, 16, display.contentWidth * .75, y, 2, YELLOW, YELLOW, TRANSPARENT, 
+        createButtonWithBorder(sceneGroup, "Exterior Defending: " .. player.contestingExterior, 16, display.contentWidth * .75, y, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, 
                 function ()
                     player.contestingExterior = player.contestingExterior + 1
                     player.levels = player.levels - 1
@@ -139,7 +139,7 @@ local function displayAttributes()
                 end
             )
     else
-        displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .5, y)
+        displayString("Exterior Defending: " .. player.contestingExterior, display.contentWidth * .75, y)
     end
 end
 
@@ -147,7 +147,7 @@ local function showPlayer()
     -- Number + Name
     local nameStr = "#" .. player.number .. " - " .. player.name
     local startersLabel = display.newText(sceneGroup, nameStr, display.contentCenterX, 20, native.systemFont, 24)
-    startersLabel:setFillColor(.922, .910, .329)
+    startersLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     -- Attributes
     displayAttributes()
@@ -165,7 +165,7 @@ function scene:create( event )
     team = event.params.team
 
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 

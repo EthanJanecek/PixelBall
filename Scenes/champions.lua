@@ -69,7 +69,7 @@ local function findMVP()
 
 	mvp.playerObj.awards.mvp = mvp.playerObj.awards.mvp + 1
 	local name = display.newText(sceneGroup, "MVP: " .. mvp.name, display.contentCenterX, display.contentHeight * .25, native.systemFont, 16)
-	name:setFillColor(.922, .910, .329)
+	name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function find6MOTY()
@@ -136,7 +136,7 @@ local function find6MOTY()
 
 	smoty.playerObj.awards.smoty = smoty.playerObj.awards.smoty + 1
 	local name = display.newText(sceneGroup, "6MOTY: " .. smoty.name, display.contentCenterX, display.contentHeight * .4, native.systemFont, 16)
-	name:setFillColor(.922, .910, .329)
+	name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function findROTY()
@@ -204,7 +204,7 @@ local function findROTY()
 
 	roty.playerObj.awards.roty = roty.playerObj.awards.roty + 1
 	local name = display.newText(sceneGroup, "ROTY: " .. roty.name, display.contentCenterX, display.contentHeight * .55, native.systemFont, 16)
-	name:setFillColor(.922, .910, .329)
+	name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function findDPOTY()
@@ -264,7 +264,7 @@ local function findDPOTY()
 
 	dpoty.playerObj.awards.dpoty = dpoty.playerObj.awards.dpoty + 1
 	local name = display.newText(sceneGroup, "DPOTY: " .. dpoty.name, display.contentCenterX, display.contentHeight * .7, native.systemFont, 16)
-	name:setFillColor(.922, .910, .329)
+	name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function findFMVP(team)
@@ -321,7 +321,7 @@ local function findFMVP(team)
 
 	fmvp.playerObj.awards.fmvp = fmvp.playerObj.awards.fmvp + 1
 	local name = display.newText(sceneGroup, "FMVP: " .. fmvp.name, display.contentCenterX, display.contentHeight * .85, native.systemFont, 16)
-	name:setFillColor(.922, .910, .329)
+	name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function findAwardWinners()
@@ -349,7 +349,7 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
     background:addEventListener("tap", nextScene)
@@ -377,7 +377,7 @@ function scene:create( event )
 	end
 
 	local title = display.newText(sceneGroup, "World Champions: " .. winner, display.contentCenterX, display.contentHeight * .1, native.systemFont, 16)
-    title:setFillColor(.922, .910, .329)
+    title:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
 	findAwardWinners()
 	findFMVP(winningTeam)

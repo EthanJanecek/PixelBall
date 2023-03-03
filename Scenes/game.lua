@@ -3,7 +3,6 @@ local StickLib   = require("Objects.virtual_joystick")
 local composer = require("composer")
 local RouteLib = require("Objects.route")
 local PlayLib = require("Objects.play")
-local ShotLib = require("Objects.shot")
 
 local scene = composer.newScene()
 local sceneGroup = nil
@@ -417,8 +416,8 @@ end
 
 local function displayScore()
     local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 40/2, 2, 40)
-    dividerVertical:setStrokeColor(0, 0, 0)
-    dividerVertical:setFillColor(0, 0, 0)
+    dividerVertical:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    dividerVertical:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     local homeStr = opponent.abbrev
     local awayStr = team.abbrev
@@ -429,49 +428,49 @@ local function displayScore()
     end
 
     local awayLabel = display.newText(sceneGroup, awayStr, 9, 12, native.systemFont, 12)
-    awayLabel:setFillColor(.922, .910, .329)
+    awayLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local homeLabel = display.newText(sceneGroup, homeStr, 47, 12, native.systemFont, 12)
-    homeLabel:setFillColor(.922, .910, .329)
+    homeLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local scoreLabelDividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 20, 78, 2)
-    scoreLabelDividerHorizontal:setStrokeColor(0, 0, 0)
-    scoreLabelDividerHorizontal:setFillColor(0, 0, 0)
+    scoreLabelDividerHorizontal:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    scoreLabelDividerHorizontal:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     scoreboard.away = display.newText(sceneGroup, score.away, 9, 27, native.systemFont, 12)
-    scoreboard.away:setFillColor(.922, .910, .329)
+    scoreboard.away:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     scoreboard.home = display.newText(sceneGroup, score.home, 47, 27, native.systemFont, 12)
-    scoreboard.home:setFillColor(.922, .910, .329)
+    scoreboard.home:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local scoreDividerHorizontal = display.newRect(sceneGroup, 25 + (8 / 2), 40, 78, 8)
-    scoreDividerHorizontal:setStrokeColor(0, 0, 0)
-    scoreDividerHorizontal:setFillColor(0, 0, 0)
+    scoreDividerHorizontal:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    scoreDividerHorizontal:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 end
 
 local function displayTime()
     scoreboard.time = display.newText(sceneGroup, string.format("%02d", gameDetails.min) .. ":" .. string.format("%02d", gameDetails.sec), 25, 33 + 24, native.systemFont, 24)
-    scoreboard.time:setFillColor(.922, .910, .329)
+    scoreboard.time:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     dividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 70, 78, 2)
-    dividerHorizontal:setStrokeColor(0, 0, 0)
-    dividerHorizontal:setFillColor(0, 0, 0)
+    dividerHorizontal:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    dividerHorizontal:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 70 + (30 / 2), 2, 30)
-    dividerVertical:setStrokeColor(0, 0, 0)
-    dividerVertical:setFillColor(0, 0, 0)
+    dividerVertical:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    dividerVertical:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     scoreboard.qtr = display.newText(sceneGroup, getQuarterString(), 9, 65 + 20, native.systemFont, 20)
-    scoreboard.qtr:setFillColor(.922, .910, .329)
+    scoreboard.qtr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     scoreboard.shotClock = display.newText(sceneGroup, string.format("%02d", gameDetails.shotClock), 47, 65 + 20, native.systemFont, 20)
-    scoreboard.shotClock:setFillColor(.922, .910, .329)
+    scoreboard.shotClock:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function displayScoreboard()
     local scoreboardOutline = display.newRect(sceneGroup, 27, 52, 78, 100)
-    scoreboardOutline:setStrokeColor(0, 0, 0)
-    scoreboardOutline:setFillColor(0, 0, 0, 0)
+    scoreboardOutline:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    scoreboardOutline:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
     scoreboardOutline.strokeWidth = 4
 
     displayScore()
@@ -480,7 +479,7 @@ end
 
 local function clearScoreboard()
     local clearRect = display.newRect(sceneGroup, 27, 52, 78, 100)
-    clearRect:setFillColor(.286, .835, .961)
+    clearRect:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     clearRect.strokeWidth = 4
 end
 
@@ -520,7 +519,7 @@ function endPossession()
         local message = ""
 
         local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-        background:setFillColor(.286, .835, .961)
+        background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
         background.x = display.contentCenterX
         background.y = display.contentCenterY
 
@@ -572,7 +571,7 @@ function endPossession()
         end
 
         local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY, native.systemFont, 32)
-        displayMessage:setFillColor(.922, .910, .329)
+        displayMessage:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
         displayScoreboard()
 
         background:addEventListener("tap", reset)
@@ -586,7 +585,7 @@ local function shootTime()
     if(diff < maxTime) then
         local height = 150.0 * diff / maxTime
         local powerBar = display.newRect(sceneGroup, bounds.maxX + 45, 235 - height / 2, 25, height)
-        powerBar:setStrokeColor(0, 0, 0, 0)
+        powerBar:setStrokeColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
         powerBar:setFillColor(47 / 255.0, 209 / 255.0, 25 / 255.0)
 
         if(holdingShoot) then
@@ -815,8 +814,8 @@ local function displayShotBar()
 
     -- Create shot power bar
     local shotBar = display.newRect(sceneGroup, bounds.maxX + 45, 160, 25, 150)
-    shotBar:setStrokeColor(0, 0, 0)
-    shotBar:setFillColor(0, 0, 0, 0)
+    shotBar:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    shotBar:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
     shotBar.strokeWidth = 2
 end
 
@@ -839,18 +838,18 @@ end
 
 local function displayNames()
     local teamName = display.newText(sceneGroup, team.name, bounds.maxX + 100, 20, native.systemFont, 8)
-    teamName:setFillColor(0, 0, 0)
+    teamName:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     for i = 1, 5 do
         local player = team.players[i]
         local playerName = display.newText(sceneGroup, getNameStr(player), bounds.maxX + 100, 20 + 10 * i, native.systemFont, 8)
 
         if(staminaPercent(player) >= .75) then
-            playerName:setFillColor(0, 1, 0)
+            playerName:setFillColor(STMNA_GREEN[1], STMNA_GREEN[2], STMNA_GREEN[3])
         elseif(staminaPercent(player) >= .5) then
-            playerName:setFillColor(1, 1, 0)
+            playerName:setFillColor(STMNA_YELLOW[1], STMNA_YELLOW[2], STMNA_YELLOW[3])
         else
-            playerName:setFillColor(1, 0, 0)
+            playerName:setFillColor(STMNA_RED[1], STMNA_RED[2], STMNA_RED[3])
         end
 
         local streak = getStreak(player)
@@ -874,18 +873,18 @@ local function displayNames()
     end
 
     local opponentName = display.newText(sceneGroup, opponent.name, bounds.maxX + 100, display.contentCenterY * 2/3, native.systemFont, 8)
-    opponentName:setFillColor(0, 0, 0)
+    opponentName:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     for i = 1, 5 do
         local player = opponent.players[i]
         local playerName = display.newText(sceneGroup, getNameStr(player), bounds.maxX + 100, display.contentCenterY * 2/3 + 10 * i, native.systemFont, 8)
 
         if(staminaPercent(player) >= .75) then
-            playerName:setFillColor(0, 1, 0)
+            playerName:setFillColor(STMNA_GREEN[1], STMNA_GREEN[2], STMNA_GREEN[3])
         elseif(staminaPercent(player) >= .5) then
-            playerName:setFillColor(1, 1, 0)
+            playerName:setFillColor(STMNA_YELLOW[1], STMNA_YELLOW[2], STMNA_YELLOW[3])
         else
-            playerName:setFillColor(1, 0, 0)
+            playerName:setFillColor(STMNA_RED[1], STMNA_RED[2], STMNA_RED[3])
         end
 
         local streak = getStreak(player)
@@ -1616,7 +1615,7 @@ end
 
 local function setBackdrop()
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 

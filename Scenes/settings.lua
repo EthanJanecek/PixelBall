@@ -77,16 +77,16 @@ local function displayNumGamesSetting(i)
 	end
 
 	local option = display.newText(sceneGroup, str, display.contentWidth * (i * 2) / 6, display.contentHeight / 5, native.systemFont, fontSize)
-    option:setFillColor(.922, .910, .329)
+    option:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
 	local optionBorder = display.newRect(sceneGroup, option.x, option.y, option.width, option.height)
-    optionBorder:setFillColor(0, 0, 0, 0)
+    optionBorder:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
 
 	if(numGamesSetting == i) then
-        optionBorder:setStrokeColor(0, 0, 1)
+        optionBorder:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
         optionBorder.strokeWidth = 4
     else
-        optionBorder:setStrokeColor(.922, .910, .329)
+        optionBorder:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
         optionBorder.strokeWidth = 2
     end
 
@@ -98,7 +98,7 @@ end
 
 local function numGames()
 	local str = display.newText(sceneGroup, "Number of Games: ", 0, display.contentHeight / 5, native.systemFont, fontSize)
-    str:setFillColor(.922, .910, .329)
+    str:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
 	for i = 1, 3 do
 		displayNumGamesSetting(i)
@@ -121,25 +121,25 @@ local function displayDifficultySetting(i)
 	end
 
 	local option = display.newText(sceneGroup, str, display.contentWidth * (i * 2) / 6, display.contentHeight * 2 / 5, native.systemFont, fontSize)
-    option:setFillColor(.922, .910, .329)
+    option:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     option:addEventListener("tap", selectDifficulty)
 
 	local optionBorder = display.newRect(sceneGroup, option.x, option.y, option.width, option.height)
-    optionBorder:setFillColor(0, 0, 0, 0)
+    optionBorder:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
     optionBorder:addEventListener("tap", selectDifficulty)
 
 	if(difficultySetting == i) then
-        optionBorder:setStrokeColor(0, 0, 1)
+        optionBorder:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
         optionBorder.strokeWidth = 4
     else
-        optionBorder:setStrokeColor(.922, .910, .329)
+        optionBorder:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
         optionBorder.strokeWidth = 2
     end
 end
 
 local function difficulty()
 	local str = display.newText(sceneGroup, "Difficulty: ", 0, display.contentHeight * 2 / 5, native.systemFont, fontSize)
-    str:setFillColor(.922, .910, .329)
+    str:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
 	for i = 1, 3 do
 		displayDifficultySetting(i)
@@ -162,28 +162,63 @@ local function displayMinutesInQuarterSetting(i)
 	end
 
 	local option = display.newText(sceneGroup, str, display.contentWidth * (i * 2) / 6, display.contentHeight * 3 / 5, native.systemFont, fontSize)
-    option:setFillColor(.922, .910, .329)
+    option:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     option:addEventListener("tap", selectMinutes)
 
 	local optionBorder = display.newRect(sceneGroup, option.x, option.y, option.width, option.height)
-    optionBorder:setFillColor(0, 0, 0, 0)
+    optionBorder:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
     optionBorder:addEventListener("tap", selectMinutes)
 
 	if(minutesInQtrSetting == i) then
-        optionBorder:setStrokeColor(0, 0, 1)
+        optionBorder:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
         optionBorder.strokeWidth = 4
     else
-        optionBorder:setStrokeColor(.922, .910, .329)
+        optionBorder:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
         optionBorder.strokeWidth = 2
     end
 end
 
 local function minutesInQuarter()
 	local str = display.newText(sceneGroup, "Minutes per Quarter: ", 0, display.contentHeight * 3 / 5, native.systemFont, fontSize)
-    str:setFillColor(.922, .910, .329)
+    str:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
 	for i = 1, 3 do
 		displayMinutesInQuarterSetting(i)
+	end
+end
+
+local function changeDarkMode()
+	if(darkMode) then
+		BACKGROUND_COLOR = BACKGROUND_LIGHT
+		TEXT_COLOR = TEXT_LIGHT
+		UTILITY_COLOR = BLACK
+
+		STMNA_RED = {1, 0, 0, 1}
+		STMNA_YELLOW = {1, 1, 0, 1}
+		STMNA_GREEN = {0, 1, 0}
+		RED = {1, 0, 0, 1}
+	else
+		BACKGROUND_COLOR = BACKGROUND_DARK
+		TEXT_COLOR = TEXT_DARK
+		UTILITY_COLOR = BLUE
+
+		STMNA_RED = {.75, 0, 0, 1}
+		STMNA_YELLOW = {.75, .75, 0, 1}
+		STMNA_GREEN = {0, .75, 0}
+		RED = {.5, 0, 0, 1}
+	end
+
+	darkMode = not darkMode
+	redraw()
+end
+
+local function darkModeSetting()
+	if(darkMode) then
+		createButtonWithBorder(sceneGroup, "Light Mode", fontSize, 0, display.contentHeight * .8, 4, 
+			TEXT_COLOR, UTILITY_COLOR, TRANSPARENT, changeDarkMode)
+	else
+		createButtonWithBorder(sceneGroup, "Dark Mode", fontSize, 0, display.contentHeight * .8, 4, 
+			TEXT_COLOR, UTILITY_COLOR, TRANSPARENT, changeDarkMode)
 	end
 end
 
@@ -197,22 +232,23 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
 	if(event.params and event.params.leagueStarted) then
 		leagueStarted = true
 		createButtonWithBorder(sceneGroup, "Apply", fontSize, display.contentCenterX, display.contentHeight * .8, 2, 
-				BLACK, BLACK, TRANSPARENT, back)
+				TEXT_COLOR, TEXT_COLOR, TRANSPARENT, back)
 	else
 		createButtonWithBorder(sceneGroup, "Choose Team", fontSize, display.contentCenterX, display.contentHeight * .8, 2, 
-				BLACK, BLACK, TRANSPARENT, nextScene)
+				TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
 	end
 
 	numGames()
 	difficulty()
 	minutesInQuarter()
+	darkModeSetting()
 end
 
 

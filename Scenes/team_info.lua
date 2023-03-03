@@ -164,11 +164,11 @@ end
 
 local function gameLog()
     if(findPreviousGameWeek().day ~= -1) then
-        createButtonWithBorder(sceneGroup, "<- Last Game", 16, 0, display.contentHeight * .5, 2, BLACK, BLACK, TRANSPARENT, lastGame)
+        createButtonWithBorder(sceneGroup, "<- Last Game", 16, 0, display.contentHeight * .5, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, lastGame)
     end
 
     if(findNextGameWeek().day ~= -1) then
-        createButtonWithBorder(sceneGroup, "Next Game ->", 16, display.contentWidth, display.contentHeight * .5, 2, BLACK, BLACK, TRANSPARENT, nextGame)
+        createButtonWithBorder(sceneGroup, "Next Game ->", 16, display.contentWidth, display.contentHeight * .5, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextGame)
     end
 
     local gameInfo = league:findGameInfo(league.schedule[week], team.name)
@@ -191,8 +191,17 @@ local function gameLog()
     
         local scoreStr = gameInfo.score.away .. " - " .. gameInfo.score.home
         local score = display.newText(sceneGroup, scoreStr, display.contentWidth * .5, display.contentHeight * .5, native.systemFont, 16)
-        score:setFillColor(.922, .910, .329)
+        score:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     end
+
+    local playoffStr = display.newText(sceneGroup, "Playoff Appearances: " .. team.playoffAppearances, display.contentWidth * .5, display.contentHeight * .7, native.systemFont, 16)
+    playoffStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+
+    local confFinalStr = display.newText(sceneGroup, "Conference Finals Appearances: " .. team.confFinalsAppearances, display.contentWidth * .5, display.contentHeight * .8, native.systemFont, 16)
+    confFinalStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+
+    local finalStr = display.newText(sceneGroup, "Finals Appearances: " .. team.finalsAppearances, display.contentWidth * .5, display.contentHeight * .9, native.systemFont, 16)
+    finalStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function checkIfSeasonCanStart()
@@ -228,39 +237,43 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    createButtonWithBorder(sceneGroup, "Roster", 16, display.contentCenterX, 8, 2, BLACK, BLACK, TRANSPARENT, roster)
+    if(canLevelUp(team)) then
+        createButtonWithBorder(sceneGroup, "Roster", 16, display.contentCenterX, 8, 2, TEXT_COLOR, RED, TRANSPARENT, roster)
+    else
+        createButtonWithBorder(sceneGroup, "Roster", 16, display.contentCenterX, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, roster)
+    end
 
     if(not preseason and not freeAgency) then
-        createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, back)
-        createButtonWithBorder(sceneGroup, "Change Team", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, changeTeam)
+        createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, back)
+        createButtonWithBorder(sceneGroup, "Change Team", 16, display.contentWidth - 8, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, changeTeam)
     elseif(freeAgency) then
-        createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, freeAgencyBack)
+        createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, freeAgencyBack)
     else
         if(checkIfSeasonCanStart()) then
-            createButtonWithBorder(sceneGroup, "Start Season", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, seasonStart)
+            createButtonWithBorder(sceneGroup, "Start Season", 16, 0, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, seasonStart)
         else
             local options = display.newText(sceneGroup, "1. Team must be under cap\n2. Team can't have more than 15 players\n3.Team can't have any outstanding free agents", display.contentCenterX, display.contentHeight * .75, native.systemFont, 16)
-            options:setFillColor(.922, .910, .329)
+            options:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
         end
     end
 
     local name = display.newText(sceneGroup, team.name, display.contentCenterX, 35, native.systemFont, 24)
-    name:setFillColor(.922, .910, .329)
+    name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local recordStr = "Record: " .. team.wins .. " - " .. team.losses
     local record = display.newText(sceneGroup, recordStr, display.contentWidth * .33, 65, native.systemFont, 16)
-    record:setFillColor(.922, .910, .329)
+    record:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local rings = display.newText(sceneGroup, "Rings: " .. team.rings, display.contentWidth * .67, 65, native.systemFont, 16)
-    rings:setFillColor(.922, .910, .329)
+    rings:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local capStr = "Cap Hit: $" .. formatContractMoney(calculateCap(team)) .. " / $" .. formatContractMoney(team.cap)
     local cap = display.newText(sceneGroup, capStr, display.contentWidth * .5, 85, native.systemFont, 16)
-    cap:setFillColor(.922, .910, .329)
+    cap:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     gameLog()
 end

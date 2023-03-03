@@ -90,32 +90,32 @@ end
 
 local function drawHeaders()
     local westLabel = display.newText(sceneGroup, "West", display.contentCenterX * .5, 20, native.systemFont, 24)
-    westLabel:setFillColor(.922, .910, .329)
+    westLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local eastLabel = display.newText(sceneGroup, "East", display.contentCenterX * 1.25, 20, native.systemFont, 24)
-    eastLabel:setFillColor(.922, .910, .329)
+    eastLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal = display.newRect(sceneGroup, display.contentCenterX, 32, display.contentWidth * 1.5, 2)
-    dividerHorizontal:setStrokeColor(.922, .910, .329)
-    dividerHorizontal:setFillColor(.922, .910, .329)
+    dividerHorizontal:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function drawTeam(team, row)
     local padding = 24
     if(team.conf == "West") then
         local name = display.newText(sceneGroup, team.name, display.contentCenterX * .5, 16 * row + padding, native.systemFont, 12)
-        name:setFillColor(.922, .910, .329)
+        name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         local recordStr = "(" .. team.wins .. "-" .. team.losses .. ")"
         local record = display.newText(sceneGroup, recordStr, display.contentCenterX * .75, 16 * row + padding, native.systemFont, 12)
-        record:setFillColor(.922, .910, .329)
+        record:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     else
         local name = display.newText(sceneGroup, team.name, display.contentCenterX * 1.25, 16 * row + padding, native.systemFont, 12)
-        name:setFillColor(.922, .910, .329)
+        name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         local recordStr = "(" .. team.wins .. "-" .. team.losses .. ")"
         local record = display.newText(sceneGroup, recordStr, display.contentCenterX * 1.5, 16 * row + padding, native.systemFont, 12)
-        record:setFillColor(.922, .910, .329)
+        record:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     end
 end
 
@@ -133,17 +133,17 @@ local function showSeries(team1, team2, xIndex, yIndex)
 
     local awayRecordStr = team1.wins
     local awayRecord = display.newText(sceneGroup, awayRecordStr, x, y + (imageSize / 2) + 6, native.systemFont, 12)
-    awayRecord:setFillColor(.922, .910, .329)
+    awayRecord:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local homeRecordStr = team2.wins
     local homeRecord = display.newText(sceneGroup, homeRecordStr, x + 100, y + (imageSize / 2) + 6, native.systemFont, 12)
-    homeRecord:setFillColor(.922, .910, .329)
+    homeRecord:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local awaySeed = display.newText(sceneGroup, team1.seed, awayLogo.x - 5 - (awayLogo.width / 2), awayLogo.y, native.systemFont, 12)
-    awaySeed:setFillColor(.922, .910, .329)
+    awaySeed:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local homeSeed = display.newText(sceneGroup, team2.seed, homeLogo.x + 5 + (homeLogo.width / 2), homeLogo.y, native.systemFont, 12)
-    homeSeed:setFillColor(.922, .910, .329)
+    homeSeed:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function drawPlayoffStandings()
@@ -179,11 +179,11 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
+    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
 
     drawHeaders()
 

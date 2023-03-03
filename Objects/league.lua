@@ -49,8 +49,8 @@ function league:createLeague()
     }, self)
 end
 
-function league:createFromSave()
-    local path = getSaveDirectory()
+function league:createFromSave(num)
+    local path = getSaveDirectory(num)
     local file = io.open(path, "r")
     
 	local contents = file:read("*a")
@@ -68,6 +68,25 @@ function league:createFromSave()
     self.__index = self
 
     return setmetatable(t, self)
+end
+
+function league:getSaveDetails(num)
+    local path = getSaveDirectory(num)
+    local file = io.open(path, "r")
+
+    if(file) then
+        local contents = file:read("*a")
+        local t = json.decode(contents)
+        
+        return {
+            team = t.userTeam,
+            regularSeason = t.regularSeason,
+            week = t.weekNum,
+            year = t.year
+        }
+    else
+        return nil
+    end
 end
 
 local function setInitialTeamCapLevel(team)
@@ -466,6 +485,9 @@ function league:firstRoundSchedule()
         local team1 = self.playoffTeams.east[i].team
         local team2 = self.playoffTeams.east[9 - i].team
 
+        self:findTeam(team1).playoffAppearances = self:findTeam(team1).playoffAppearances + 1
+        self:findTeam(team2).playoffAppearances = self:findTeam(team2).playoffAppearances + 1
+
         table.insert(self.playoffs[3], {away=team2, home=team1, score={}})
         table.insert(self.playoffs[4], {away=team2, home=team1, score={}})
 
@@ -480,6 +502,9 @@ function league:firstRoundSchedule()
     for i = 1, 4 do
         local team1 = self.playoffTeams.west[i].team
         local team2 = self.playoffTeams.west[9 - i].team
+
+        self:findTeam(team1).playoffAppearances = self:findTeam(team1).playoffAppearances + 1
+        self:findTeam(team2).playoffAppearances = self:findTeam(team2).playoffAppearances + 1
 
         table.insert(self.playoffs[3], {away=team2, home=team1, score={}})
         table.insert(self.playoffs[4], {away=team2, home=team1, score={}})
@@ -621,6 +646,9 @@ function league:conferenceChampionshipSchedule()
     local team1 = self.playoffTeams.east[1].team
     local team2 = self.playoffTeams.east[2].team
 
+    self:findTeam(team1).confFinalsAppearances = self:findTeam(team1).confFinalsAppearances + 1
+    self:findTeam(team2).confFinalsAppearances = self:findTeam(team2).confFinalsAppearances + 1
+
     table.insert(self.playoffs[startGameIndex], {away=team2, home=team1, score={}})
     table.insert(self.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
 
@@ -633,6 +661,9 @@ function league:conferenceChampionshipSchedule()
 
     team1 = self.playoffTeams.west[1].team
     team2 = self.playoffTeams.west[2].team
+
+    self:findTeam(team1).confFinalsAppearances = self:findTeam(team1).confFinalsAppearances + 1
+    self:findTeam(team2).confFinalsAppearances = self:findTeam(team2).confFinalsAppearances + 1
 
     table.insert(self.playoffs[startGameIndex], {away=team2, home=team1, score={}})
     table.insert(self.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
@@ -661,6 +692,9 @@ function league:finalsSchedule()
         team1 = self.playoffTeams.west[1].team
         team2 = self.playoffTeams.east[1].team
     end
+
+    self:findTeam(team1).finalsAppearances = self:findTeam(team1).finalsAppearances + 1
+    self:findTeam(team2).finalsAppearances = self:findTeam(team2).finalsAppearances + 1
 
     table.insert(self.playoffs[startGameIndex], {away=team2, home=team1, score={}})
     table.insert(self.playoffs[startGameIndex + 1], {away=team2, home=team1, score={}})
@@ -773,7 +807,7 @@ function league:giveExp(teamName)
     for i = 1, #team.players do
         local player = team.players[i]
 
-        if(player and calculateOverall(player) < 10 and calculateOverall(player) < player.potential) then
+        if(player and calculateOverallSkills(player) < 10 and calculateOverallSkills(player) < player.potential) then
             local exp = calculatePlayerExp(player)
             player.exp = player.exp + exp
 
@@ -842,7 +876,6 @@ function league:nextWeek()
         end
     end
 
-    simulateMainGame = false
     self.weekNum = self.weekNum + 1
     self:createNewStats()
 end

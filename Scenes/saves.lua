@@ -1,44 +1,59 @@
-local composer = require( "composer" )
-local scene = composer.newScene()
 
+local composer = require( "composer" )
+
+local scene = composer.newScene()
 local sceneGroup = nil
-local strategyNames = {"Overall", "Speed", "Interior\nDefending", "Exterior\nDefending", "Height"}
+local new = true
 
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
-local function nextScene()
-    composer.gotoScene(lastScene)
+local function newGame(num)
+    currentSaveFile = getSaveDirectory(num)
+    composer.gotoScene("Scenes.settings")
 end
 
-local function redraw()
-    composer.gotoScene("Scenes.load_scene")
+local function loadGame(num)
+    currentSaveFile = getSaveDirectory(num)
+    league = LeagueLib:createFromSave(num)
+    composer.gotoScene("Scenes.pregame")
 end
 
-local function showPlayerCard(name, initialX, initialY, i)
-    local function selectPlayer()
-        defensiveStrategy = i
-        redraw()
+local function displaySave(num)
+    local function choose()
+        if(new) then
+            newGame(num)
+        else
+            loadGame(num)
+        end
     end
 
-    local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 8, display.contentHeight / 8)
-    playerBorder:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
-    playerBorder:addEventListener("tap", selectPlayer)
+    local details = LeagueLib:getSaveDetails(num)
 
-    if(defensiveStrategy == i) then
-        playerBorder:setStrokeColor(0, 0, 1)
-        playerBorder.strokeWidth = 4
+    if(details) then
+        local playoffStr = ""
+        if(not details.regularSeason) then
+            playoffStr = "Playoff "
+        end
+        local str = details.team .. "\n" .. playoffStr .. "Week " .. details.week .. "\nYear " ..details.year
+
+        if(new) then
+            createButtonWithBorder(sceneGroup, str, 18, display.contentWidth * (num / 4), display.contentCenterY, 4, TEXT_COLOR, RED, TRANSPARENT, choose)
+        else
+            createButtonWithBorder(sceneGroup, str, 18, display.contentWidth * (num / 4), display.contentCenterY, 4, TEXT_COLOR, RED, TRANSPARENT, choose)
+        end
     else
-        playerBorder:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
-        playerBorder.strokeWidth = 2
+        local str = "Empty"
+
+        if(new) then
+            createButtonWithBorder(sceneGroup, str, 18, display.contentWidth * (num / 4), display.contentCenterY, 4, TEXT_COLOR, RED, TRANSPARENT, choose)
+        else
+            createButtonWithBorder(sceneGroup, str, 18, display.contentWidth * (num / 4), display.contentCenterY, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nil)
+        end
     end
-
-    local playerName = display.newText(sceneGroup, name, playerBorder.x, playerBorder.y, native.systemFont, 12)
-    playerName:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
-    playerName:addEventListener("tap", selectPlayer)
+    
 end
-
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -46,21 +61,16 @@ end
 -- create()
 function scene:create( event )
 	sceneGroup = self.view
+    new = event.params.new
 
-    if(composer.getSceneName("previous") ~= composer.getSceneName("current") and composer.getSceneName("previous") ~= "Scenes.load_scene") then
-        lastScene = composer.getSceneName("previous")
-    end
-
-	-- Code here runs when the scene is first created but has not yet appeared on screen
-    local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
+	-- Code here runs when the scene is first created but has not yet appeared on screen	
+	local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
     background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
-
-    for i = 1, 5 do
-        showPlayerCard(strategyNames[i], display.contentWidth * i / 6, display.contentHeight / 5, i)
+    for i = 1, 3 do
+        displaySave(i)
     end
 end
 
@@ -73,7 +83,7 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-        local previous = composer.getSceneName("previous")
+		local previous = composer.getSceneName("previous")
 		composer.removeScene(previous)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen

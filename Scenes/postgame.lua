@@ -106,19 +106,19 @@ function scene:create( event )
 	end
 
 	local title = display.newText(sceneGroup, titleStr, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 48)
-    title:setFillColor(.922, .910, .329)
+    title:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 	
 	local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
 	createButtonWithBorder(sceneGroup, "Next Game", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
-			BLACK, BLACK, TRANSPARENT, nextScene)
+			TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
 
 	if(#qtrScores > 0) then
 		createButtonWithBorder(sceneGroup, "Box Score", 32, display.contentCenterX, display.contentCenterY * 1.5, 2, 
-				BLACK, BLACK, TRANSPARENT, boxScoreScene)
+				TEXT_COLOR, TEXT_COLOR, TRANSPARENT, boxScoreScene)
 	end
 end
 

@@ -114,7 +114,7 @@ end
 
 local function setBackdrop()
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
@@ -122,9 +122,9 @@ local function setBackdrop()
     backgroundImage.x = display.contentCenterX
     backgroundImage.y = display.contentCenterY
 
-    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 10, 2, BLACK, BLACK, TRANSPARENT, nextScene)
-    createButtonWithBorder(sceneGroup, "Clear", 16, 8, 50, 2, BLACK, BLACK, TRANSPARENT, clearScreen)
-    createButtonWithBorder(sceneGroup, "Save", 16, 8, 90, 2, BLACK, BLACK, TRANSPARENT, saveRoute)
+    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 10, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
+    createButtonWithBorder(sceneGroup, "Clear", 16, 8, 50, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, clearScreen)
+    createButtonWithBorder(sceneGroup, "Save", 16, 8, 90, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, saveRoute)
 end
 
 -- -----------------------------------------------------------------------------------

@@ -61,8 +61,8 @@ end
 
 local function displayScore()
     local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 40/2, 2, 40)
-    dividerVertical:setStrokeColor(0, 0, 0)
-    dividerVertical:setFillColor(0, 0, 0)
+    dividerVertical:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    dividerVertical:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     local homeStr = opponent.abbrev
     local awayStr = team.abbrev
@@ -73,49 +73,49 @@ local function displayScore()
     end
 
     local awayLabel = display.newText(sceneGroup, awayStr, 9, 12, native.systemFont, 12)
-    awayLabel:setFillColor(.922, .910, .329)
+    awayLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local homeLabel = display.newText(sceneGroup, homeStr, 47, 12, native.systemFont, 12)
-    homeLabel:setFillColor(.922, .910, .329)
+    homeLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local scoreLabelDividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 20, 78, 2)
-    scoreLabelDividerHorizontal:setStrokeColor(0, 0, 0)
-    scoreLabelDividerHorizontal:setFillColor(0, 0, 0)
+    scoreLabelDividerHorizontal:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    scoreLabelDividerHorizontal:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     scoreboard.away = display.newText(sceneGroup, score.away, 9, 27, native.systemFont, 12)
-    scoreboard.away:setFillColor(.922, .910, .329)
+    scoreboard.away:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     scoreboard.home = display.newText(sceneGroup, score.home, 47, 27, native.systemFont, 12)
-    scoreboard.home:setFillColor(.922, .910, .329)
+    scoreboard.home:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local scoreDividerHorizontal = display.newRect(sceneGroup, 25 + (8 / 2), 40, 78, 8)
-    scoreDividerHorizontal:setStrokeColor(0, 0, 0)
-    scoreDividerHorizontal:setFillColor(0, 0, 0)
+    scoreDividerHorizontal:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    scoreDividerHorizontal:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 end
 
 local function displayTime()
     scoreboard.time = display.newText(sceneGroup, string.format("%02d", gameDetails.min) .. ":" .. string.format("%02d", gameDetails.sec), 25, 33 + 24, native.systemFont, 24)
-    scoreboard.time:setFillColor(.922, .910, .329)
+    scoreboard.time:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     dividerHorizontal = display.newRect(sceneGroup, 25 + (2 / 2), 70, 78, 2)
-    dividerHorizontal:setStrokeColor(0, 0, 0)
-    dividerHorizontal:setFillColor(0, 0, 0)
+    dividerHorizontal:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    dividerHorizontal:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     local dividerVertical = display.newRect(sceneGroup, 25 + (2 / 2), 70 + (30 / 2), 2, 30)
-    dividerVertical:setStrokeColor(0, 0, 0)
-    dividerVertical:setFillColor(0, 0, 0)
+    dividerVertical:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    dividerVertical:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
 
     scoreboard.qtr = display.newText(sceneGroup, getQuarterString(), 9, 65 + 20, native.systemFont, 20)
-    scoreboard.qtr:setFillColor(.922, .910, .329)
+    scoreboard.qtr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     scoreboard.shotClock = display.newText(sceneGroup, string.format("%02d", gameDetails.shotClock), 47, 65 + 20, native.systemFont, 20)
-    scoreboard.shotClock:setFillColor(.922, .910, .329)
+    scoreboard.shotClock:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function displayScoreboard()
     local scoreboardOutline = display.newRect(sceneGroup, 27, 52, 78, 100)
-    scoreboardOutline:setStrokeColor(0, 0, 0)
-    scoreboardOutline:setFillColor(0, 0, 0, 0)
+    scoreboardOutline:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
+    scoreboardOutline:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
     scoreboardOutline.strokeWidth = 4
 
     displayScore()
@@ -124,7 +124,7 @@ end
 
 local function simulateDefense()
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
@@ -134,7 +134,7 @@ local function simulateDefense()
         if(ranOutOfTime) then
             local message = opponent.abbrev .. " didn't get the shot off in time"
             local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 20)
-            displayMessage:setFillColor(.922, .910, .329)
+            displayMessage:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
             displayScoreboard()
         else
@@ -149,11 +149,11 @@ local function simulateDefense()
 
             local message = playResult.player.name .. " (" .. opponent.abbrev .. ") scored " .. points .. " points"
             local displayMessage = display.newText(sceneGroup, message, display.contentCenterX, display.contentCenterY * .75, native.systemFont, 20)
-            displayMessage:setFillColor(.922, .910, .329)
+            displayMessage:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
             local message2 = playResult.message .. " by " .. playResult.defender.name
             local displayMessage2 = display.newText(sceneGroup, message2, display.contentCenterX, display.contentCenterY * .95, native.systemFont, 20)
-            displayMessage2:setFillColor(.922, .910, .329)
+            displayMessage2:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
             gameClockSubtract(playResult.time - 6)
             displayScoreboard()
@@ -161,11 +161,11 @@ local function simulateDefense()
     end  
 
     createButtonWithBorder(sceneGroup, "Change Lineup", 32, display.contentCenterX, display.contentCenterY * 1.2, 2, 
-            BLACK, BLACK, TRANSPARENT, changeLineup)
+            TEXT_COLOR, TEXT_COLOR, TRANSPARENT, changeLineup)
     createButtonWithBorder(sceneGroup, "Create Plays", 32, display.contentCenterX, display.contentCenterY * 1.5, 2, 
-            BLACK, BLACK, TRANSPARENT, createPlays)
+            TEXT_COLOR, TEXT_COLOR, TRANSPARENT, createPlays)
     createButtonWithBorder(sceneGroup, "Set Defense", 32, display.contentCenterX, display.contentCenterY * 1.8, 2, 
-            BLACK, BLACK, TRANSPARENT, setDefense)
+            TEXT_COLOR, TEXT_COLOR, TRANSPARENT, setDefense)
 
     background:addEventListener("tap", offense)
 end
@@ -179,7 +179,7 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 

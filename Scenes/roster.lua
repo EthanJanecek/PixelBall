@@ -93,12 +93,12 @@ local function showPlayerCard(player, initialX, initialY, i)
     end
 
     local playerBorder = display.newRect(sceneGroup, initialX, initialY, display.contentWidth / 8, display.contentHeight / 4)
-    playerBorder:setFillColor(0, 0, 0, 0)
+    playerBorder:setFillColor(TRANSPARENT[1], TRANSPARENT[2], TRANSPARENT[3], TRANSPARENT[4])
     playerBorder:addEventListener("tap", choosePlayer)
 
     if(preseason) then
         if(player.contract.length > 0) then
-            playerBorder:setStrokeColor(0, 0, 0)
+            playerBorder:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
             playerBorder.strokeWidth = 2
         else
             playerBorder:setStrokeColor(0, 0, 1)
@@ -106,21 +106,21 @@ local function showPlayerCard(player, initialX, initialY, i)
         end
     else
         if(player.levels <= 0 or calculateOverallSkills(player) >= 10) then
-            playerBorder:setStrokeColor(0, 0, 0)
+            playerBorder:setStrokeColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
             playerBorder.strokeWidth = 2
         else
-            playerBorder:setStrokeColor(1, 0, 0)
+            playerBorder:setStrokeColor(RED[1], RED[2], RED[3])
             playerBorder.strokeWidth = 4
         end
     end
 
     if(i <= 5) then
         local positionStr = display.newText(sceneGroup, positions[i], initialX, initialY + (playerBorder.height / 2) + 10, native.systemFont, 16)
-        positionStr:setFillColor(0, 0, 0)
+        positionStr:setFillColor(UTILITY_COLOR[1], UTILITY_COLOR[2], UTILITY_COLOR[3])
     end
 
     local playerName = display.newText(sceneGroup, player.number .. " " .. getName(player.name), playerBorder.x, playerBorder.y - playerBorder.height / 2.5, native.systemFont, 12)
-    playerName:setFillColor(.922, .910, .329)
+    playerName:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     playerName:addEventListener("tap", choosePlayer)
 
     local paramStr =  "SPD: " .. player.speed .. "DRB: " .. player.dribbling .. 
@@ -132,7 +132,7 @@ local function showPlayerCard(player, initialX, initialY, i)
                         "\nSTMNA: " .. string.format("%.1f", player.stamina) .. "/" .. player.maxStamina
 
     local params = display.newText(sceneGroup, paramStr, playerBorder.x, playerBorder.y - (playerBorder.height / 3) + 16 + 8 * 2, native.systemFont, 8)
-    params:setFillColor(.922, .910, .329)
+    params:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     params:addEventListener("tap", choosePlayer)
 end
 
@@ -160,19 +160,19 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
     displayPlayerStatsView = false
 
 	local startersLabel = display.newText(sceneGroup, "Starters", display.contentCenterX, 12, native.systemFont, 24)
-    startersLabel:setFillColor(.922, .910, .329)
+    startersLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local benchLabel = display.newText(sceneGroup, "Bench", display.contentCenterX, display.contentHeight / 3 + 27,  native.systemFont, 24)
-    benchLabel:setFillColor(.922, .910, .329)
+    benchLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
-    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
+    createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
     
     chosenTeam = event.params.team
     for i = 1, #chosenTeam.players do

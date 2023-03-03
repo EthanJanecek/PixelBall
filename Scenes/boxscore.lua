@@ -39,130 +39,130 @@ end
 
 local function displayQtrBreakdownHeader()
     local dividerHorizontal = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent, 4, qtrWidth, 2)
-    dividerHorizontal:setStrokeColor(.922, .910, .329)
-    dividerHorizontal:setFillColor(.922, .910, .329)
+    dividerHorizontal:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal2 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent, 25 + 4, qtrWidth, 2)
-    dividerHorizontal2:setStrokeColor(.922, .910, .329)
-    dividerHorizontal2:setFillColor(.922, .910, .329)
+    dividerHorizontal2:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal2:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal3 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent, 50 + 4, qtrWidth, 2)
-    dividerHorizontal3:setStrokeColor(.922, .910, .329)
-    dividerHorizontal3:setFillColor(.922, .910, .329)
+    dividerHorizontal3:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal3:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     if(userIsHome) then
         local awayName = display.newText(sceneGroup, opponent.abbrev, display.contentCenterX * qtrOffsetPercent, 6 + fontSize / 2, native.systemFont, fontSize)
-        awayName:setFillColor(.922, .910, .329)
+        awayName:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         local homeName = display.newText(sceneGroup, team.abbrev, display.contentCenterX * qtrOffsetPercent, 31 + fontSize / 2, native.systemFont, fontSize)
-        homeName:setFillColor(.922, .910, .329)
+        homeName:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     else
         local homeName = display.newText(sceneGroup, team.abbrev, display.contentCenterX * qtrOffsetPercent, 6 + fontSize / 2, native.systemFont, fontSize)
-        homeName:setFillColor(.922, .910, .329)
+        homeName:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
         local awayName = display.newText(sceneGroup, opponent.abbrev, display.contentCenterX * qtrOffsetPercent, 31 + fontSize / 2, native.systemFont, fontSize)
-        awayName:setFillColor(.922, .910, .329)
+        awayName:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     end
 
     local awayScore = display.newText(sceneGroup, score.away, display.contentCenterX * qtrOffsetPercent + qtrWidth, 6 + fontSize / 2, native.systemFont, fontSize)
-    awayScore:setFillColor(.922, .910, .329)
+    awayScore:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local homeScore = display.newText(sceneGroup, score.home, display.contentCenterX * qtrOffsetPercent + qtrWidth, 31 + fontSize / 2, native.systemFont, fontSize)
-    homeScore:setFillColor(.922, .910, .329)
+    homeScore:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerVertical = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent - (qtrWidth / 2), (50 + 6) / 2, 2, 50)
-    dividerVertical:setStrokeColor(.922, .910, .329)
-    dividerVertical:setFillColor(.922, .910, .329)
+    dividerVertical:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerVertical:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerVertical2 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth - (qtrWidth / 2), (50 + 6) / 2, 2, 50)
-    dividerVertical2:setStrokeColor(.922, .910, .329)
-    dividerVertical2:setFillColor(.922, .910, .329)
+    dividerVertical2:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerVertical2:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerVertical3 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * 2 - (qtrWidth / 2), (50 + 6) / 2, 4, 50)
-    dividerVertical3:setStrokeColor(.922, .910, .329)
-    dividerVertical3:setFillColor(.922, .910, .329)
+    dividerVertical3:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerVertical3:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal4 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth, 4, qtrWidth, 2)
-    dividerHorizontal4:setStrokeColor(.922, .910, .329)
-    dividerHorizontal4:setFillColor(.922, .910, .329)
+    dividerHorizontal4:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal4:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal5 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth, 25 + 4, qtrWidth, 2)
-    dividerHorizontal5:setStrokeColor(.922, .910, .329)
-    dividerHorizontal5:setFillColor(.922, .910, .329)
+    dividerHorizontal5:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal5:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal6 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth, 50 + 4, qtrWidth, 2)
-    dividerHorizontal6:setStrokeColor(.922, .910, .329)
-    dividerHorizontal6:setFillColor(.922, .910, .329)
+    dividerHorizontal6:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal6:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function displayQtrBreakdown(scores, i)
     local dividerHorizontal = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 4, qtrWidth, 2)
-    dividerHorizontal:setStrokeColor(.922, .910, .329)
-    dividerHorizontal:setFillColor(.922, .910, .329)
+    dividerHorizontal:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal2 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 25 + 4, qtrWidth, 2)
-    dividerHorizontal2:setStrokeColor(.922, .910, .329)
-    dividerHorizontal2:setFillColor(.922, .910, .329)
+    dividerHorizontal2:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal2:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal3 = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 50 + 4, qtrWidth, 2)
-    dividerHorizontal3:setStrokeColor(.922, .910, .329)
-    dividerHorizontal3:setFillColor(.922, .910, .329)
+    dividerHorizontal3:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal3:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local awayScore = display.newText(sceneGroup, scores[1], display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 6 + fontSize / 2, native.systemFont, fontSize)
-    awayScore:setFillColor(.922, .910, .329)
+    awayScore:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local homeScore = display.newText(sceneGroup, scores[2], display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 1), 31 + fontSize / 2, native.systemFont, fontSize)
-    homeScore:setFillColor(.922, .910, .329)
+    homeScore:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerVertical = display.newRect(sceneGroup, display.contentCenterX * qtrOffsetPercent + qtrWidth * (i + 2) - (qtrWidth / 2), (50 + 6) / 2, 2, 50)
-    dividerVertical:setStrokeColor(.922, .910, .329)
-    dividerVertical:setFillColor(.922, .910, .329)
+    dividerVertical:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerVertical:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function displayHeader()
     local name = display.newText(sceneGroup, "Name", display.contentWidth * statPositions[1] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    name:setFillColor(.922, .910, .329)
+    name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local pts = display.newText(sceneGroup, "Pts", display.contentWidth * statPositions[2] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    pts:setFillColor(.922, .910, .329)
+    pts:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local twoPM = display.newText(sceneGroup, "2PM", display.contentWidth * statPositions[3] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    twoPM:setFillColor(.922, .910, .329)
+    twoPM:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local twoPA = display.newText(sceneGroup, "2PA", display.contentWidth * statPositions[4] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    twoPA:setFillColor(.922, .910, .329)
+    twoPA:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local threePM = display.newText(sceneGroup, "3PM", display.contentWidth * statPositions[5] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    threePM:setFillColor(.922, .910, .329)
+    threePM:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local threePA = display.newText(sceneGroup, "3PA", display.contentWidth * statPositions[6] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    threePA:setFillColor(.922, .910, .329)
+    threePA:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local blocks = display.newText(sceneGroup, "BLK", display.contentWidth * statPositions[7] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    blocks:setFillColor(.922, .910, .329)
+    blocks:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local steals = display.newText(sceneGroup, "STL", display.contentWidth * statPositions[8] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    steals:setFillColor(.922, .910, .329)
+    steals:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local turnovers = display.newText(sceneGroup, "TRV", display.contentWidth * statPositions[9] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    turnovers:setFillColor(.922, .910, .329)
+    turnovers:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local plusMinus = display.newText(sceneGroup, "+/-", display.contentWidth * statPositions[10] + paddingX, 
                     paddingY, native.systemFont, fontSize)
-    plusMinus:setFillColor(.922, .910, .329)
+    plusMinus:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local dividerHorizontal = display.newRect(sceneGroup, display.contentCenterX, paddingY + 4, display.contentWidth * 1.5, 2)
-    dividerHorizontal:setStrokeColor(.922, .910, .329)
-    dividerHorizontal:setFillColor(.922, .910, .329)
+    dividerHorizontal:setStrokeColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    dividerHorizontal:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function showPlayerStats(player, row)
@@ -170,43 +170,43 @@ local function showPlayerStats(player, row)
 
     local name = display.newText(sceneGroup, player.name, display.contentWidth * statPositions[1] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    name:setFillColor(.922, .910, .329)
+    name:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local pts = display.newText(sceneGroup, stats.points, display.contentWidth * statPositions[2] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    pts:setFillColor(.922, .910, .329)
+    pts:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local twoPM = display.newText(sceneGroup, stats.twoPM, display.contentWidth * statPositions[3] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    twoPM:setFillColor(.922, .910, .329)
+    twoPM:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local twoPA = display.newText(sceneGroup, stats.twoPA, display.contentWidth * statPositions[4] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    twoPA:setFillColor(.922, .910, .329)
+    twoPA:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local threePM = display.newText(sceneGroup, stats.threePM, display.contentWidth * statPositions[5] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    threePM:setFillColor(.922, .910, .329)
+    threePM:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local threePA = display.newText(sceneGroup, stats.threePA, display.contentWidth * statPositions[6] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    threePA:setFillColor(.922, .910, .329)
+    threePA:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local blocks = display.newText(sceneGroup, stats.blocks, display.contentWidth * statPositions[7] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    blocks:setFillColor(.922, .910, .329)
+    blocks:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local steals = display.newText(sceneGroup, stats.steals, display.contentWidth * statPositions[8] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    steals:setFillColor(.922, .910, .329)
+    steals:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local turnovers = display.newText(sceneGroup, stats.turnovers, display.contentWidth * statPositions[9] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    turnovers:setFillColor(.922, .910, .329)
+    turnovers:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local plusMinus = display.newText(sceneGroup, stats.plusMinus, display.contentWidth * statPositions[10] + paddingX, 
                     row * rowDist + paddingY, native.systemFont, fontSize)
-    plusMinus:setFillColor(.922, .910, .329)
+    plusMinus:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 
@@ -220,12 +220,12 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
     local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
-    createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
-    createButtonWithBorder(sceneGroup, "Switch Team", 16, 0, 40, 2, BLACK, BLACK, TRANSPARENT, switchTeam)
+    createButtonWithBorder(sceneGroup, "<- Back", 16, 0, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
+    createButtonWithBorder(sceneGroup, "Switch Team", 16, 0, 40, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, switchTeam)
 
     displayHeader()
     displayQtrBreakdownHeader()

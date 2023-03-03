@@ -43,7 +43,7 @@ end
 
 local function displayString(text, x, y)
     local label = display.newText(sceneGroup, text, x, y, native.systemFont, 16)
-    label:setFillColor(.922, .910, .329)
+    label:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 end
 
 local function showContractOptions()
@@ -68,11 +68,11 @@ local function showContractOptions()
     displayString(formatContractMoney(salaryOptions[salaryIndex]), display.contentCenterX, display.contentHeight * .25)
 
     if(salaryIndex ~= 1) then
-        createButtonWithBorder(sceneGroup, "<-", 16, display.contentWidth * .35, display.contentHeight * .25, 2, BLACK, BLACK, TRANSPARENT, lastContractValue)
+        createButtonWithBorder(sceneGroup, "<-", 16, display.contentWidth * .35, display.contentHeight * .25, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, lastContractValue)
     end
 
     if(salaryIndex ~= #salaryOptions) then
-        createButtonWithBorder(sceneGroup, "->", 16, display.contentWidth * .65, display.contentHeight * .25, 2, BLACK, BLACK, TRANSPARENT, nextContractValue)
+        createButtonWithBorder(sceneGroup, "->", 16, display.contentWidth * .65, display.contentHeight * .25, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextContractValue)
     end
 
     -- Length Selector
@@ -80,11 +80,11 @@ local function showContractOptions()
     displayString(lengthIndex, display.contentCenterX, display.contentHeight * .45)
 
     if(lengthIndex ~= 1) then
-        createButtonWithBorder(sceneGroup, "<-", 16, display.contentWidth * .35, display.contentHeight * .45, 2, BLACK, BLACK, TRANSPARENT, lastYearsValue)
+        createButtonWithBorder(sceneGroup, "<-", 16, display.contentWidth * .35, display.contentHeight * .45, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, lastYearsValue)
     end
 
     if(lengthIndex ~= #lengthOptions) then
-        createButtonWithBorder(sceneGroup, "->", 16, display.contentWidth * .65, display.contentHeight * .45, 2, BLACK, BLACK, TRANSPARENT, nextYearsValue)
+        createButtonWithBorder(sceneGroup, "->", 16, display.contentWidth * .65, display.contentHeight * .45, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextYearsValue)
     end
 end
 
@@ -103,13 +103,13 @@ function scene:create( event )
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen	
 	local background = display.newRect(sceneGroup, 0, 0, 800, 1280)
-    background:setFillColor(.286, .835, .961)
+    background:setFillColor(BACKGROUND_COLOR[1], BACKGROUND_COLOR[2], BACKGROUND_COLOR[3])
     background.x = display.contentCenterX
     background.y = display.contentCenterY
 
     local nameStr = "#" .. player.number .. " - " .. player.name .. " - Year " .. player.years
     local startersLabel = display.newText(sceneGroup, nameStr, display.contentCenterX, 24, native.systemFont, 24)
-    startersLabel:setFillColor(.922, .910, .329)
+    startersLabel:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
     local fairSalary = calculateFairSalary(player)
     table.insert(salaryOptions, fairSalary)
@@ -126,9 +126,9 @@ function scene:create( event )
     salaryIndex = event.params.salary or indexOf(salaryOptions, fairSalary)
     lengthIndex = event.params.length or 4
 
-	createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, BLACK, BLACK, TRANSPARENT, nextScene)
+	createButtonWithBorder(sceneGroup, "<- Back", 16, 8, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, nextScene)
     if(canSubmitOffer()) then
-        createButtonWithBorder(sceneGroup, "Submit Offer", 16, display.contentWidth - 8, 8, 2, BLACK, BLACK, TRANSPARENT, submit)
+        createButtonWithBorder(sceneGroup, "Submit Offer", 16, display.contentWidth - 8, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, submit)
     end
     showContractOptions()
 end
