@@ -198,7 +198,8 @@ end
 
 function canLevelUp(teamObj)
     for i = 1, #teamObj.players do
-        if(teamObj.players[i].levels > 0) then
+        local player = teamObj.players[i]
+        if(player.levels > 0 and calculateOverallSkills(player) < player.potential) then
             return true
         end
     end

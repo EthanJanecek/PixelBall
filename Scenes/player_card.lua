@@ -438,7 +438,9 @@ function scene:create( event )
 
     if(team.name == userTeam) then
         if(player.contract.length > 0) then
-            createButtonWithBorder(sceneGroup, "Cut", 16, display.contentCenterX, display.contentHeight - 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, cutPlayer)
+            if(#team.players > 5) then
+                createButtonWithBorder(sceneGroup, "Cut", 16, display.contentCenterX, display.contentHeight - 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, cutPlayer)
+            end
         else
             createButtonWithBorder(sceneGroup, "Re-Sign", 16, display.contentWidth * .33, display.contentHeight - 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, reSign)
             createButtonWithBorder(sceneGroup, "Reject", 16, display.contentWidth * .67, display.contentHeight - 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, reject)

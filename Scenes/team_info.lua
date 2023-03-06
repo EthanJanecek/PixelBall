@@ -194,18 +194,20 @@ local function gameLog()
         score:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     end
 
-    local playoffStr = display.newText(sceneGroup, "Playoff Appearances: " .. team.playoffAppearances, display.contentWidth * .5, display.contentHeight * .7, native.systemFont, 16)
-    playoffStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    if(not freeAgency) then
+        local playoffStr = display.newText(sceneGroup, "Playoff Appearances: " .. team.playoffAppearances, display.contentWidth * .5, display.contentHeight * .7, native.systemFont, 16)
+        playoffStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
-    local confFinalStr = display.newText(sceneGroup, "Conference Finals Appearances: " .. team.confFinalsAppearances, display.contentWidth * .5, display.contentHeight * .8, native.systemFont, 16)
-    confFinalStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+        local confFinalStr = display.newText(sceneGroup, "Conference Finals Appearances: " .. team.confFinalsAppearances, display.contentWidth * .5, display.contentHeight * .8, native.systemFont, 16)
+        confFinalStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
-    local finalStr = display.newText(sceneGroup, "Finals Appearances: " .. team.finalsAppearances, display.contentWidth * .5, display.contentHeight * .9, native.systemFont, 16)
-    finalStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+        local finalStr = display.newText(sceneGroup, "Finals Appearances: " .. team.finalsAppearances, display.contentWidth * .5, display.contentHeight * .9, native.systemFont, 16)
+        finalStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
+    end
 end
 
 local function checkIfSeasonCanStart()
-    if(#team.players > 15) then
+    if(#team.players > 15 or #team.players < 5) then
         return false
     end
 
@@ -256,7 +258,7 @@ function scene:create( event )
         if(checkIfSeasonCanStart()) then
             createButtonWithBorder(sceneGroup, "Start Season", 16, 0, 8, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, seasonStart)
         else
-            local options = display.newText(sceneGroup, "1. Team must be under cap\n2. Team can't have more than 15 players\n3.Team can't have any outstanding free agents", display.contentCenterX, display.contentHeight * .75, native.systemFont, 16)
+            local options = display.newText(sceneGroup, "1. Team must be under cap\n2. Team must have between 5-15 players\n3.Team can't have any outstanding free agents", display.contentCenterX, display.contentHeight * .75, native.systemFont, 16)
             options:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
         end
     end

@@ -126,6 +126,28 @@ local function simSeason()
     reloadScene()
 end
 
+local function simPlayoffs()
+    simulateMainGame = true
+    
+    while league.weekNum < 30 do
+        league:nextWeek()
+
+        if(not regularSeason and league.weekNum == 2) then
+            league:playinRoundTwo()
+        elseif(not regularSeason and league.weekNum == 3) then
+            league:firstRound()
+        elseif(not regularSeason and league.weekNum == 10) then
+            league:secondRound()
+        elseif(not regularSeason and league.weekNum == 17) then
+            league:conferenceChampionship()
+        elseif(not regularSeason and league.weekNum == 24) then
+            league:finals()
+        end
+    end
+
+    reloadScene()
+end
+
 local function simGame()
     simulateMainGame = true
     nextWeek()
@@ -217,9 +239,12 @@ function scene:create( event )
     end
 
     if(regularSeason and league.weekNum < numDays) then
-            createButtonWithBorder(sceneGroup, "Sim Season", 32, display.contentWidth * .9, display.contentCenterY * 1.2, 2,
-                TEXT_COLOR, TEXT_COLOR, TRANSPARENT, simSeason)
-        end
+        createButtonWithBorder(sceneGroup, "Sim Season", 32, display.contentWidth * .9, display.contentCenterY * 1.2, 2,
+            TEXT_COLOR, TEXT_COLOR, TRANSPARENT, simSeason)
+    elseif(not regularSeason and league.weekNum < 30) then
+        createButtonWithBorder(sceneGroup, "Sim Playoffs", 32, display.contentWidth * .9, display.contentCenterY * 1.2, 2,
+            TEXT_COLOR, TEXT_COLOR, TRANSPARENT, simPlayoffs)
+    end
 
     createButtonWithBorder(sceneGroup, "Save Game", 32, 0, 20, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, saveGame)
     createButtonWithBorder(sceneGroup, "Standings", 32, display.contentCenterX, 20, 2, TEXT_COLOR, TEXT_COLOR, TRANSPARENT, seeStandings)
