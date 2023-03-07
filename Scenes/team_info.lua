@@ -194,7 +194,7 @@ local function gameLog()
         score:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
     end
 
-    if(not freeAgency) then
+    if(not preseason) then
         local playoffStr = display.newText(sceneGroup, "Playoff Appearances: " .. team.playoffAppearances, display.contentWidth * .5, display.contentHeight * .7, native.systemFont, 16)
         playoffStr:setFillColor(TEXT_COLOR[1], TEXT_COLOR[2], TEXT_COLOR[3])
 
